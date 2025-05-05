@@ -12,8 +12,8 @@ export default function Lowongan() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // Data untuk kartu ringkasan
-  const jobData = [
+  // Data untuk kartu ringkasan (summary cards) - hanya berisi informasi untuk tampilan kartu
+  const summaryCardsData = [
     {
       id: 1,
       title: "Total Lowongan",
@@ -21,20 +21,23 @@ export default function Lowongan() {
       color: "orange",
       iconType: "people",
       chartData: [10, 12, 15, 14, 16, 17, 18, 20],
-      company: "PT. HUMMA TECHNOLOGY INDONESIA",
-      location: "Malang, Indonesia",
-      description: "Perusahaan ini bergerak di bidang Informasi dan Teknologi untuk perkembangan Industri",
-      address: "Jl. Pemuda Kaffa Blok. 20 No.5",
-      quota: "250 Orang",
-      status: "Berlangsung",
-      pendaftar: "60/150",
-      durasi: "15 Juni - 15 Juli 2025",
-      lokasiPenempatan: "Surabaya, Indonesia",
-      website: "hummatech.co.id",
-      instagram: "@hummatech.co.id",
-      linkedin: "@hummatech.co.id",
     },
-    // Data lainnya...
+    {
+      id: 2,
+      title: "Total Lowongan Berlangsung",
+      count: 105,
+      color: "yellow",
+      iconType: "chart",
+      chartData: [5, 7, 10, 12, 13, 15, 14, 15],
+    },
+    {
+      id: 3,
+      title: "Total Lowongan Selesai",
+      count: 5,
+      color: "blue",
+      iconType: "document",
+      chartData: [2, 3, 3, 4, 4, 5, 5, 5],
+    }
   ];
 
   // Data untuk tabel lowongan
@@ -51,8 +54,6 @@ export default function Lowongan() {
       durasi: "15 Juni - 15 Juli 2025",
       lokasiPenempatan: "Surabaya, Indonesia",
       website: "hummatech.co.id",
-      instagram: "@hummatech.co.id",
-      linkedin: "@hummatech.co.id",
     },
     // Data lainnya...
   ];
@@ -60,23 +61,39 @@ export default function Lowongan() {
   // Filter table data based on selected status filter
   const filteredData = sortStatus === "All" ? tableData : tableData.filter((job) => job.status === sortStatus);
 
-  const handleCardClick = (job) => {
-    setSelectedJob(job); // Set selected job
-  };
+  // Removed handleCardClick since cards should not be clickable
 
   const handleChevronClick = (jobId) => {
-    const job = tableData.find((job) => job.id === jobId);
-    setSelectedJob(job); // Set selected job on chevron click
+    // Toggle selection: If already selected, deselect it. Otherwise, select the job
+    if (selectedJob && selectedJob.id === jobId) {
+      setSelectedJob(null);
+    } else {
+      const job = tableData.find((job) => job.id === jobId);
+      setSelectedJob(job);
+    }
   };
+  
+  // Fungsi untuk menutup panel detail, akan diteruskan ke JobDetail
+  const handleCloseDetail = () => {
+    setSelectedJob(null);
+  };
+  
+  // Untuk memastikan bahwa card summary tidak lagi dikaitkan dengan detail lowongan
 
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className={`flex transition-all duration-500 ${selectedJob ? "flex-row" : "flex-col"}`}>
         <div className={`${selectedJob ? "w-2/3 pr-4" : "w-full"} transition-all duration-300`}>
-          {/* Job Summary Cards */}
+          {/* Job Summary Cards - using summaryCardsData */}
           <div className={`grid ${selectedJob ? "grid-cols-3" : "grid-cols-1 md:grid-cols-3"} gap-4 mb-6`}>
-            {jobData.map((job) => (
-              <JobCard key={job.id} job={job} onClick={() => handleCardClick(job)} isActive={selectedJob && selectedJob.id === job.id} />
+            {summaryCardsData.map((summaryCard) => (
+              <JobCard 
+                key={summaryCard.id} 
+                job={summaryCard}
+                 
+                // Non-clickable cards
+                isActive={false} 
+              />
             ))}
           </div>
 
@@ -123,7 +140,10 @@ export default function Lowongan() {
                       <td className="p-4 text-sm">{job.quota}</td>
                       <td className="p-4 flex items-center gap-2">
                         <span className={`px-3 py-1 text-xs rounded-full font-medium ${job.status === "Berlangsung" ? "bg-orange-100 text-orange-500" : "bg-emerald-100 text-emerald-500"}`}>{job.status}</span>
-                        <ChevronRight onClick={() => handleChevronClick(job.id)} className={`w-4 h-4 cursor-pointer transition-transform ${selectedJob && selectedJob.id === job.id ? "rotate-90 text-orange-500" : "text-gray-400"}`} />
+                        <ChevronRight 
+                          onClick={() => handleChevronClick(job.id)} 
+                          className={`w-4 h-4 cursor-pointer transition-transform ${selectedJob && selectedJob.id === job.id ? "rotate-90 text-orange-500" : "text-gray-400"}`} 
+                        />
                       </td>
                     </tr>
                   ))}
@@ -134,7 +154,12 @@ export default function Lowongan() {
         </div>
 
         {/* Tampilkan Detail Job */}
-        {selectedJob && !showModal && <JobDetail job={selectedJob} />}
+        {selectedJob && !showModal && (
+          <JobDetail 
+            job={selectedJob} 
+            onClose={handleCloseDetail} // Menambahkan prop onClose
+          />
+        )}
       </div>
 
       {/* Tampilkan Modal AddJobModal */}

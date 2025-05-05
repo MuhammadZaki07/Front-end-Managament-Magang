@@ -1,7 +1,54 @@
 import React from 'react';
 import Chart from 'react-apexcharts';
+import { Users, BarChart2, FileText } from "lucide-react";
 
 const JobCard = ({ job, onClick, isActive }) => {
+  // Helper untuk mendapatkan warna yang sesuai
+  const getColor = (colorName) => {
+    const colorMap = {
+      'orange': {
+        bg: 'bg-orange-100',
+        text: 'text-orange-500',
+        hex: '#f97316'
+      },
+      'yellow': {
+        bg: 'bg-yellow-100',
+        text: 'text-yellow-600',
+        hex: '#ca8a04'
+      },
+      'blue': {
+        bg: 'bg-blue-100',
+        text: 'text-blue-500',
+        hex: '#3b82f6'
+      },
+      // Fallback untuk nilai lain
+      'default': {
+        bg: 'bg-gray-100',
+        text: 'text-gray-500',
+        hex: '#6b7280'
+      }
+    };
+    
+    return colorMap[colorName] || colorMap.default;
+  };
+  
+  // Mendapatkan warna untuk komponen
+  const colorStyles = getColor(job.color);
+  
+  // Render ikon berdasarkan iconType
+  const renderIcon = (iconType) => {
+    switch(iconType) {
+      case 'people':
+        return <Users className="w-6 h-6" />;
+      case 'chart':
+        return <BarChart2 className="w-6 h-6" />;
+      case 'document':
+        return <FileText className="w-6 h-6" />;
+      default:
+        return <Users className="w-6 h-6" />;
+    }
+  };
+
   const chartOptions = {
     chart: {
       type: 'line',
@@ -18,7 +65,7 @@ const JobCard = ({ job, onClick, isActive }) => {
         speed: 800
       }
     },
-    colors: [job.color === 'orange' ? '#f97316' : job.color === 'indigo' ? '#6366f1' : '#10b981'],
+    colors: [colorStyles.hex],
     stroke: {
       width: 2,
       curve: 'smooth'
@@ -70,19 +117,9 @@ const JobCard = ({ job, onClick, isActive }) => {
       onClick={onClick}
     >
       <div className="flex items-center gap-3 mb-2">
-        <div className={`p-2 rounded-lg ${
-          job.color === 'orange' ? 'bg-orange-100' : 
-          job.color === 'indigo' ? 'bg-indigo-100' : 
-          'bg-emerald-100'
-        }`}>
-          <div className={`w-6 h-6 flex items-center justify-center ${
-            job.color === 'orange' ? 'text-orange-500' : 
-            job.color === 'indigo' ? 'text-indigo-500' : 
-            'text-emerald-500'
-          }`}>
-            {job.iconType === "people" && <i className="bi bi-people-fill"></i>}
-            {job.iconType === "display" && <i className="bi bi-bar-chart-line-fill"></i>}
-            {job.iconType === "graduate" && <i className="bi bi-mortarboard-fill"></i>}
+        <div className={`p-2 rounded-lg ${colorStyles.bg}`}>
+          <div className={colorStyles.text}>
+            {renderIcon(job.iconType)}
           </div>
         </div>
         <span className="text-sm font-medium">{job.title}</span>

@@ -1,13 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { X, Building, TrendingUp, Users, Calendar, MapPin, Instagram, Globe, Linkedin, AlertTriangle } from "lucide-react";
 
 const JobDetail = ({ job, onClose }) => {
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  
   if (!job) return null;
   
   // Add ESC key handler to close the detail panel
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === 'Escape') {
-        onClose();
+        onClose && onClose();
       }
     };
     
@@ -27,12 +30,36 @@ const JobDetail = ({ job, onClose }) => {
   // Added company description if not present
   const description = job.description || "Perusahaan ini bergerak di bidang Informasi dan Teknologi untuk perkembangan Industri";
   
+  // Function to open confirmation modal
+  const handleTutupClick = () => {
+    setShowConfirmationModal(true);
+  };
+  
+  // Function to close confirmation modal
+  const closeModal = () => {
+    setShowConfirmationModal(false);
+  };
+  
+  // Function to confirm closing the job vacancy
+  const confirmClose = () => {
+    // Here you would add the logic to actually close the job vacancy
+    console.log("Job vacancy has been closed");
+    closeModal();
+    if (onClose) {
+      onClose();
+    }
+  };
+  
   return (
-    <div className="bg-white rounded-xl p-6 shadow-lg h-fit sticky top-4">
+    <div className="bg-white rounded-xl p-6 shadow-lg h-fit sticky top-4 w-1/3">
+      {/* Main Content */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Detail Lowongan</h2>
-        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-          <i className="bi bi-x-lg"></i>
+        <button 
+          onClick={onClose} 
+          className="text-gray-500 hover:text-gray-700"
+        >
+          <X className="w-5 h-5" />
         </button>
       </div>
       
@@ -45,7 +72,7 @@ const JobDetail = ({ job, onClose }) => {
         <div className="relative -mt-8 flex justify-center">
           <div className="w-16 h-16 bg-white rounded-full p-1 shadow-md">
             <div className="w-full h-full rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
-              <i className="bi bi-building text-blue-500 text-xl"></i>
+              <Building className="text-blue-500 w-8 h-8" />
             </div>
           </div>
         </div>
@@ -61,7 +88,7 @@ const JobDetail = ({ job, onClose }) => {
         <div className="flex items-center mb-3">
           <div className="flex items-center gap-2 w-1/2">
             <div className="w-5 h-5 text-blue-500">
-              <i className="bi bi-graph-up-arrow"></i>
+              <TrendingUp className="w-5 h-5" />
             </div>
             <span className="text-sm text-gray-500">Status Lowongan:</span>
           </div>
@@ -76,11 +103,10 @@ const JobDetail = ({ job, onClose }) => {
           </div>
         </div>
         
-        {/* Bagian informasi lainnya */}
         <div className="flex items-center mb-3">
           <div className="flex items-center gap-2 w-1/2">
             <div className="w-5 h-5 text-blue-500">
-              <i className="bi bi-people-fill"></i>
+              <Users className="w-5 h-5" />
             </div>
             <span className="text-sm text-gray-500">Total Pendaftar:</span>
           </div>
@@ -90,7 +116,7 @@ const JobDetail = ({ job, onClose }) => {
         <div className="flex items-center mb-3">
           <div className="flex items-center gap-2 w-1/2">
             <div className="w-5 h-5 text-blue-500">
-              <i className="bi bi-calendar-event"></i>
+              <Calendar className="w-5 h-5" />
             </div>
             <span className="text-sm text-gray-500">Durasi Lowongan:</span>
           </div>
@@ -100,7 +126,7 @@ const JobDetail = ({ job, onClose }) => {
         <div className="flex items-center mb-3">
           <div className="flex items-center gap-2 w-1/2">
             <div className="w-5 h-5 text-blue-500">
-              <i className="bi bi-geo-alt-fill"></i>
+              <MapPin className="w-5 h-5" />
             </div>
             <span className="text-sm text-gray-500">Lokasi Penempatan:</span>
           </div>
@@ -110,42 +136,58 @@ const JobDetail = ({ job, onClose }) => {
         <div className="flex items-center mb-3">
           <div className="flex items-center gap-2 w-1/2">
             <div className="w-5 h-5 text-blue-500">
-              <i className="bi bi-instagram"></i>
-            </div>
-            <span className="text-sm text-gray-500">Instagram:</span>
-          </div>
-          <div className="w-1/2 text-sm font-medium">{socialMedia.instagram}</div>
-        </div>
-        
-        <div className="flex items-center mb-3">
-          <div className="flex items-center gap-2 w-1/2">
-            <div className="w-5 h-5 text-blue-500">
-              <i className="bi bi-globe"></i>
+              <Globe className="w-5 h-5" />
             </div>
             <span className="text-sm text-gray-500">Website:</span>
           </div>
           <div className="w-1/2 text-sm font-medium">{socialMedia.website}</div>
         </div>
-        
-        <div className="flex items-center mb-3">
-          <div className="flex items-center gap-2 w-1/2">
-            <div className="w-5 h-5 text-blue-500">
-              <i className="bi bi-linkedin"></i>
-            </div>
-            <span className="text-sm text-gray-500">LinkedIn:</span>
-          </div>
-          <div className="w-1/2 text-sm font-medium">{socialMedia.linkedin}</div>
-        </div>
       </div>
       
       <div className="mt-8 flex gap-2">
-        <button onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm hover:bg-gray-50 flex-1">
+        <button 
+          onClick={handleTutupClick} 
+          className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm hover:bg-gray-50 flex-1"
+        >
           Tutup
         </button>
         <button className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600 flex-1">
           Edit
         </button>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmationModal && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]">
+          <div className="bg-white rounded-lg p-6 w-80 shadow-xl">
+            <div className="flex justify-center mb-4">
+              <div className="rounded-full bg-red-100 p-3">
+                <AlertTriangle className="text-red-500 w-6 h-6" />
+              </div>
+            </div>
+            
+            <h3 className="text-lg font-medium text-center mb-2">Konfirmasi Tutup</h3>
+            <p className="text-sm text-gray-600 text-center mb-6">
+              Apakah Anda yakin ingin menutup lowongan ini? Tindakan ini tidak dapat dibatalkan.
+            </p>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm hover:bg-gray-50 flex-1"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmClose}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 flex-1"
+              >
+                Ya, Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
