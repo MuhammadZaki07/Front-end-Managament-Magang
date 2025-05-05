@@ -47,8 +47,9 @@ const SelectAuth = () => {
         `${import.meta.env.VITE_API_URL}/register/${selected}`,
         data
       );
-
-      if (response.data.data.status === "success") {
+      
+      if (response.data.status === "success") {
+        
         const { token, role } = response.data.data;
         localStorage.setItem("token", token);
         setToken(token);

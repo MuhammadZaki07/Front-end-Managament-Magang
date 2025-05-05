@@ -1,37 +1,11 @@
 import { useState } from "react";
 
 const CompanyCardWithModal = () => {
-  // State untuk data perusahaan
   const [companyName, setCompanyName] = useState("PT. HUMMA TECHNOLOGY INDONESIA");
-  const [description, setDescription] = useState(
-    "Perusahaan ini bergerak di bidang Informasi dan Teknologi untuk perkembangan Industri"
-  );
   const [contactPerson, setContactPerson] = useState("Afrizal Himawan");
-  
-  // State untuk modal visibility
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [branchName, setBranchName] = useState("Jakarta");
+  const [businessField, setBusinessField] = useState("Informasi dan Teknologi");
 
-  // State untuk form data
-  const [branchName, setBranchName] = useState("Jakarta"); // Nama cabang
-  const [businessField, setBusinessField] = useState("Informasi dan Teknologi"); // Bidang Usaha
-  const [address, setAddress] = useState("");
-  const [charCount, setCharCount] = useState(0);
-  const [websiteUrl, setWebsiteUrl] = useState("");
-  const [instagramUrl, setInstagramUrl] = useState("");
-  const [linkedinUrl, setLinkedinUrl] = useState("");
-
-  // Fungsi untuk membuka modal
-  const openModal = () => setIsModalOpen(true);
-
-  // Fungsi untuk menutup modal
-  const closeModal = () => setIsModalOpen(false);
-
-  // Handle alamat change
-  const handleAddressChange = (e) => {
-    const text = e.target.value;
-    setAddress(text);
-    setCharCount(text.length);
-  };
 
   return (
     <>

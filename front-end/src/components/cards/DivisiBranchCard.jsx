@@ -6,6 +6,7 @@ import Detaildivisi from "../modal/WebDevModal";
 import axios from "axios";
 import ModalDivisi from "../modal/ModalDivisi";
 import LoadingCards from "../cards/LoadingCards";
+import DataNotAvaliable from "../DataNotAvaliable";
 
 export default function DivisiBranchCard() {
   const [branches, setBranches] = useState([]);
@@ -107,7 +108,7 @@ export default function DivisiBranchCard() {
 
         {branches.length === 0 ? (
           <div className="py-10">
-            <p className="text-center">Data Tidak Tersedia</p>
+            <DataNotAvaliable/>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">

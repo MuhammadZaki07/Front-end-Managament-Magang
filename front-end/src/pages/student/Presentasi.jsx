@@ -45,7 +45,7 @@ const Presentasi = () => {
     .flat()
     .map((item, index) => ({
       ...item,
-      title: `${item.title} ${index + 1}`, // Add index to the title for uniqueness
+      title: `${item.title} ${index + 1}`,
     }));
 
   return (

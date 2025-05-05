@@ -1,8 +1,118 @@
-import React from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 
-const AddJobModal = ({ showModal, setShowModal }) => {
-  const handleClose = () => {
-    setShowModal(false);
+const AddJobModal = ({ showModal, setShowModal, editingData = null }) => {
+  const [duration, setDuration] = useState([]);
+  const [cabang, setCabang] = useState([]);
+  const [divisi, setDevisi] = useState([]);
+  const maxWords = 150;
+
+  const [requirementCount, setRequirementCount] = useState(0);
+  const [jobdescCount, setJobdescCount] = useState(0);
+
+  const [formData, setFormData] = useState({
+    tanggal_mulai: "",
+    tanggal_selesai: "",
+    id_cabang: "",
+    id_divisi: "",
+    max_kuota: "",
+    durasi: "",
+    requirement: "",
+    jobdesc: "",
+    kategori: "",
+  });
+
+  useEffect(() => {
+    if (editingData) {
+      setFormData(editingData);
+    } else {
+      setFormData({
+        tanggal_mulai: "",
+        tanggal_selesai: "",
+        id_cabang: "",
+        id_divisi: "",
+        max_kuota: "",
+        durasi: "",
+        requirement: "",
+        jobdesc: "",
+        kategori: "",
+      });
+    }
+  }, [editingData]);
+
+  const handleClose = () => setShowModal(false);
+
+  const LoopingDurationMagang = () => {
+    const durationList = Array.from({ length: 12 }, (_, i) => i + 1);
+    setDuration(durationList);
+  };
+
+  const GetCabang = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/cabang`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setCabang(res.data.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const GetDivisi = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/divisi`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setDevisi(res.data.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    GetCabang();
+    GetDivisi();
+    LoopingDurationMagang();
+  }, []);
+
+  const handleValue = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const countWords = (text) => {
+    return text.trim().split(/\s+/).filter(Boolean).length;
+  };
+
+  useEffect(() => {
+    setRequirementCount(countWords(formData.requirement));
+  }, [formData.requirement]);
+
+  useEffect(() => {
+    setJobdescCount(countWords(formData.jobdesc));
+  }, [formData.jobdesc]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const url = editingData
+        ? `${import.meta.env.VITE_API_URL}/lowongan/${formData.id}`
+        : `${import.meta.env.VITE_API_URL}/lowongan`;
+
+      const method = editingData ? "put" : "post";
+
+     await axios({
+        method,
+        url,
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        data: formData,
+      });
+      
+      setShowModal(false);
+    } catch (error) {
+      console.error("Gagal menyimpan:", error);
+    }
   };
 
   return (
@@ -19,131 +129,131 @@ const AddJobModal = ({ showModal, setShowModal }) => {
           </button>
         </div>
 
-        <form className="mt-1">
+        <form className="mt-1" onSubmit={handleSubmit}>
           {/* Tanggal */}
           <div className="grid grid-cols-2 gap-2 mb-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Tanggal Mulai
               </label>
-              <div className="relative">
               <input
-                  type="text"
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs"
-                  placeholder="Tanggal Selesai"
-                />
-                <span className="absolute right-2 top-2 text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-                  </svg>
-                </span>
-              </div>
+                type="date"
+                name="tanggal_mulai"
+                className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs"
+                onChange={handleValue}
+                value={formData.tanggal_mulai}
+              />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Tanggal Selesai
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs"
-                  placeholder="Tanggal Selesai"
-                />
-                <span className="absolute right-2 top-2 text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-                  </svg>
-                </span>
-              </div>
+              <input
+                type="date"
+                name="tanggal_selesai"
+                className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs"
+                onChange={handleValue}
+                value={formData.tanggal_selesai}
+              />
             </div>
           </div>
 
-          {/* Cabang dan Divisi */}
           <div className="grid grid-cols-2 gap-2 mb-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Cabang
               </label>
-              <div className="relative">
-                <select className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs appearance-none bg-white">
-                  <option value="">Pilih Cabang</option>
-                  <option value="jakarta">Jakarta</option>
-                  <option value="bandung">Bandung</option>
-                  <option value="surabaya">Surabaya</option>
-                </select>
-                <span className="absolute right-2 top-2 text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-                  </svg>
-                </span>
-              </div>
+              <select
+                name="id_cabang"
+                className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs bg-white"
+                onChange={handleValue}
+                value={formData.id_cabang}
+              >
+                <option value="">Pilih Cabang</option>
+                {cabang.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nama}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Divisi
               </label>
-              <div className="relative">
-                <select className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs appearance-none bg-white">
-                  <option value="">Pilih Divisi</option>
-                  <option value="it">IT</option>
-                  <option value="marketing">Marketing</option>
-                  <option value="finance">Finance</option>
-                </select>
-                <span className="absolute right-2 top-2 text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-                  </svg>
-                </span>
-              </div>
+              <select
+                name="id_divisi"
+                className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs bg-white"
+                onChange={handleValue}
+                value={formData.id_divisi}
+              >
+                <option value="">Pilih Divisi</option>
+                {divisi.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nama}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Jumlah Kuota */}
-          <div className="mb-3">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Masukkan Jumlah Kuota
-            </label>
-            <div className="relative">
+          {/* Kuota & Durasi */}
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Jumlah Kuota
+              </label>
               <input
                 type="number"
-                className="w-3/4 border border-gray-300 rounded-md py-2 px-3 text-xs"
+                name="max_kuota"
+                value={formData.max_kuota}
+                className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs"
+                onChange={handleValue}
                 placeholder="Masukkan Jumlah Kuota"
               />
-     
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Durasi Magang
+              </label>
+              <select
+                name="durasi"
+                className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs bg-white"
+                onChange={handleValue}
+                value={formData.durasi}
+              >
+                <option value="">Pilih Durasi</option>
+                {duration.map((item) => (
+                  <option key={item} value={item}>
+                    {item} Bulan
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Durasi Magang */}
-          <div className="mb-3">
-  <label className="block text-xs font-medium text-gray-700 mb-1">
-    Durasi Magang
-  </label>
-  <div className="relative">
-    
-    <select className="w-3/4 border border-gray-300 rounded-md py-2 px-3 text-xs appearance-none bg-white">
-      <option value="">Masukkan Durasi Magang</option>
-      <option value="1">1 Bulan</option>
-      <option value="3">3 Bulan</option>
-      <option value="6">6 Bulan</option>
-    </select>
-  </div>
-</div>
-
-
-
-          {/* Requirements Lowongan */}
+          {/* Requirements */}
           <div className="mb-3">
             <label className="block text-xs font-medium text-gray-700 mb-1">
               Requirements Lowongan
             </label>
             <textarea
-              className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs"
-              placeholder="Masukkan Deskripsi"
+              className={`w-full border rounded-md py-2 px-3 text-xs ${
+                requirementCount < maxWords
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+              name="requirement"
+              value={formData.requirement}
+              onChange={handleValue}
+              placeholder="Masukkan persyaratan"
               rows="3"
-            ></textarea>
-            <div className="flex justify-between mt-1">
-              <span className="text-xs text-gray-400">Minimal Kata</span>
-              <span className="text-xs text-gray-400">0/150</span>
+            />
+            <div className="flex justify-between mt-1 text-xs text-gray-400">
+              <span>Minimal Kata: {maxWords}</span>
+              <span>
+                {requirementCount}/{maxWords}
+              </span>
             </div>
           </div>
 
@@ -153,13 +263,20 @@ const AddJobModal = ({ showModal, setShowModal }) => {
               Deskripsi Pekerjaan
             </label>
             <textarea
-              className="w-full border border-gray-300 rounded-md py-2 px-3 text-xs"
-              placeholder="Masukkan Deskripsi"
+              className={`w-full border rounded-md py-2 px-3 text-xs ${
+                jobdescCount < maxWords ? "border-red-500" : "border-gray-300"
+              }`}
+              name="jobdesc"
+              value={formData.jobdesc}
+              onChange={handleValue}
+              placeholder="Masukkan deskripsi"
               rows="3"
-            ></textarea>
-            <div className="flex justify-between mt-1">
-              <span className="text-xs text-gray-400">Minimal Kata</span>
-              <span className="text-xs text-gray-400">0/150</span>
+            />
+            <div className="flex justify-between mt-1 text-xs text-gray-400">
+              <span>Minimal Kata: {maxWords}</span>
+              <span>
+                {jobdescCount}/{maxWords}
+              </span>
             </div>
           </div>
 

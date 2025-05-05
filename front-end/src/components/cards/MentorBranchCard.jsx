@@ -6,6 +6,7 @@ import ModalTambahMentor from "../../components/modal/ModalTambahMentor";
 import ModalDelete from "../../components/modal/ModalDeleteAdminCabang";
 import ModalDetailMentor from "../../components/modal/ModalDetailMentor";
 import Loading from "../../components/cards/Loading";
+import DataNotAvaliable from "../DataNotAvaliable";
 
 export default function MentorBranchCard() {
   const [selectedMentor, setSelectedMentor] = useState(null);
@@ -135,7 +136,7 @@ export default function MentorBranchCard() {
     <Card>
       <div className="mt-3 px-2 pb-6">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-bold">Mentor Terdaftar</h1>
+          <h1 className="text-2xl font-bold">Mentor Terdaftar</h1>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsModalOpen(true)}
@@ -234,7 +235,7 @@ export default function MentorBranchCard() {
           })}
         </div>
 
-        {displayedBranches.length > 0 && (
+        {displayedBranches.length > 0 ? (
           <div className="flex items-center justify-between mt-6">
             <div className="flex-1">
               <ReactPaginate
@@ -255,6 +256,8 @@ export default function MentorBranchCard() {
               />
             </div>
           </div>
+        ) : (
+          <DataNotAvaliable/>
         )}
 
         <ModalTambahMentor

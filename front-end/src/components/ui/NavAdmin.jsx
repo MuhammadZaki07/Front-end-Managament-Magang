@@ -17,7 +17,7 @@ const NavAdmin = () => {
   const [isTambahCabangModalOpen, setIsTambahCabangModalOpen] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState("2 Bulan");
   const [discount, setDiscount] = useState(10);
-  const { token, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [verived, setVerived] = useState(null);
   const [idUser, setId] = useState(null);
   const location = useLocation();
@@ -125,7 +125,7 @@ const NavAdmin = () => {
       setIsLoadingCabang(true);
       setisCabang(res.data.data);
     } catch (error) {
-      console.log("GAGAL AMBIL DATA CABANG", error);
+      console.log("gagal mengambil dat cabang", error);
     } finally {
       setIsLoadingCabang(false);
     }
@@ -190,7 +190,7 @@ const NavAdmin = () => {
 
   const handleSave = async (data) => {
     try {
-      const res = await axios.post(
+       await axios.post(
         `${import.meta.env.VITE_API_URL}/cabang`,
         data,
         {
@@ -200,7 +200,7 @@ const NavAdmin = () => {
           },
         }
       );
-      console.log(res);
+      getAllCabang();
     } catch (error) {
       if (error.response && error.response.status === 422) {
         console.log("Validasi Gagal:", error.response.data.errors);

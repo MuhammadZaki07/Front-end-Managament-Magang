@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { X, Building, TrendingUp, Users, Calendar, MapPin, Instagram, Globe, Linkedin, AlertTriangle } from "lucide-react";
+import { Link } from 'react-router-dom';
 
 const JobDetail = ({ job, onClose }) => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  console.log(job);
   
   if (!job) return null;
   
@@ -65,8 +67,8 @@ const JobDetail = ({ job, onClose }) => {
       
       <div className="mb-4 relative">
         <img
-          src="/api/placeholder/400/160" 
-          alt="Office Buildings"
+          src="/assets/img/banner/banner1.jpg" 
+          alt={job.perusahaan.nama}
           className="w-full h-32 object-cover rounded-lg"
         />
         <div className="relative -mt-8 flex justify-center">
@@ -78,9 +80,9 @@ const JobDetail = ({ job, onClose }) => {
         </div>
       </div>
       
-      <h3 className="text-center text-lg font-bold mt-2">{job.company}</h3>
-      <p className="text-center text-sm text-gray-500 mb-2">{job.location}</p>
-      <p className="text-center text-xs text-gray-600 mb-6">{description}</p>
+      <h3 className="text-center text-lg font-bold mt-2">{job.perusahaan.nama}</h3>
+      <p className="text-center text-sm text-gray-500 mb-2">{job.perusahaan.kota}</p>
+      <p className="text-center text-xs text-gray-600 mb-6">{job.jobdesc}</p>
       
       <div className="space-y-4">
         <h4 className="font-medium text-gray-700">Informasi Detail</h4>
@@ -94,24 +96,24 @@ const JobDetail = ({ job, onClose }) => {
           </div>
           <div className="w-1/2">
             <span className={`px-2 py-1 rounded-full text-xs ${
-              job.status === "Berlangsung" 
+              job.status === "1" 
                 ? "bg-orange-100 text-orange-500" 
                 : "bg-emerald-100 text-emerald-500"
             }`}>
-              {job.status}
+              {job.status === 0 ? "Selsai" : "Berlangsung"}
             </span>
           </div>
         </div>
         
-        <div className="flex items-center mb-3">
+        {/* <div className="flex items-center mb-3">
           <div className="flex items-center gap-2 w-1/2">
             <div className="w-5 h-5 text-blue-500">
               <Users className="w-5 h-5" />
             </div>
             <span className="text-sm text-gray-500">Total Pendaftar:</span>
           </div>
-          <div className="w-1/2 text-sm font-medium">{job.pendaftar}</div>
-        </div>
+          <div className="w-1/2 text-sm font-medium">{job.pendaftar}</div> 
+        </div> */}
         
         <div className="flex items-center mb-3">
           <div className="flex items-center gap-2 w-1/2">
@@ -120,7 +122,7 @@ const JobDetail = ({ job, onClose }) => {
             </div>
             <span className="text-sm text-gray-500">Durasi Lowongan:</span>
           </div>
-          <div className="w-1/2 text-sm font-medium">{job.durasi}</div>
+          <div className="w-1/2 text-sm font-medium">{job.durasi} Bulan</div>
         </div>
         
         <div className="flex items-center mb-3">
@@ -130,7 +132,7 @@ const JobDetail = ({ job, onClose }) => {
             </div>
             <span className="text-sm text-gray-500">Lokasi Penempatan:</span>
           </div>
-          <div className="w-1/2 text-sm font-medium">{job.lokasiPenempatan}</div>
+          <div className="w-1/2 text-sm font-medium">{job.perusahaan.kota}</div>
         </div>
         
         <div className="flex items-center mb-3">
@@ -140,7 +142,7 @@ const JobDetail = ({ job, onClose }) => {
             </div>
             <span className="text-sm text-gray-500">Website:</span>
           </div>
-          <div className="w-1/2 text-sm font-medium">{socialMedia.website}</div>
+          <Link to={job.perusahaan.website} className="w-1/2 text-sm font-medium text-sky-500 underline">Website {job.perusahaan.nama}</Link>
         </div>
       </div>
       

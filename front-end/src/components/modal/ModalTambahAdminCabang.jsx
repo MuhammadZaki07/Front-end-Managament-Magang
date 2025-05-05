@@ -69,7 +69,7 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit,onSucces }) => {
     formPayload.append("nama", formData.nama);
     formPayload.append("email", formData.email);
     formPayload.append("telepon", formData.phoneNumber);
-    formPayload.append("id_cabang", formData.id_cabang);
+    // formPayload.append("id_cabang", "2");
   
     if (formData.password) {
       formPayload.append("password", formData.password);
@@ -87,7 +87,7 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit,onSucces }) => {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
       "Content-Type": "multipart/form-data",
     };
-  
+
     try {
       const url = isEditMode
         ? `/api/admin/${branchToEdit.id}?_method=PUT`
@@ -98,15 +98,13 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit,onSucces }) => {
       if (response.status === 200 || response.status === 201) {
         onClose();
         onSucces()
-        // window.location.href="http://localhost:5173/perusahaan/admin"
       } else {
         console.log("Gagal menyimpan data admin.");
       }
     } catch (error) {
       console.error("Terjadi kesalahan saat menyimpan admin:", error);
     }
-  };
-  
+  };  
 
   if (!isOpen) return null;
 

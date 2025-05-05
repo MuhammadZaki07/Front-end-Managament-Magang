@@ -28,7 +28,7 @@ const Login = () => {
     try {
       const response = await axios.post("http://127.0.0.1:8000/api/login", data);
 
-      if (response.data.data.status === "success") {
+      if (response.data.status === "success") {
         const { token, role } = response.data.data;
         if (rememberMe) {
           localStorage.setItem("token", token);
