@@ -16,13 +16,15 @@ const StudentStatisticsChart = () => {
     datasets: [
       {
         data: [220, 340, 480, 290, 420, 390, 330, 120, 310, 140, 460, 250],
-        backgroundColor: '#0069AB',
+        backgroundColor: '#FAE0B6',
         barThickness: 24,
+        borderRadius: 10,
       },
       {
         data: [260, 310, 460, 300, 250, 320, 280, 470, 390, 360, 240, 30],
-        backgroundColor: '#D8E6FE',
+        backgroundColor: '#3A5987',
         barThickness: 24,
+        borderRadius: 10,
       },
     ],
   };
@@ -40,6 +42,7 @@ const StudentStatisticsChart = () => {
         bodyColor: '#334155',
         borderColor: '#cbd5e1',
         borderWidth: 1,
+        
       },
     },
     scales: {
@@ -61,11 +64,11 @@ const StudentStatisticsChart = () => {
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-1">
-              <span className="w-3 h-3 rounded-full bg-[#1e40af]"></span>
+              <span className="w-3 h-3 rounded-full bg-[#FAE0B6]"></span>
               <span className="text-sm text-slate-700">Online</span>
             </div>
             <div className="flex items-center space-x-1">
-              <span className="w-3 h-3 rounded-full bg-[#cbd5e1]"></span>
+              <span className="w-3 h-3 rounded-full bg-[#3A5987]"></span>
               <span className="text-sm text-slate-700">Offline</span>
             </div>
           </div>
