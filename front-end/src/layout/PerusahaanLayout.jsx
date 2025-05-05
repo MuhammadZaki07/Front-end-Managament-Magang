@@ -91,17 +91,17 @@ const PerusahaanLayout = () => {
 
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];
 
-  useEffect(() => {
-    if ((role && role !== "perusahaan") || !token) {
-      const redirectTo = localStorage.getItem("location");
-      if (redirectTo) {
-        navigate(redirectTo);
-        localStorage.removeItem("location");
-      } else {
-        navigate("/");
-      }
-    }
-  }, [role]);
+  // useEffect(() => {
+  //   if ((role && role !== "perusahaan") || !token) {
+  //     const redirectTo = localStorage.getItem("location");
+  //     if (redirectTo) {
+  //       navigate(redirectTo);
+  //       localStorage.removeItem("location");
+  //     } else {
+  //       navigate("/");
+  //     }
+  //   }
+  // }, [role]);
 
   return (
     <div className="w-full flex">
