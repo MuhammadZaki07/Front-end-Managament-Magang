@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-const AddJobModal = ({ showModal, setShowModal, editingData = null }) => {
+const AddJobModal = ({ showModal, setShowModal, editingData = null,onSucces }) => {
   const [duration, setDuration] = useState([]);
   const [cabang, setCabang] = useState([]);
   const [divisi, setDevisi] = useState([]);
@@ -110,6 +110,7 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null }) => {
       });
       
       setShowModal(false);
+      onSucces()
     } catch (error) {
       console.error("Gagal menyimpan:", error);
     }

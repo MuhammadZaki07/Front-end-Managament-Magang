@@ -8,7 +8,7 @@ const RevisionCard = ({ title, desc }) => {
       <Card className="rounded-lg border border-slate-400/[0.5] flex justify-between py-2.5">
         <div className="flex gap-3 items-center">
           <div className="bg-indigo-50 w-12 h-12 rounded-full flex justify-center items-center">
-            <i class="bi bi-repeat text-2xl text-blue-500"></i>
+            <i className="bi bi-repeat text-2xl text-blue-500"></i>
           </div>
           <div className="flex flex-col">
             <Title className="text-sm">{title}</Title>
@@ -16,7 +16,7 @@ const RevisionCard = ({ title, desc }) => {
           </div>
         </div>
         <button>
-          <i class="bi bi-chevron-right text-lg text-gray-400"></i>
+          <i className="bi bi-chevron-right text-lg text-gray-400"></i>
         </button>
       </Card>
     </Link>

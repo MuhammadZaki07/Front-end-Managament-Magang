@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AlertVerification from "../../components/AlertVerification";
 import Calendar from "../../components/Calendar";
 import ChartStats from "../../components/charts/ChartStats";
@@ -10,11 +10,36 @@ import ProjectStats from "../../components/charts/ProjectStats";
 import PresentationHistory from "../../components/cards/PresentationCard";
 import { Link, useLocation } from "react-router-dom";
 import PresentationCard from "../../components/cards/PresentationCard";
+import axios from "axios";
 
 const Dashboard = () => {
   const location = useLocation();
-  localStorage.setItem("location", location.pathname)
-  
+  localStorage.setItem("location", location.pathname);
+  const [status, setStaus] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const chcekDataStatus = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/peserta/detail`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setStaus(res.data.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    chcekDataStatus();
+  }, []);
+
   const statsData = [
     {
       title: "Total Absensi",
@@ -27,7 +52,7 @@ const Dashboard = () => {
       title: "Total Kehadiran",
       value: "110",
       icon: "/assets/icons/absensi/certificateLogo.png",
-      color: "#10B981", 
+      color: "#10B981",
       data: [8, 12, 15, 20, 18, 16, 19, 17, 22, 24, 20, 21],
     },
     {
@@ -78,66 +103,87 @@ const Dashboard = () => {
       statusColor: "text-green-500 bg-green-50",
     },
   ];
-  
 
-  return (
-    <div className="w-full">
-      <AlertVerification />
-      <div className="flex w-full gap-5">
-        <div className="flex-[8] w-full">
-          <Card className="mt-0">
-            <div className="grid grid-cols-4 gap-3">
-              {statsData.map((item, index) => (
-                <ChartStats
-                  icon={item.icon}
-                  value={item.value}
-                  color={item.color}
-                  title={item.title}
-                  key={index + 1}
-                  seriesData={item.data}
-                />
-              ))}
-            </div>
-          </Card>
-          <Card className="my-7">
-            <StaticJurnal />
-          </Card>
-          <Card>
-            <div className="flex justify-between items-center mb-4">
-              <Title className="ml-3">Riwayat Presentasi</Title>
-              <Link to={`#`} className="text-blue-500 text-sm mr-3">
-                See All
-              </Link>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {presentations.map((item, index) => (
-                <PresentationCard key={index} item={item} />
-              ))}
-            </div>
-          </Card>
-        </div>
-        <div className="flex-[3] flex-col gap-5">
-          <div className="bg-white w-full rounded-lg py-3 text-blue-400 text-sm text-center">
-            Anda Sedang magang di Perusahaan Informatika Divisi Frontend
-            Developer
-          </div>
-          <Calendar />
-          <Card className="mt-3">
-            <Title className="ml-1">Revisi</Title>
-            <div className="flex flex-col">
-              {dataRevision.map((item, i) => (
-                <RevisionCard key={i + 1} desc={item.desc} title={item.title} />
-              ))}
-            </div>
-          </Card>
-          <Card className="px-0 py-2 mb-3">
-            <div className="border-b border-slate-400/[0.5] py-3">
-              <Title className="ml-5">My Progress</Title>
-            </div>
-            <ProjectStats />
-          </Card>
+  if (loading)
+    return (
+      <div className="h-screen">
+        <div className="w-full h-14 bg-slate-300 border border-slate-200 rounded-lg flex justify-between py-1 px-3 items-center mb-4 animate-pulse">
+          <div className="bg-slate-400 w-1/3 h-5 rounded animate-pulse"></div>
+          <div className="bg-slate-400 w-1/6 h-5 rounded animate-pulse"></div>
         </div>
       </div>
+    );
+    
+  return (
+    <div className="w-full">
+      {status === "false" ? (
+        <>
+          <AlertVerification />
+          <div className="w-xl mx-auto h-screen">
+            <img src="/assets/svg/Forms.svg" alt="Forms.svg" />
+          </div>
+        </>
+      ) : (
+        <div className="flex w-full gap-5">
+          <div className="flex-[8] w-full">
+            <Card className="mt-0">
+              <div className="grid grid-cols-4 gap-3">
+                {statsData.map((item, index) => (
+                  <ChartStats
+                    icon={item.icon}
+                    value={item.value}
+                    color={item.color}
+                    title={item.title}
+                    key={index + 1}
+                    seriesData={item.data}
+                  />
+                ))}
+              </div>
+            </Card>
+            <Card className="my-7">
+              <StaticJurnal />
+            </Card>
+            <Card>
+              <div className="flex justify-between items-center mb-4">
+                <Title className="ml-3">Riwayat Presentasi</Title>
+                <Link to={`#`} className="text-blue-500 text-sm mr-3">
+                  See All
+                </Link>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {presentations.map((item, index) => (
+                  <PresentationCard key={index} item={item} />
+                ))}
+              </div>
+            </Card>
+          </div>
+          <div className="flex-[3] flex-col gap-5">
+            <div className="bg-white w-full rounded-lg py-3 text-blue-400 text-sm text-center">
+              Anda Sedang magang di Perusahaan Informatika Divisi Frontend
+              Developer
+            </div>
+            <Calendar />
+            <Card className="mt-3">
+              <Title className="ml-1">Revisi</Title>
+              <div className="flex flex-col">
+                {dataRevision.map((item, i) => (
+                  <RevisionCard
+                    key={i + 1}
+                    desc={item.desc}
+                    title={item.title}
+                  />
+                ))}
+              </div>
+            </Card>
+            <Card className="px-0 py-2 mb-3">
+              <div className="border-b border-slate-400/[0.5] py-3">
+                <Title className="ml-5">My Progress</Title>
+              </div>
+              <ProjectStats />
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

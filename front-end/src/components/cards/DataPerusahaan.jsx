@@ -29,7 +29,6 @@ export default function DataUmumPerusahaan() {
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
 
-  // ✅ Fetch semua provinsi saat awal
   useEffect(() => {
     fetch("https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json")
       .then((res) => res.json())
@@ -37,83 +36,83 @@ export default function DataUmumPerusahaan() {
       .catch(console.error);
   }, []);
 
-  useEffect(() => {
-    const fetchPrefillData = async () => {
-      try {
-        const provRes = await fetch(
-          "https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json"
-        );
-        const provData = await provRes.json();
-        setProvinces(provData);
+  const fetchPrefillData = async () => {
+    try {
+      const provRes = await fetch(
+        "https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json"
+      );
+      const provData = await provRes.json();
+      setProvinces(provData);
 
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/perusahaan/edit`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        const data = res.data.data.perusahaan;
-        const allowedJabatan = [
-          "Direktur",
-          "Manager",
-          "Supervisor",
-          "Staff",
-          "Lainnya",
-        ];
-        const normalizedJabatan = allowedJabatan.find(
-          (j) =>
-            j.toLowerCase() ===
-            (data.jabatan_penanggung_jawab || "").trim().toLowerCase()
-        );
-
-        setFormData({
-          nama_penanggung_jawab: data.nama_penanggung_jawab || "",
-          nohp_penanggung_jawab: data.nomor_penanggung_jawab || "",
-          jabatan_penanggung_jawab: normalizedJabatan || "",
-          email_penanggung_jawab: data.email_penanggung_jawab || "",
-          nama_perusahaan: data.nama || "",
-          tanggal_berdiri: data.tanggal_berdiri || "",
-          bidang_usaha: data.bidang_usaha || "",
-          deskripsi_perusahaan: data.deskripsi || "",
-          alamat_perusahaan: data.alamat || "",
-          provinsi: data.provinsi || "",
-          kota: data.kota || "",
-          kecamatan: data.kecamatan || "",
-          kode_pos: data.kode_pos || "",
-          email_perusahaan: data.email || "",
-          telepon_perusahaan: data.telepon || "",
-          website_perusahaan: data.website || "",
-        });
-
-        const selectedProv = provData.find((p) => p.name === data.provinsi);
-        if (selectedProv) {
-          setSelectedProvince(selectedProv.name);
-          const cityRes = await fetch(
-            `https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${selectedProv.id}.json`
-          );
-          const cityData = await cityRes.json();
-          setCities(cityData);
-
-          const selectedCity = cityData.find((c) => c.name === data.kota);
-          if (selectedCity) {
-            setSelectedCity(selectedCity.name);
-            const districtRes = await fetch(
-              `https://www.emsifa.com/api-wilayah-indonesia/api/districts/${selectedCity.id}.json`
-            );
-            const districtData = await districtRes.json();
-            setDistricts(districtData);
-          }
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/perusahaan/edit`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
-      } catch (err) {
-        console.error("Gagal memuat data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      );
 
+      const data = res.data.data.perusahaan;
+      const allowedJabatan = [
+        "Direktur",
+        "Manager",
+        "Supervisor",
+        "Staff",
+        "Lainnya",
+      ];
+      const normalizedJabatan = allowedJabatan.find(
+        (j) =>
+          j.toLowerCase() ===
+          (data.jabatan_penanggung_jawab || "").trim().toLowerCase()
+      );
+
+      setFormData({
+        nama_penanggung_jawab: data.nama_penanggung_jawab || "",
+        nohp_penanggung_jawab: data.nomor_penanggung_jawab || "",
+        jabatan_penanggung_jawab: normalizedJabatan || "",
+        email_penanggung_jawab: data.email_penanggung_jawab || "",
+        nama_perusahaan: data.nama || "",
+        tanggal_berdiri: data.tanggal_berdiri || "",
+        bidang_usaha: data.bidang_usaha || "",
+        deskripsi_perusahaan: data.deskripsi || "",
+        alamat_perusahaan: data.alamat || "",
+        provinsi: data.provinsi || "",
+        kota: data.kota || "",
+        kecamatan: data.kecamatan || "",
+        kode_pos: data.kode_pos || "",
+        email_perusahaan: data.email || "",
+        telepon_perusahaan: data.telepon || "",
+        website_perusahaan: data.website || "",
+      });
+
+      const selectedProv = provData.find((p) => p.name === data.provinsi);
+      if (selectedProv) {
+        setSelectedProvince(selectedProv.name);
+        const cityRes = await fetch(
+          `https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${selectedProv.id}.json`
+        );
+        const cityData = await cityRes.json();
+        setCities(cityData);
+
+        const selectedCity = cityData.find((c) => c.name === data.kota);
+        if (selectedCity) {
+          setSelectedCity(selectedCity.name);
+          const districtRes = await fetch(
+            `https://www.emsifa.com/api-wilayah-indonesia/api/districts/${selectedCity.id}.json`
+          );
+          const districtData = await districtRes.json();
+          setDistricts(districtData);
+        }
+      }
+    } catch (err) {
+      console.error("Gagal memuat data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPrefillData();
   }, []);
 
@@ -180,7 +179,7 @@ export default function DataUmumPerusahaan() {
         ...formData,
         _method: "PUT",
       };
-  
+
       await axios.post(
         `${import.meta.env.VITE_API_URL}/perusahaan/update`,
         dataToSend,
@@ -190,14 +189,12 @@ export default function DataUmumPerusahaan() {
           },
         }
       );
-  
-      alert("Data berhasil diupdate!");
+
+      fetchPrefillData();
     } catch (err) {
       console.error("Gagal update data:", err);
-      alert("Gagal update data.");
     }
   };
-  
 
   if (loading) return <Loading />;
 

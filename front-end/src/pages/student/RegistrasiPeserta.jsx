@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState } from "react";
 
 export default function StudentRegistrationForm() {
@@ -5,28 +6,39 @@ export default function StudentRegistrationForm() {
     // Baris 1
     nama: "",
     alamat: "",
-    
+
     // Baris 2
     jenis_kelamin: "",
     tempat_lahir: "",
     no_hp: "",
     tanggal_lahir: "",
-    
+
     // Baris 3
     sekolah: "",
     nisn: "",
-    
+
     // Baris 4
     jurusan: "",
     kelas: "",
-    
+
     // Foto
-    foto: null
+    foto: null,
+    cvFileName: "",
   });
 
   // Preview foto
   const [previewUrl, setPreviewUrl] = useState("");
-  
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        cv: file,
+        cvFileName: file.name, // Store the filename
+      }));
+    }
+  };
   // Handler untuk perubahan input
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,21 +59,57 @@ export default function StudentRegistrationForm() {
     }
   };
 
-  // Handler untuk submit form
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Implementasi submit form sesuai kebutuhan
+  
+    const formData = new FormData();
+    formData.append("nama", formData.nama);
+    formData.append("alamat", formData.alamat);
+    formData.append("jenis_kelamin", formData.jenis_kelamin);
+    formData.append("tempat_lahir", formData.tempat_lahir);
+    formData.append("tanggal_lahir", formData.tanggal_lahir);
+    formData.append("telepon", formData.no_hp);
+    formData.append("nomor_identitas", formData.nisn);
+    formData.append("sekolah", formData.sekolah);
+    formData.append("jurusan", formData.jurusan);
+    formData.append("kelas", formData.kelas);
+    formData.append("cv", formData.cv);
+  
+    if (formData.foto) {
+      formData.append("profile", formData.foto);
+    }
+  
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/peserta`, 
+        formData, 
+        {
+          headers: {
+            "Content-Type": "multipart/form-data", 
+          },
+        }
+      );
+  
+      // Handle success
+      console.log("Form submitted successfully:", response.data);
+    } catch (error) {
+      // Handle error
+      console.error("Error submitting form:", error);
+      if (error.response) {
+        alert(`Error: ${JSON.stringify(error.response.data.errors)}`);
+      } else {
+        alert("Error submitting the form");
+      }
+    }
   };
+  
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <div>
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-gray-800">
-            Data Diri
-          </h1>
+          <h1 className="text-xl font-bold text-gray-800">Data Diri</h1>
           <p className="text-sm text-gray-500">
             Silahkan Lengkapi Data Terlebih Dahulu
           </p>
@@ -222,7 +270,7 @@ export default function StudentRegistrationForm() {
                 required
               />
             </div>
-            
+
             {/* Jurusan */}
             <div className="space-y-2 w-70">
               <label className="block text-sm font-medium text-gray-700">
@@ -242,7 +290,7 @@ export default function StudentRegistrationForm() {
                 <option value="teknik">Multimedia</option>
               </select>
             </div>
-            
+
             {/* Kelas */}
             <div className="space-y-2 w-40">
               <label className="block text-sm font-medium text-gray-700">
@@ -267,41 +315,120 @@ export default function StudentRegistrationForm() {
 
         {/* Upload Foto Area */}
         <div className="mb-10">
-          <h2 className="text-md font-medium text-gray-700 mb-2">Masukkan Foto Diri Disini</h2>
+          <h2 className="text-md font-medium text-gray-700 mb-2">
+            Masukkan Foto Diri Disini
+          </h2>
           <div className="flex items-center">
             {/* Foto Preview Area */}
             <div className="w-24 h-24 mr-4 bg-gray-100 border border-gray-300 rounded-full overflow-hidden flex items-center justify-center">
               {previewUrl ? (
-                <img 
-                  src={previewUrl} 
-                  alt="Preview" 
-                  className="w-full h-full object-cover" 
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
                 />
               ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-gray-400"
+                >
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
               )}
             </div>
-            
+
             {/* Upload Area */}
             <div className="flex-1 h-32 bg-blue-50 border border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center text-center p-4 relative">
               <div className="text-blue-500 mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="17 8 12 3 7 8"></polyline>
                   <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
               </div>
-              <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
-              <p className="text-xs text-gray-500 mt-1">SVG, PNG, JPEG OR GIF (max 1080px1200px)</p>
-              <input 
-                type="file" 
-                name="foto" 
+              <p className="text-sm text-gray-600">
+                Click to upload or drag and drop
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                SVG, PNG, JPEG OR GIF (max 1080px1200px)
+              </p>
+              <input
+                type="file"
+                name="foto"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 onChange={handlePhotoUpload}
                 accept="image/*"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-10">
+          <h2 className="text-md font-medium text-gray-700 mb-2">
+            Masukkan CV
+          </h2>
+          <div className="flex items-center">
+            {/* Upload Area */}
+            <div className="flex-1 h-32 bg-blue-50 border border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center text-center p-4 relative">
+              <div className="text-blue-500 mb-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </div>
+
+              {/* Conditional Text Display */}
+              {formData.cvFileName ? (
+                <p className="text-sm text-gray-600">
+                  File Selected: {formData.cvFileName}
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-600">
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    PDF, DOCX, DOC (max 5MB)
+                  </p>
+                </>
+              )}
+
+              <input
+                type="file"
+                name="cv"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={handleFileChange}
+                accept=".pdf,.docx,.doc"
               />
             </div>
           </div>

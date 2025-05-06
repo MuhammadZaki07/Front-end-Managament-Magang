@@ -12,7 +12,6 @@ const MentorDashboard = () => {
   return (
     <div className="w-full h-full">
       <div className="flex w-full gap-5 items-stretch h-full">
-        {/* Konten Kiri */}
         <div className="flex-[8] w-full flex flex-col gap-5 h-full">
           <GreetingsBox />
           <div className="flex-1 h-full">

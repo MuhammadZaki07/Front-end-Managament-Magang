@@ -12,6 +12,7 @@ export default function Lowongan() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lowongan, setLowongan] = useState([]);
+  const [editingData, setEditingData] = useState(null);
 
   const GetData = async () => {
     try {
@@ -60,7 +61,6 @@ export default function Lowongan() {
     },
   ];
 
-
   const filteredData =
     sortStatus === "All"
       ? lowongan
@@ -75,10 +75,17 @@ export default function Lowongan() {
     }
   };
 
+
+  const handleEditJob = (job) => {
+    setEditingData(job); // Kirim data untuk diedit
+    setShowModal(true);  // Tampilkan modal
+  };
+
+
   const handleCloseDetail = () => {
     setSelectedJob(null);
   };
-
+  
   if(loading) return <Loading/>
 
   return (
@@ -161,12 +168,12 @@ export default function Lowongan() {
                       className="hover:bg-gray-50 border-t border-gray-100"
                     >
                       <td className="p-4">
-                        <div className="font-semibold">{job.perusahaan.nama}</div>
+                        <div className="font-semibold">{job.perusahaan.perusahaan.nama} | {job.cabang.nama}</div>
                         <div className="text-sm text-gray-500">
-                        {job.perusahaan.kota}
+                        {job.perusahaan.perusahaan.kota}
                         </div>
                       </td>
-                      <td className="p-4 text-sm">{job.perusahaan.alamat}</td>
+                      <td className="p-4 text-sm">{job.perusahaan.perusahaan.alamat}</td>
                       <td className="p-4 text-sm">{job.max_kuota}</td>
                       <td className="p-4 flex items-center gap-2">
                         <span
@@ -199,13 +206,13 @@ export default function Lowongan() {
         {selectedJob && !showModal && (
           <JobDetail
             job={selectedJob}
-            onClose={handleCloseDetail} // Menambahkan prop onClose
+            onClose={handleCloseDetail} 
+            onEdit={() => handleEditJob(selectedJob)}
           />
         )}
       </div>
 
-      {/* Tampilkan Modal AddJobModal */}
-      <AddJobModal showModal={showModal} setShowModal={setShowModal} />
+      <AddJobModal showModal={showModal} setShowModal={setShowModal} editingData={editingData} onSucces={() => GetData()} />
     </div>
   );
 }

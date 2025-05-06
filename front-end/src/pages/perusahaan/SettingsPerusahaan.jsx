@@ -125,7 +125,7 @@ const CompanyCard = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      {/* <style jsx>{`
         @keyframes bounceIn {
           0% {
             transform: translateY(20px);
@@ -142,7 +142,7 @@ const CompanyCard = () => {
         .animate-bounce-in {
           animation: bounceIn 0.5s ease-out;
         }
-      `}</style>
+      `}</style> */}
     </>
   );
 };

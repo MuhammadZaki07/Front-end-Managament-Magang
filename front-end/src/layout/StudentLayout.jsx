@@ -1,11 +1,35 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
+import axios from "axios";
 
 const StudentLayout = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
   const [isPresentasiOpen, setIsPresentasiOpen] = useState(false);
+  const { role, token } = useContext(AuthContext);
+  const [status, setStatus] = useState();
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const location = useLocation();
+
+  const chcekDataStatus = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/peserta/detail`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setStatus(res.data.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sidebarMenus = [
     { icon: "bi-grid", label: "Dashboard", link: "dashboard" },
@@ -17,6 +41,10 @@ const StudentLayout = () => {
   ];
 
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];
+
+  useEffect(() => {
+    chcekDataStatus();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -36,107 +64,154 @@ const StudentLayout = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if ((role && role !== "peserta") || !token) {
+      const redirectTo = localStorage.getItem("location");
+      if (redirectTo) {
+        navigate(redirectTo);
+        localStorage.removeItem("location");
+      } else {
+        navigate("/");
+      }
+    }
+  }, [role]);
+
   return (
     <div className="w-full flex">
-      <div className="bg-white border-r border-r-slate-300 w-[238px] h-screen fixed py-4 px-2 flex-[2] z-[60]">
-        <img
-          src="/assets/img/Logo.png"
-          alt="Logo"
-          className="w-48 mx-auto object-cover"
-        />
-        <div className="flex flex-col gap-3 mt-8">
-          {sidebarMenus.slice(0, -1).map((menu, idx) => {
-            const isActive = location.pathname.includes(
-              `/student/${menu.link}`
-            );
+{loading ? (
+  <div className="bg-white border-r border-r-slate-300 w-[238px] h-screen fixed py-4 px-2 flex-[2] z-[60] animate-pulse">
+    <div className="w-48 h-12 bg-slate-200 mx-auto mb-8 rounded"></div>
+    <div className="flex flex-col gap-3 mt-8">
+      {[...Array(6)].map((_, idx) => (
+        <div key={idx} className="h-8 bg-slate-200 rounded-lg w-full"></div>
+      ))}
+      <div className="bg-slate-300 w-full h-0.5 rounded-full my-2"></div>
+      <div className="h-8 bg-slate-200 rounded-lg w-full"></div>
+    </div>
+  </div>
+) : (
+  <div className="bg-white border-r border-r-slate-300 w-[238px] h-screen fixed py-4 px-2 flex-[2] z-[60]">
+    <img
+      src="/assets/img/Logo.png"
+      alt="Logo"
+      className="w-48 mx-auto object-cover"
+    />
+    <div className="flex flex-col gap-3 mt-8">
+      {sidebarMenus.slice(0, -1).map((menu, idx) => {
+        const isActive = location.pathname.includes(`/peserta/${menu.link}`);
+        const isDisabled = status === "false" && menu.label !== "Dashboard";
 
-            if (menu.label === "Presentasi") {
-              return (
-                <div key={idx}>
-                  <Link
-                    to={`/student/presentasi`}
-                    onClick={() => setIsPresentasiOpen(!isPresentasiOpen)}
-                    className={`w-full px-4 py-2 rounded-lg flex justify-between items-center gap-3 transition-all duration-500 ease-in-out ${
-                      isPresentasiOpen && location
-                        ? "bg-sky-800 text-white"
-                        : "text-slate-500 hover:text-white hover:bg-sky-800"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <i className={`bi ${menu.icon} text-lg`}></i>
-                      <span className="font-light text-sm">{menu.label}</span>
-                    </div>
-                    <i
-                      className={`bi ${
-                        isPresentasiOpen ? "bi-chevron-up" : "bi-chevron-down"
-                      }`}
-                    ></i>
-                  </Link>
+        // Handle Presentasi menu with submenus
+        if (menu.label === "Presentasi") {
+          const isSubMenuActive = [
+            "/peserta/detail-presentasi",
+            "/peserta/riwayat-presentasi",
+          ].some((path) => location.pathname.includes(path));
 
-                  {isPresentasiOpen && (
-                    <div className="ml-2 mt-2 flex flex-col gap-2">
-                      <Link
-                        to="/student/detail-presentasi"
-                        className={`${
-                          isActive  ? "text-sky-500" : ""
-                        } text-slate-500 text-sm hover:text-sky-500 px-3 py-1 rounded transition flex gap-2 font-light`}
-                      >
-                        <i class="bi bi-info-circle"></i> Detail Prensentasi
-                      </Link>
-                      <Link
-                        to="/student/riwayat-presentasi"
-                        className={`${
-                          isActive ? "text-sky-500" : ""
-                        } text-slate-500 text-sm hover:text-sky-500 px-3 py-1 rounded transition flex gap-2 font-light`}
-                      >
-                        <i class="bi bi-hourglass"></i> Riwayat Presentasi
-                      </Link>
-                    </div>
-                  )}
+          return (
+            <div key={idx}>
+              <div
+                onClick={() => {
+                  if (isDisabled) return;
+                  setIsPresentasiOpen(!isPresentasiOpen);
+                }}
+                className={`w-full px-4 py-2 rounded-lg flex justify-between items-center gap-3 transition-all duration-500 ease-in-out ${
+                  isSubMenuActive
+                    ? "bg-sky-800 text-white"
+                    : isDisabled
+                    ? "text-slate-400 opacity-50 cursor-not-allowed"
+                    : "text-slate-500 hover:text-white hover:bg-sky-800"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <i className={`bi ${menu.icon} text-lg`}></i>
+                  <span className="font-light text-sm flex items-center gap-2">
+                    {menu.label}
+                    {isDisabled && <i className="bi bi-lock text-xs" />}
+                  </span>
                 </div>
-              );
-            }
+                <i
+                  className={`bi ${isPresentasiOpen ? "bi-chevron-up" : "bi-chevron-down"}`}
+                ></i>
+              </div>
 
-            return (
-              <Link
-                to={`/siswa/${menu.link}`}
-                key={idx}
-                onClick={() => setIsPresentasiOpen(false)}
-                className={`px-4 py-2 rounded-lg flex gap-3 items-center transition-all duration-500 ease-in-out ${
-                  isActive && !isPresentasiOpen
-                    ? "bg-sky-800 text-white"
-                    : "text-slate-500 hover:text-white hover:bg-sky-800"
-                }`}
-              >
-                <i className={`bi ${menu.icon} text-lg`}></i>
-                <span className="font-light text-sm">{menu.label}</span>
-              </Link>
-            );
-          })}
+              {isPresentasiOpen && !isDisabled && (
+                <div className="ml-2 mt-2 flex flex-col gap-2">
+                  <Link
+                    to="/peserta/detail-presentasi"
+                    className={`${
+                      location.pathname === "/peserta/detail-presentasi" ? "text-sky-500" : "text-slate-500"
+                    } text-sm hover:text-sky-500 px-3 py-1 rounded transition flex gap-2 font-light`}
+                  >
+                    <i className="bi bi-info-circle"></i> Detail Presentasi
+                  </Link>
+                  <Link
+                    to="/peserta/riwayat-presentasi"
+                    className={`${
+                      location.pathname === "/peserta/riwayat-presentasi" ? "text-sky-500" : "text-slate-500"
+                    } text-sm hover:text-sky-500 px-3 py-1 rounded transition flex gap-2 font-light`}
+                  >
+                    <i className="bi bi-hourglass"></i> Riwayat Presentasi
+                  </Link>
+                </div>
+              )}
+            </div>
+          );
+        }
 
-          <div className="bg-slate-400/[0.5] w-full h-0.5 rounded-full"></div>
+        return (
+          <Link
+            to={isDisabled ? "#" : `/peserta/${menu.link}`}
+            key={idx}
+            onClick={(e) => {
+              if (isDisabled) {
+                e.preventDefault();
+                return;
+              }
+              setIsPresentasiOpen(false);
+            }}
+            className={`px-4 py-2 rounded-lg flex gap-3 items-center transition-all duration-500 ease-in-out ${
+              isActive ? "bg-sky-800 text-white" : isDisabled ? "text-slate-400 opacity-50 cursor-not-allowed" : "text-slate-500 hover:text-white hover:bg-sky-800"
+            }`}
+          >
+            <i className={`bi ${menu.icon} text-lg`}></i>
+            <span className="font-light text-sm flex items-center gap-2">
+              {menu.label}
+              {isDisabled && <i className="bi bi-lock text-xs" />}
+            </span>
+          </Link>
+        );
+      })}
 
-          {sidebarMenus.slice(-1).map((menu, idx) => {
-            const isActive = location.pathname.includes(
-              `/student/${menu.link}`
-            );
-            return (
-              <Link
-                to={`/student/${menu.link}`}
-                key={idx}
-                className={`px-4 py-2 rounded-lg flex gap-3 items-center transition-all duration-500 ease-in-out ${
-                  isActive
-                    ? "bg-sky-800 text-white"
-                    : "text-slate-500 hover:text-white hover:bg-sky-800"
-                }`}
-              >
-                <i className={`bi ${menu.icon}`}></i>
-                <span className="font-light text-sm">{menu.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+      <div className="bg-slate-400/[0.5] w-full h-0.5 rounded-full"></div>
+
+      {sidebarMenus.slice(-1).map((menu, idx) => {
+        const isActive = location.pathname.includes(`/peserta/${menu.link}`);
+        const isDisabled = status === "false" && menu.label !== "Dashboard";
+
+        return (
+          <Link
+            to={isDisabled ? "#" : `/peserta/${menu.link}`}
+            key={idx}
+            onClick={(e) => {
+              if (isDisabled) e.preventDefault();
+            }}
+            className={`px-4 py-2 rounded-lg flex gap-3 items-center transition-all duration-500 ease-in-out ${
+              isActive ? "bg-sky-800 text-white" : isDisabled ? "text-slate-400 opacity-50 cursor-not-allowed" : "text-slate-500 hover:text-white hover:bg-sky-800"
+            }`}
+          >
+            <i className={`bi ${menu.icon}`}></i>
+            <span className="font-light text-sm flex items-center gap-2">
+              {menu.label}
+              {isDisabled && <i className="bi bi-lock text-xs" />}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  </div>
+)}
+
 
       <div className="flex-1 ml-[238px] min-h-screen">
         <nav className="bg-white w-full h-[60px] flex items-center px-10 sticky top-0 z-50 border-b border-b-slate-300">
