@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Calendar, ArrowDown, MoreVertical } from "lucide-react";
+import { Search, Calendar, ArrowDown, MoreVertical, Image } from "lucide-react";
 
 export default function PendataanPiket() {
   // Data untuk tabel piket (dengan URL bukti yang disematkan)
@@ -13,7 +13,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Hadir",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/assets/img/Cover.png", // Dummy image
     },
     {
       id: 2,
@@ -24,7 +24,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Izin",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 3,
@@ -35,7 +35,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Sore",
       waktuInput: "17:30 WIB",
       status: "Tidak Piket",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/assets/img/Cover.png", // Dummy image
     },
     {
       id: 4,
@@ -46,7 +46,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Hadir",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/assets/img/Cover.png", // Dummy image
     },
     {
       id: 5,
@@ -57,7 +57,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Hadir",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 6,
@@ -68,7 +68,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Hadir",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 7,
@@ -79,7 +79,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Hadir",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 8,
@@ -90,7 +90,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Hadir",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 9,
@@ -101,7 +101,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Izin",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 10,
@@ -112,7 +112,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Sore",
       waktuInput: "17:30 WIB",
       status: "Tidak Piket",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 11,
@@ -123,7 +123,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Hadir",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 12,
@@ -134,7 +134,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Hadir",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 13,
@@ -145,7 +145,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Sore",
       waktuInput: "17:30 WIB",
       status: "Tidak Piket",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 14,
@@ -156,7 +156,7 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Hadir",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
     },
     {
       id: 15,
@@ -167,40 +167,38 @@ export default function PendataanPiket() {
       waktuPlan: "Piket Pagi",
       waktuInput: "17:30 WIB",
       status: "Hadir",
-      buktiUrl: "/api/placeholder/150/100" // Placeholder image
-    }
+      buktiLaporan: "/api/placeholder/80/80", // Dummy image
+    },
   ];
-  
+
   // Filter hari aktif
   const [activeDay, setActiveDay] = useState("Senin");
-  
+
   // Filter data berdasarkan hari yang dipilih
-  const filteredData = allPiketData.filter(item => item.hari === activeDay);
+  const filteredData = allPiketData.filter((item) => item.hari === activeDay);
 
   // Status badge dengan warna yang sesuai
   const getStatusBadge = (status) => {
     switch (status) {
       case "Hadir":
-        return (
-          <span className="bg-green-100 text-green-600 py-1 px-3 rounded-full text-xs">
-            Hadir
-          </span>
-        );
+        return <span className="bg-green-100 text-green-600 py-1 px-3 rounded-full text-xs">Hadir</span>;
       case "Izin":
-        return (
-          <span className="bg-orange-100 text-orange-600 py-1 px-3 rounded-full text-xs">
-            Izin
-          </span>
-        );
+        return <span className="bg-orange-100 text-orange-600 py-1 px-3 rounded-full text-xs">Izin</span>;
       case "Tidak Piket":
-        return (
-          <span className="bg-red-100 text-red-600 py-1 px-3 rounded-full text-xs">
-            Tidak Piket
-          </span>
-        );
+        return <span className="bg-red-100 text-red-600 py-1 px-3 rounded-full text-xs">Tidak Piket</span>;
       default:
         return null;
     }
+  };
+
+  // Preview image modal state
+  const [previewImage, setPreviewImage] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Function to open image preview
+  const openImagePreview = (imageSrc) => {
+    setPreviewImage(imageSrc);
+    setShowPreview(true);
   };
 
   return (
@@ -218,11 +216,7 @@ export default function PendataanPiket() {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-4 w-4 text-gray-400" />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                <input type="text" placeholder="Search..." className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
               </div>
               <button className="flex items-center gap-2 bg-[#0069AB] text-white px-3 py-2 rounded-lg text-sm font-medium">
                 <Calendar className="h-4 w-4" />
@@ -232,17 +226,9 @@ export default function PendataanPiket() {
           </div>
 
           {/* Menu bar hari tanpa counter */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-6 overflow-x-auto">
             {["Senin", "Selasa", "Rabu", "Kamis", "Jumat"].map((day) => (
-              <button
-                key={day}
-                className={`px-6 py-2 rounded-lg text-sm font-medium ${
-                  activeDay === day
-                    ? "bg-[#0069AB] text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-                onClick={() => setActiveDay(day)}
-              >
+              <button key={day} className={`px-6 py-2 rounded-lg text-sm font-medium ${activeDay === day ? "bg-[#0069AB] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`} onClick={() => setActiveDay(day)}>
                 {day}
               </button>
             ))}
@@ -302,22 +288,42 @@ export default function PendataanPiket() {
                     <td className="py-3 px-4 text-sm text-[#667797]">{item.waktuInput}</td>
                     <td className="py-3 px-4">{getStatusBadge(item.status)}</td>
                     <td className="py-3 px-4">
-                      <div className="flex items-center justify-between">
-                        <img 
-                          src={item.buktiUrl}
-                          alt={`Bukti piket ${item.nama}`}
-                          className="h-10 w-16 rounded object-cover"
-                        />
-                        <button className="text-gray-400 hover:text-gray-600">
-                          <MoreVertical className="h-4 w-4" />
-                        </button>
-                      </div>
+                      {item.status !== "Tidak Piket" ? (
+                        <div className="cursor-pointer" onClick={() => openImagePreview(item.buktiLaporan)}>
+                          <img src={item.buktiLaporan} alt={`Bukti laporan ${item.nama}`} className="w-10 h-10 rounded object-cover border border-gray-200" />
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-gray-400">
+                          <Image className="h-4 w-4 mr-1" />
+                          <span className="text-xs">Tidak ada bukti</span>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          {/* Image Preview Modal */}
+          {showPreview && (
+            <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]" onClick={() => setShowPreview(false)}>
+              <div className="bg-white p-2 rounded-lg max-w-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-end mb-2">
+                  <button className="p-1 rounded-full hover:bg-gray-200" onClick={() => setShowPreview(false)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <img src={previewImage} alt="Preview bukti laporan" className="max-h-96 object-contain" />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
