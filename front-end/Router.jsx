@@ -48,6 +48,7 @@ import GoogleSuccess from "./src/pages/Auth/GoogleSuccess";
 import AuthLayout from "./src/layout/AuthLayout";
 import CompanyRegistrationForm from "./src/pages/perusahaan/PerusahaanForm";
 import DetailMentor from "./src/components/cards/DetailMentor";
+import RegistrasiPeserta from "./src/pages/student/RegistrasiPeserta";
 
 export const router = createBrowserRouter([
   {
@@ -77,7 +78,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: "/siswa",
+    path: "/peserta",
     element: <StudentLayout />,
     children: [
       {
@@ -104,6 +105,10 @@ export const router = createBrowserRouter([
         path: "riwayat-presentasi",
         element: <RiwayatPresentasi />,
       },
+      {
+        path : "settings",
+        element : <RegistrasiPeserta/>,
+      }
     ],
   },
   {

@@ -7,7 +7,7 @@ const AlertVerification = () => {
     const currentPath = window.location.pathname;
     if (currentPath.includes("perusahaan")) {
       setIsPerusahaan(true);
-    } else if (currentPath.includes("student")) {
+    } else if (currentPath.includes("peserta")) {
       setIsPerusahaan(false);
     }
   }, []);
@@ -16,7 +16,7 @@ const AlertVerification = () => {
     if (isPerusahaan) {
       window.location.href = "http://localhost:5173/perusahaan/settings";
     } else {
-      window.location.href = "http://localhost:5173/student/settings";
+      window.location.href = "http://localhost:5173/peserta/settings";
     }
   };
 

@@ -13,7 +13,8 @@ import PresentationCard from "../../components/cards/PresentationCard";
 
 const Dashboard = () => {
   const location = useLocation();
-  localStorage.setItem("location", location.pathname) 
+  localStorage.setItem("location", location.pathname)
+  
   const statsData = [
     {
       title: "Total Absensi",
@@ -26,7 +27,7 @@ const Dashboard = () => {
       title: "Total Kehadiran",
       value: "110",
       icon: "/assets/icons/absensi/certificateLogo.png",
-      color: "#10B981",
+      color: "#10B981", 
       data: [8, 12, 15, 20, 18, 16, 19, 17, 22, 24, 20, 21],
     },
     {
