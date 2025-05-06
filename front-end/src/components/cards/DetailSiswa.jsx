@@ -102,42 +102,31 @@ export default function DetailPeserta() {
     { tahap: "Coming Soon", status: "-", startDate: "-", endDate: "-", image: "/assets/img/Cover3.png" },
     { tahap: "Coming Soon", status: "-", startDate: "-", endDate: "-", image: "/assets/img/Cover3.png" },
   ];
-  
+
   const handleBack = () => {
-    // Add your navigation logic here
-    console.log("Back button clicked");
-    // Example: router.push('/dashboard') or window.history.back()
+    // Navigate to the specified URL when back button is clicked
+    window.location.href = "http://localhost:5173/perusahaan/peserta";
   };
 
   return (
     <div className="min-h-screen bg-[#F1F4FF] flex items-center justify-center p-6">
       <div className="bg-white w-full max-w-7xl p-8 rounded-2xl shadow-lg space-y-8 relative">
         {/* Back Button positioned at top-left corner */}
-        <button 
-          onClick={handleBack} 
-          className="absolute top-4 left-4 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-full p-3 transition duration-200"
-        >
+        <button onClick={handleBack} className="absolute top-4 left-4 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-full p-3 transition duration-200">
           <BsArrowLeft size={24} />
         </button>
-        
+
         {/* Profile Section */}
         <div className="flex flex-col lg:flex-row items-center gap-8">
           <div className="flex items-center gap-6">
-            <img
-              src={profile.image}
-              alt="Profile"
-              className="w-28 h-28 rounded-full border-4 border-blue-400 object-cover"
-            />
+            <img src={profile.image} alt="Profile" className="w-28 h-28 rounded-full border-4 border-blue-400 object-cover" />
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <h2 className="text-2xl font-bold">{profile.name}</h2>
-                <span className="bg-blue-100 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">
-                  {profile.role}
-                </span>
+                <span className="bg-blue-100 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">{profile.role}</span>
               </div>
               <div className="flex items-center gap-3">
-                <h4 className="text-lg">{profile.sekolah}</h4> |
-                {profile.nisn}
+                <h4 className="text-lg">{profile.sekolah}</h4> |{profile.nisn}
               </div>
               <div className="text-gray-600 text-sm space-y-2">
                 <div className="flex">
@@ -213,9 +202,7 @@ export default function DetailPeserta() {
                   </div>
                   <div>
                     <h4 className="text-base font-bold">{statusSP.level}</h4>
-                    <p className="text-[10px] text-gray-500">
-                      {statusSP.description || `Peserta ini terdeteksi mendapatkan ${statusSP.level}`}
-                    </p>
+                    <p className="text-[10px] text-gray-500">{statusSP.description || `Peserta ini terdeteksi mendapatkan ${statusSP.level}`}</p>
                   </div>
                 </>
               ) : (
@@ -225,9 +212,7 @@ export default function DetailPeserta() {
                   </div>
                   <div>
                     <h4 className="text-base font-bold">Tidak Ada SP</h4>
-                    <p className="text-[10px] text-gray-500">
-                      Peserta ini tidak terdeteksi SP!
-                    </p>
+                    <p className="text-[10px] text-gray-500">Peserta ini tidak terdeteksi SP!</p>
                   </div>
                 </>
               )}
@@ -247,13 +232,11 @@ export default function DetailPeserta() {
                   <div className="w-3 h-3 rounded-full bg-red-500 ml-4"></div>
                   <span className="text-xs text-gray-700">Tidak Mengisi</span>
                 </div>
-                <select
-                  className="border rounded-md p-2 text-sm"
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                >
+                <select className="border rounded-md p-2 text-sm" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))}>
                   {Object.keys(jurnalData).map((year) => (
-                    <option key={year} value={year}>{year}</option>
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -268,31 +251,15 @@ export default function DetailPeserta() {
             <div className="space-y-4">
               {routeProjects.map((item, index) => (
                 <div key={index} className="flex items-start gap-4">
-                  <img
-                    src={item.image}
-                    alt="Project Icon"
-                    className="w-12 h-12 rounded-md object-cover"
-                  />
+                  <img src={item.image} alt="Project Icon" className="w-12 h-12 rounded-md object-cover" />
                   <div className="flex-1 space-y-1">
                     {/* Ini baris tahap + status + endDate */}
                     <div className="flex items-center justify-between">
                       <div className="text-[10px] font-semibold text-black">{item.tahap}</div>
 
                       <div className="flex items-center gap-2">
-                        {item.status !== "-" && (
-                          <span
-                            className={`text-[8px] font-bold px-2 py-0.5 rounded-full ${
-                              item.status === "Selesai"
-                                ? "bg-green-100 text-green-600"
-                                : "bg-orange-100 text-orange-500"
-                            }`}
-                          >
-                            {item.status}
-                          </span>
-                        )}
-                        {item.endDate !== "-" && (
-                          <div className="text-[9px] text-gray-400">{item.endDate}</div>
-                        )}
+                        {item.status !== "-" && <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full ${item.status === "Selesai" ? "bg-green-100 text-green-600" : "bg-orange-100 text-orange-500"}`}>{item.status}</span>}
+                        {item.endDate !== "-" && <div className="text-[9px] text-gray-400">{item.endDate}</div>}
                       </div>
                     </div>
 

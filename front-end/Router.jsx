@@ -49,6 +49,8 @@ import AuthLayout from "./src/layout/AuthLayout";
 import CompanyRegistrationForm from "./src/pages/perusahaan/PerusahaanForm";
 import DetailMentor from "./src/components/cards/DetailMentor";
 import RegistrasiPeserta from "./src/pages/student/RegistrasiPeserta";
+import Piket from "./src/pages/perusahaan/piket";
+import Laporan from "./src/pages/perusahaan/Laporan";
 
 export const router = createBrowserRouter([
   {
@@ -253,6 +255,14 @@ export const router = createBrowserRouter([
         path: "detailmentor",
         element : <DetailMentor/>
       },
+      {
+        path:"piket",
+        element: <Piket/>
+      },
+      {
+        path : "laporan",
+        element : <Laporan/>
+      }
     ],
   },
   {
