@@ -1,15 +1,15 @@
 import React from "react";
 
-export default function TablePendaftaran({ 
-  data, 
-  searchTerm, 
-  selectedDate, 
-  selectedDivisi, 
-  selectedStatus 
+export default function TablePendaftaran({
+  data,
+  searchTerm,
+  selectedDate,
+  selectedDivisi,
+  selectedStatus
 }) {
   // Filter data based on all filter criteria
   const filteredData = data.filter((item) => {
-    const isMatchSearch = searchTerm 
+    const isMatchSearch = searchTerm
       ? item.namaLengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.email.toLowerCase().includes(searchTerm.toLowerCase())
       : true;
@@ -42,6 +42,15 @@ export default function TablePendaftaran({
     }
   };
 
+  // Handle click on photo to navigate to student detail page
+  // const handlePhotoClick = (id) => {
+  //   window.location.href = `perusahaan/detail-siswa/${id}`;
+  // };
+  const handlePhotoClick = () => {
+    window.location.href = '/perusahaan/detail-siswa';
+  };
+  
+
   return (
     <div className="w-full overflow-x-auto">
       <table className="w-full border-collapse text-sm">
@@ -64,28 +73,37 @@ export default function TablePendaftaran({
           </tr>
         </thead>
         <tbody>
-          {filteredData.map((item, index) => (
-            <tr
-              key={item.id}
-              className="border-t border-gray-200 hover:bg-gray-50 text-center"
-            >
-              <td className="px-3 py-3">{index + 1}</td>
-              <td className="px-3 py-3 flex items-center gap-2 justify-center">
-                <img
-                  src={item.image}
-                  alt={item.namaLengkap}
-                  className="w-8 h-8 rounded-full"
-                />
-                {item.namaLengkap}
+          {filteredData.length > 0 ? (
+            filteredData.map((item, index) => (
+              <tr
+                key={item.id}
+                className="border-t border-gray-200 hover:bg-gray-50 text-center"
+              >
+                <td className="px-3 py-3">{index + 1}</td>
+                <td className="px-3 py-3 flex items-center gap-2 justify-center">
+                  <img
+                    src={item.image}
+                    alt={item.namaLengkap}
+                    className="w-8 h-8 rounded-full cursor-pointer"
+                    onClick={() => handlePhotoClick(item.id)}
+                  />
+                  {item.namaLengkap}
+                </td>
+                <td className="px-3 py-3">{item.email}</td>
+                <td className={`px-3 py-3 font-medium ${getStatusColor(item.statusMagang)}`}>
+                  {item.statusMagang}
+                </td>
+                <td className="px-3 py-3">{item.sekolah}</td>
+                <td className="px-3 py-3">{item.divisi}</td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6" className="px-3 py-6 text-center text-gray-500">
+                Tidak ada data yang ditemukan
               </td>
-              <td className="px-3 py-3">{item.email}</td>
-              <td className={`px-3 py-3 font-medium ${getStatusColor(item.statusMagang)}`}>
-                {item.statusMagang}
-              </td>
-              <td className="px-3 py-3">{item.sekolah}</td>
-              <td className="px-3 py-3">{item.divisi}</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>

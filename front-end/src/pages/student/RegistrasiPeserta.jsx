@@ -4,20 +4,19 @@ import SuccessModal from "../../components/modal/ModalRegis"; // Import the succ
 
 export default function StudentRegistrationForm() {
   const [formData, setFormData] = useState({
-    // Personal Info
     nama: "",
     alamat: "",
     jenis_kelamin: "",
     tempat_lahir: "",
-    no_hp: "",
+    telepon: "", 
     tanggal_lahir: "",
     sekolah: "",
-    nisn: "",
+    nomor_identitas: "", 
     jurusan: "",
     kelas: "",
 
     // Files
-    foto: null,
+    profile: null, 
     cv: null,
     cvFileName: "",
   });
@@ -39,13 +38,13 @@ export default function StudentRegistrationForm() {
       alamat: "",
       jenis_kelamin: "",
       tempat_lahir: "",
-      no_hp: "",
+      telepon: "", 
       tanggal_lahir: "",
       sekolah: "",
-      nisn: "",
+      nomor_identitas: "", 
       jurusan: "",
       kelas: "",
-      foto: null,
+      profile: null, 
       cv: null,
       cvFileName: "",
     });
@@ -420,190 +419,48 @@ export default function StudentRegistrationForm() {
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path
+                    {/* <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth="2"
                       d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    ></path>
+                    ></path> */}
                   </svg>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* School and NISN in one row */}
-          <div className="grid grid-cols-12 gap-4 mb-4">
-            {/* Sekolah/Universitas - 8 columns (wider) */}
-            <div className="col-span-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sekolah/Universitas
-              </label>
-              <div className="relative" ref={sekolahDropdownRef}>
-                <div
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer flex justify-between items-center"
-                  onClick={() => setSekolahDropdownOpen(!sekolahDropdownOpen)}
-                >
-                  <input
-                    type="text"
-                    className="outline-none w-full border-none p-0 focus:ring-0"
-                    placeholder="Pilih atau ketik sekolah/universitas"
-                    value={sekolahSearch}
-                    onChange={(e) =>
-                      handleSearchChange("sekolah", e.target.value)
-                    }
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSekolahDropdownOpen(true);
-                    }}
-                  />
-                  <svg
-                    className="w-4 h-4 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    ></path>
-                  </svg>
-                </div>
+          {/* School and Jurusan in one row */}
+<div className="grid grid-cols-12 gap-4 mb-4">
+  {/* Sekolah/Universitas - 6 columns */}
+  <div className="col-span-6">
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      Sekolah/Universitas
+    </label>
+    <input
+      type="text"
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+      placeholder="Masukkan nama sekolah/universitas"
+      value={formData.sekolah || ''}
+      onChange={(e) => setFormData({...formData, sekolah: e.target.value})}
+    />
+  </div>
 
-                {sekolahDropdownOpen && (
-                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {sekolahOptions
-                      .filter((option) =>
-                        option.label
-                          .toLowerCase()
-                          .includes(sekolahSearch.toLowerCase())
-                      )
-                      .map((option, index) => (
-                        <div
-                          key={index}
-                          className="px-3 py-2 cursor-pointer hover:bg-blue-50"
-                          onClick={() =>
-                            handleSelectOption(
-                              "sekolah",
-                              option.value,
-                              option.label
-                            )
-                          }
-                        >
-                          {option.label}
-                        </div>
-                      ))}
-                    {sekolahSearch &&
-                      !sekolahOptions.some(
-                        (option) =>
-                          option.label.toLowerCase() ===
-                          sekolahSearch.toLowerCase()
-                      ) && (
-                        <div
-                          className="px-3 py-2 cursor-pointer bg-blue-50 text-blue-700 font-medium"
-                          onClick={() => createSekolah(sekolahSearch)}
-                        >
-                          + Tambahkan "{sekolahSearch}"
-                        </div>
-                      )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* NISN/NIM - 4 columns (narrower) */}
-            <div className="col-span-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Jurusan
-              </label>
-              <div className="relative" ref={jurusanDropdownRef}>
-                <div
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer flex justify-between items-center"
-                  onClick={() => setJurusanDropdownOpen(!jurusanDropdownOpen)}
-                >
-                  <input
-                    type="text"
-                    className="outline-none w-full border-none p-0 focus:ring-0"
-                    placeholder="Pilih atau ketik jurusan"
-                    value={jurusanSearch}
-                    onChange={(e) =>
-                      handleSearchChange("jurusan", e.target.value)
-                    }
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setJurusanDropdownOpen(true);
-                    }}
-                  />
-                  <svg
-                    className="w-4 h-4 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    ></path>
-                  </svg>
-                </div>
-
-                {jurusanDropdownOpen && (
-                  <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {jurusanOptions
-                      .filter((option) =>
-                        option.label
-                          .toLowerCase()
-                          .includes(jurusanSearch.toLowerCase())
-                      )
-                      .map((option, index) => (
-                        <div
-                          key={index}
-                          className="px-3 py-2 cursor-pointer hover:bg-blue-50"
-                          onClick={() =>
-                            handleSelectOption(
-                              "jurusan",
-                              option.value,
-                              option.label
-                            )
-                          }
-                        >
-                          {option.label}
-                        </div>
-                      ))}
-                    {jurusanSearch &&
-                      !jurusanOptions.some(
-                        (option) =>
-                          option.label.toLowerCase() ===
-                          jurusanSearch.toLowerCase()
-                      ) && (
-                        <div
-                          className="px-3 py-2 cursor-pointer bg-blue-50 text-blue-700 font-medium"
-                          onClick={() => {
-                            // Add to options
-                            const newOption = {
-                              value: jurusanSearch,
-                              label: jurusanSearch,
-                            };
-                            setJurusanOptions((prev) => [...prev, newOption]);
-                            handleSelectOption(
-                              "jurusan",
-                              jurusanSearch,
-                              jurusanSearch
-                            );
-                          }}
-                        >
-                          + Tambahkan "{jurusanSearch}"
-                        </div>
-                      )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+  {/* Jurusan - 6 columns */}
+  <div className="col-span-6">
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      Jurusan
+    </label>
+    <input
+      type="text"
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+      placeholder="Masukkan jurusan"
+      value={formData.jurusan || ''}
+      onChange={(e) => setFormData({...formData, jurusan: e.target.value})}
+    />
+  </div>
+</div>
 
           {/* Jurusan and Kelas */}
           <div className="grid grid-cols-12 gap-4 mb-4">
@@ -622,43 +479,7 @@ export default function StudentRegistrationForm() {
                 required
               />
             </div>
-
-            {/* Kelas */}
-            <div className="col-span-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Kelas
-              </label>
-              <div className="relative">
-                <select
-                  name="kelas"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none bg-white"
-                  value={formData.kelas}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Kelas</option>
-                  <option value="10">Kelas 10</option>
-                  <option value="11">Kelas 11</option>
-                  <option value="12">Kelas 12</option>
-                  <option value="mahasiswa">Mahasiswa</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg
-                    className="w-4 h-4 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    ></path>
-                  </svg>
-                </div>
-              </div>
-            </div>
+            
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">

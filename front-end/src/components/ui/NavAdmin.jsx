@@ -395,6 +395,17 @@ const NavAdmin = () => {
         >
           Lowongan
         </Link>
+        {/* Kelola Lowongan */}
+        <Link
+          to="/perusahaan/mitra"
+          className={`font-semibold text-sm px-4 py-2 rounded-full flex items-center transition-colors ${
+            isActive("/perusahaan/mitra")
+              ? "text-[#0069AB] underline"
+              : "text-black hover:underline"
+          }`}
+        >
+          Mitra
+        </Link>
       </div>
 
       <div className="flex gap-5 ml-auto items-center">
