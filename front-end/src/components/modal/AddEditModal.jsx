@@ -9,9 +9,8 @@ export default function AddEditModal({
   formData,
   setFormData,
   onSave,
-  categories
+  categories,
 }) {
-  const [newJurusan, setNewJurusan] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleFormChange = (e) => {
@@ -37,12 +36,6 @@ export default function AddEditModal({
     }
   };
 
-  const removeJurusan = (majorToRemove) => {
-    setFormData((f) => ({
-      ...f,
-      jurusan: f.jurusan.filter((major) => major !== majorToRemove),
-    }));
-  };
 
   const savePartner = async (e) => {
     e.preventDefault();
@@ -53,7 +46,7 @@ export default function AddEditModal({
     formPayload.append("alamat", formData.alamat);
     formPayload.append("telepon", formData.telepon);
     formPayload.append("jenis_institusi", formData.jenis_institusi);
-    formPayload.append("website", formData.website || "");
+    // formPayload.append("website", formData.website || "");
 
     if (formData.foto_header) {
       formPayload.append("foto_header", formData.foto_header);
@@ -63,9 +56,9 @@ export default function AddEditModal({
       formPayload.append("logo", formData.logo);
     }
 
-    formData.jurusan.forEach((j, idx) => {
-      formPayload.append(`jurusan[${idx}]`, j);
-    });
+    // formData.jurusan.forEach((j, idx) => {
+    //   formPayload.append(`jurusan[${idx}]`, j);
+    // });
 
     const headers = {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -143,7 +136,7 @@ export default function AddEditModal({
                 className="w-full py-2.5 px-3 border border-gray-300 rounded-md text-xs"
               />
             </div>
-            <div>
+            {/* <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Website institusi
               </label>
@@ -155,31 +148,7 @@ export default function AddEditModal({
                 placeholder="Masukkan link disini"
                 className="w-full py-2.5 px-3 border border-gray-300 rounded-md text-xs"
               />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Jenis Institusi
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {categories.map((institution) => (
-                  <label
-                    key={institution}
-                    className="flex items-center text-xs"
-                  >
-                    <input
-                      type="radio"
-                      id={institution}
-                      name="jenis_institusi"
-                      value={institution}
-                      checked={formData.jenis_institusi === institution}
-                      onChange={handleFormChange}
-                      className="mr-1"
-                    />
-                    {institution}
-                  </label>
-                ))}
-              </div>
-            </div>
+            </div> */}
           </div>
 
           <div>
@@ -196,7 +165,7 @@ export default function AddEditModal({
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
               Jurusan
             </label>
@@ -236,7 +205,7 @@ export default function AddEditModal({
                 }
               }}
             />
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -282,6 +251,30 @@ export default function AddEditModal({
                     className="hidden"
                   />
                 </label>
+              </div>
+            </div>
+            <div className="ml-1 space-y-3">
+              <label className="block text-xs font-medium text-gray-700 mb-3">
+                Jenis Institusi
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((institution) => (
+                  <label
+                    key={institution}
+                    className="flex items-center text-xs"
+                  >
+                    <input
+                      type="radio"
+                      id={institution}
+                      name="jenis_institusi"
+                      value={institution}
+                      checked={formData.jenis_institusi === institution}
+                      onChange={handleFormChange}
+                      className="mr-1"
+                    />
+                    {institution}
+                  </label>
+                ))}
               </div>
             </div>
           </div>

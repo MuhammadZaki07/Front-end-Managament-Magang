@@ -1,6 +1,7 @@
 import axios from "axios";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import SuccessModal from "../../components/modal/ModalRegis"; // Import the success modal component
+import { useNavigate } from "react-router-dom";
 
 export default function StudentRegistrationForm() {
   const [formData, setFormData] = useState({
@@ -8,28 +9,29 @@ export default function StudentRegistrationForm() {
     alamat: "",
     jenis_kelamin: "",
     tempat_lahir: "",
-    telepon: "", 
+    telepon: "",
     tanggal_lahir: "",
     sekolah: "",
-    nomor_identitas: "", 
+    nomor_identitas: "",
     jurusan: "",
     kelas: "",
 
     // Files
-    profile: null, 
+    profile: null,
     cv: null,
     cvFileName: "",
   });
-  const [provinces, setProvinces] = useState([]);
+  // const [provinces, setProvinces] = useState([]);
   const [previewUrl, setPreviewUrl] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [sekolahOptions, setSekolahOptions] = useState([]);
-  const [jurusanOptions, setJurusanOptions] = useState([
-    { value: "ti", label: "Teknik Informatika" },
-    { value: "rpl", label: "Rekayasa Perangkat Lunak" },
-    { value: "dkv", label: "DKV" },
-    { value: "mm", label: "Multimedia" },
-  ]);
+  const navigate = useNavigate()
+  // const [sekolahOptions, setSekolahOptions] = useState([]);
+  // const [jurusanOptions, setJurusanOptions] = useState([
+  //   { value: "ti", label: "Teknik Informatika" },
+  //   { value: "rpl", label: "Rekayasa Perangkat Lunak" },
+  //   { value: "dkv", label: "DKV" },
+  //   { value: "mm", label: "Multimedia" },
+  // ]);
 
   const handleModalClose = () => {
     setShowSuccessModal(false);
@@ -38,122 +40,95 @@ export default function StudentRegistrationForm() {
       alamat: "",
       jenis_kelamin: "",
       tempat_lahir: "",
-      telepon: "", 
+      telepon: "",
       tanggal_lahir: "",
       sekolah: "",
-      nomor_identitas: "", 
+      nomor_identitas: "",
       jurusan: "",
       kelas: "",
-      profile: null, 
+      profile: null,
       cv: null,
       cvFileName: "",
     });
     setPreviewUrl("");
-    setSekolahSearch("");
-    setJurusanSearch("");
+    navigate("/")
+    // setSekolahSearch("");
+    // setJurusanSearch("");
   };
 
-  const [sekolahDropdownOpen, setSekolahDropdownOpen] = useState(false);
-  const [jurusanDropdownOpen, setJurusanDropdownOpen] = useState(false);
-  const [sekolahSearch, setSekolahSearch] = useState("");
-  const [jurusanSearch, setJurusanSearch] = useState("");
-  const sekolahDropdownRef = useRef(null);
-  const jurusanDropdownRef = useRef(null);
+  // const [sekolahDropdownOpen, setSekolahDropdownOpen] = useState(false);
+  // const [jurusanDropdownOpen, setJurusanDropdownOpen] = useState(false);
+  // const [sekolahSearch, setSekolahSearch] = useState("");
+  // const [jurusanSearch, setJurusanSearch] = useState("");
+  // const sekolahDropdownRef = useRef(null);
+  // const jurusanDropdownRef = useRef(null);
 
-  const fetchSekolah = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/sekolah`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      const data = await response.data.data;
-      // console.log(data);
+  // const fetchSekolah = async () => {
+  //   try {
+  //     const response = await axios.get(
+  //       `${import.meta.env.VITE_API_URL}/sekolah`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //         },
+  //       }
+  //     );
+  //     const data = await response.data.data;
+  //     // console.log(data);
 
-      const formatted = data.map((item) => ({
-        value: item.id,
-        label: item.nama,
-      }));
-      setSekolahOptions(formatted);
-    } catch (err) {
-      console.error("Gagal mengambil data sekolah:", err);
-    }
-  };
+  //     const formatted = data.map((item) => ({
+  //       value: item.id,
+  //       label: item.nama,
+  //     }));
+  //     setSekolahOptions(formatted);
+  //   } catch (err) {
+  //     console.error("Gagal mengambil data sekolah:", err);
+  //   }
+  // };
 
-  const createSekolah = async (namaSekolah) => {
-    try {
-      const token = localStorage.getItem("token"); // atau dari mana pun token-nya
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/sekolah`,
-        { nama: namaSekolah },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  // useEffect(() => {
+  //   const fetchProvinces = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         "https://www.emsifa.com/api-wilayah-indonesia/api/districts.json"
+  //       );
+  //       const data = await response.json();
+  //       setProvinces(data);
+  //     } catch (error) {
+  //       console.error("Error fetching provinces:", error);
+  //     }
+  //   };
 
-      const data = response.data;
+  //   fetchProvinces();
+  // }, []);
 
-      const newOption = {
-        value: data.id,
-        label: data.nama,
-      };
+  // useEffect(() => {
+  //   fetchSekolah();
+  // }, []);
 
-      setSekolahOptions((prev) => [...prev, newOption]);
-      handleSelectOption("sekolah", data.id, data.nama);
-    } catch (error) {
-      console.error("Error create sekolah:", error);
-      alert("Gagal menambahkan sekolah");
-    }
-  };
+  // const handleClickOutside = (event, ref, setDropdownOpen) => {
+  //   if (ref.current && !ref.current.contains(event.target)) {
+  //     setDropdownOpen(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    const fetchProvinces = async () => {
-      try {
-        const response = await fetch(
-          "https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json"
-        );
-        const data = await response.json();
-        setProvinces(data);
-      } catch (error) {
-        console.error("Error fetching provinces:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const handleSekolahClickOutside = (event) => {
+  //     handleClickOutside(event, sekolahDropdownRef, setSekolahDropdownOpen);
+  //   };
 
-    fetchProvinces();
-  }, []);
+  //   const handleJurusanClickOutside = (event) => {
+  //     handleClickOutside(event, jurusanDropdownRef, setJurusanDropdownOpen);
+  //   };
 
-  useEffect(() => {
-    fetchSekolah();
-  }, []);
+  //   document.addEventListener("mousedown", handleSekolahClickOutside);
+  //   document.addEventListener("mousedown", handleJurusanClickOutside);
 
-  const handleClickOutside = (event, ref, setDropdownOpen) => {
-    if (ref.current && !ref.current.contains(event.target)) {
-      setDropdownOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    const handleSekolahClickOutside = (event) => {
-      handleClickOutside(event, sekolahDropdownRef, setSekolahDropdownOpen);
-    };
-
-    const handleJurusanClickOutside = (event) => {
-      handleClickOutside(event, jurusanDropdownRef, setJurusanDropdownOpen);
-    };
-
-    document.addEventListener("mousedown", handleSekolahClickOutside);
-    document.addEventListener("mousedown", handleJurusanClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleSekolahClickOutside);
-      document.removeEventListener("mousedown", handleJurusanClickOutside);
-    };
-  }, []);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleSekolahClickOutside);
+  //     document.removeEventListener("mousedown", handleJurusanClickOutside);
+  //   };
+  // }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -165,48 +140,47 @@ export default function StudentRegistrationForm() {
       }));
     }
   };
-  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectOption = (field, value, label) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  // const handleSelectOption = (field, value, label) => {
+  //   setFormData((prev) => ({ ...prev, [field]: value }));
 
-    if (field === "sekolah") {
-      setSekolahSearch(label);
-      setSekolahDropdownOpen(false);
-    } else if (field === "jurusan") {
-      setJurusanSearch(label);
-      setJurusanDropdownOpen(false);
-    }
-  };
+  //   if (field === "sekolah") {
+  //     setSekolahSearch(label);
+  //     setSekolahDropdownOpen(false);
+  //   } else if (field === "jurusan") {
+  //     setJurusanSearch(label);
+  //     setJurusanDropdownOpen(false);
+  //   }
+  // };
 
-  const handleSearchChange = (field, value) => {
-    if (field === "sekolah") {
-      setSekolahSearch(value);
-      // Add option if it doesn't exist
-      const existingOption = sekolahOptions.find(
-        (option) => option.label.toLowerCase() === value.toLowerCase()
-      );
+  // const handleSearchChange = (field, value) => {
+  //   if (field === "sekolah") {
+  //     setSekolahSearch(value);
+  //     // Add option if it doesn't exist
+  //     const existingOption = sekolahOptions.find(
+  //       (option) => option.label.toLowerCase() === value.toLowerCase()
+  //     );
 
-      if (!existingOption && value) {
-        setFormData((prev) => ({ ...prev, sekolah: value }));
-      }
-    } else if (field === "jurusan") {
-      setJurusanSearch(value);
-      // Add option if it doesn't exist
-      const existingOption = jurusanOptions.find(
-        (option) => option.label.toLowerCase() === value.toLowerCase()
-      );
+  //     if (!existingOption && value) {
+  //       setFormData((prev) => ({ ...prev, sekolah: value }));
+  //     }
+  //   } else if (field === "jurusan") {
+  //     setJurusanSearch(value);
+  //     // Add option if it doesn't exist
+  //     const existingOption = jurusanOptions.find(
+  //       (option) => option.label.toLowerCase() === value.toLowerCase()
+  //     );
 
-      if (!existingOption && value) {
-        setFormData((prev) => ({ ...prev, jurusan: value }));
-      }
-    }
-  };
+  //     if (!existingOption && value) {
+  //       setFormData((prev) => ({ ...prev, jurusan: value }));
+  //     }
+  //   }
+  // };
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -233,10 +207,10 @@ export default function StudentRegistrationForm() {
     formDataToSend.append("telepon", formData.no_hp);
     formDataToSend.append("nomor_identitas", formData.nisn);
     // formDataToSend.append("sekolah", formData.sekolah);
-    formDataToSend.append("sekolah", "1");
+    formDataToSend.append("sekolah", formData.sekolah);
     // formDataToSend.append("jurusan", formData.jurusan);
-    formDataToSend.append("jurusan", "1");
-    formDataToSend.append("kelas", formData.kelas);
+    formDataToSend.append("jurusan",formData.jurusan);
+    // formDataToSend.append("kelas", formData.kelas);
 
     if (formData.cv) {
       formDataToSend.append("cv", formData.cv);
@@ -248,7 +222,7 @@ export default function StudentRegistrationForm() {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/sekolah`,
+        `${import.meta.env.VITE_API_URL}/peserta`,
         formDataToSend,
         {
           headers: {
@@ -366,35 +340,15 @@ export default function StudentRegistrationForm() {
                 Tempat Lahir
               </label>
               <div className="relative">
-                <select
+              <input
+                  type="text"
                   name="tempat_lahir"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none bg-white"
+                  placeholder="ex: Kota Malang"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                   value={formData.tempat_lahir}
                   onChange={handleChange}
                   required
-                >
-                  <option value="">Pilih Tempat Lahir</option>
-                  {provinces.map((province) => (
-                    <option key={province.id} value={province.name}>
-                      {province.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg
-                    className="w-4 h-4 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    ></path>
-                  </svg>
-                </div>
+                />
               </div>
             </div>
 
@@ -432,35 +386,39 @@ export default function StudentRegistrationForm() {
           </div>
 
           {/* School and Jurusan in one row */}
-<div className="grid grid-cols-12 gap-4 mb-4">
-  {/* Sekolah/Universitas - 6 columns */}
-  <div className="col-span-6">
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      Sekolah/Universitas
-    </label>
-    <input
-      type="text"
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-      placeholder="Masukkan nama sekolah/universitas"
-      value={formData.sekolah || ''}
-      onChange={(e) => setFormData({...formData, sekolah: e.target.value})}
-    />
-  </div>
+          <div className="grid grid-cols-12 gap-4 mb-4">
+            {/* Sekolah/Universitas - 6 columns */}
+            <div className="col-span-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sekolah/Universitas
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="Masukkan nama sekolah/universitas"
+                value={formData.sekolah || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, sekolah: e.target.value })
+                }
+              />
+            </div>
 
-  {/* Jurusan - 6 columns */}
-  <div className="col-span-6">
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      Jurusan
-    </label>
-    <input
-      type="text"
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-      placeholder="Masukkan jurusan"
-      value={formData.jurusan || ''}
-      onChange={(e) => setFormData({...formData, jurusan: e.target.value})}
-    />
-  </div>
-</div>
+            {/* Jurusan - 6 columns */}
+            <div className="col-span-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Jurusan
+              </label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="Masukkan jurusan"
+                value={formData.jurusan || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, jurusan: e.target.value })
+                }
+              />
+            </div>
+          </div>
 
           {/* Jurusan and Kelas */}
           <div className="grid grid-cols-12 gap-4 mb-4">
@@ -479,7 +437,6 @@ export default function StudentRegistrationForm() {
                 required
               />
             </div>
-            
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">

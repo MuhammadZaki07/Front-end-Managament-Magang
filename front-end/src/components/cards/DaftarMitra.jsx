@@ -15,7 +15,6 @@ import DetailModal from "../../components/modal/DetailModal";
 export default function UniversityCardGrid() {
   const [partners, setPartners] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const categoryDropdownRef = useRef(null);
@@ -154,7 +153,6 @@ export default function UniversityCardGrid() {
 
   const BASE_URL = import.meta.env.VITE_API_URL_FILE + "/storage";
   if (loading) return <Loading />;
-  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="p-2 min-h-screen">

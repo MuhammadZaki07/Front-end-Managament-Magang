@@ -190,7 +190,7 @@ export default function CompanyRegistrationForm() {
     }
   
     try {
-      await axios.post(
+    const response =  await axios.post(
         `${import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api"}/perusahaan`, 
         formPayload, 
         {
@@ -199,6 +199,8 @@ export default function CompanyRegistrationForm() {
           },
         }
       );
+      console.log(response);
+      
       navigate("/perusahaan/dashboard");
     } catch (error) {
       console.error("Error submitting form:", error);

@@ -21,7 +21,7 @@ const Dashboard = () => {
   const chcekDataStatus = async () => {
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/peserta/detail`,
+        `${import.meta.env.VITE_API_URL}/complete/peserta`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

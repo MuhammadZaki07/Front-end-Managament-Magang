@@ -123,7 +123,7 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit,onSucces }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-4">
+        <form onSubmit={handleSubmit} className="px-6 py-4" encType="multipart/form-data">
           <div className="grid grid-cols-2 gap-5">
             <div className="mb-4">
               <label className="block text-gray-700 text-sm mb-1">Masukkan Nama</label>

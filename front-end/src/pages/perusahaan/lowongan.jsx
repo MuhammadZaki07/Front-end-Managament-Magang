@@ -208,6 +208,7 @@ export default function Lowongan() {
             job={selectedJob}
             onClose={handleCloseDetail} 
             onEdit={() => handleEditJob(selectedJob)}
+            onSucces={() => GetData}
           />
         )}
       </div>

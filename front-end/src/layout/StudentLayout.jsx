@@ -2,21 +2,24 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import axios from "axios";
+import Modal from "../components/Modal";
 
 const StudentLayout = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPresentasiOpen, setIsPresentasiOpen] = useState(false);
   const { role, token } = useContext(AuthContext);
   const [status, setStatus] = useState();
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
 
   const chcekDataStatus = async () => {
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/peserta/detail`,
+        `${import.meta.env.VITE_API_URL}/complete/peserta`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -28,6 +31,33 @@ const StudentLayout = () => {
       console.log(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/logout",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        window.location.href = "/auth/login";
+      } else {
+        alert("Logout gagal, coba lagi.");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -262,9 +292,10 @@ const StudentLayout = () => {
                     </a>
                     <a
                       href="#"
+                      onClick={() => setIsModalOpen(true)}
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                     >
-                      Menu 2
+                      Logout
                     </a>
                   </div>
                 </div>
@@ -297,6 +328,27 @@ const StudentLayout = () => {
           </div>
         </div>
       </div>
+      
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Logout Confirmation"
+      >
+        <div className="flex justify-center items-center gap-4">
+          <button
+            onClick={handleLogout}
+            className="px-4 py-1.5 text-sm hover:bg-rose-400 bg-red-600 text-white rounded-lg"
+          >
+            {isLoggingOut ? "Logging out..." : "Yes, Logout"}
+          </button>
+          <button
+            onClick={() => setIsModalOpen(false)}
+            className="px-4 py-1.5 text-sm bg-gray-300 hover:bg-gray-200 text-gray-800 rounded-lg"
+          >
+            Cancel
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

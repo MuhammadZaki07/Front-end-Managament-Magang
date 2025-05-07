@@ -13,11 +13,9 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { AuthContext } from "../../contexts/AuthContext";
 
-const JobDetail = ({ job, onClose, onEdit }) => {
+const JobDetail = ({ job, onClose, onEdit,onSucces }) => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const { token } = useState(AuthContext);
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === "Escape") {
@@ -43,10 +41,12 @@ const JobDetail = ({ job, onClose, onEdit }) => {
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
+      onClose()
+      onSucces()
     } catch (error) {
       console.log(error);
     }
