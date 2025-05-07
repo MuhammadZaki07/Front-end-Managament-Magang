@@ -1,76 +1,99 @@
 import React from "react";
+import { Eye, Printer, Trash } from "lucide-react";
 
-export default function DataPeringatan({ data, searchTerm, selectedDate }) {
+export default function DataPeringatan({ data, searchTerm, selectedDate, onBuatSurat }) {
+  // Filter data berdasarkan kriteria pencarian
   const filteredData = data.filter((item) => {
-    const isMatchSearch =
+    // Filter berdasarkan searchTerm (dalam nama, sekolah, atau keterangan SP)
+    const matchesSearch = 
+      searchTerm === "" || 
       item.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.sekolah.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.keteranganSP.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.statusSP.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.tanggal.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const isMatchDate = selectedDate
-      ? new Date(item.tanggal).toLocaleDateString() ===
-        selectedDate.toLocaleDateString()
-      : true;
-
-    return isMatchSearch && isMatchDate;
+      item.statusSP.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter berdasarkan tanggal yang dipilih
+    const matchesDate = 
+      !selectedDate || 
+      (new Date(item.tanggal).toDateString() === selectedDate.toDateString());
+    
+    return matchesSearch && matchesDate;
   });
 
-  const handleView = (item) => {
-    console.log("Lihat detail:", item);
-    // Navigasi ke halaman detail kalau kamu pakai react-router-dom:
-    // navigate(`/detail/${item.id}`);
-  };
-
-  const handlePrint = (item) => {
-    console.log("Cetak surat untuk:", item);
-    // Atau jalankan fungsi cetak di sini
-  };
-
   return (
-    <div className="w-full overflow-x-auto">
-      <table className="w-full table-fixed border-collapse text-sm">
-        <thead className="bg-[#F9FAFB] text-[#667085] border-t border-gray-200">
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
           <tr>
-            <th className="px-3 py-3 text-center font-medium">No</th>
-            <th className="px-3 py-3 text-center font-medium">Nama</th>
-            <th className="px-3 py-3 text-center font-medium">Sekolah</th>
-            <th className="px-3 py-3 text-center font-medium">Keterangan SP</th>
-            <th className="px-3 py-3 text-center font-medium">Status SP</th>
-            <th className="px-3 py-3 text-center font-medium">Tanggal</th>
-            <th className="px-3 py-3 text-center font-medium">Aksi</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sekolah</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan SP</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status SP</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
           </tr>
         </thead>
-        <tbody>
-          {filteredData.map((item, index) => (
-            <tr
-              key={item.id}
-              className="border-t border-gray-200 hover:bg-gray-50 text-center"
-            >
-              <td className="px-3 py-3">{index + 1}</td>
-              <td className="px-3 py-3 flex items-center gap-2 justify-center">
-                <img
-                  src={item.image}
-                  alt={item.nama}
-                  className="w-8 h-8 rounded-full"
-                />
-                {item.nama}
-              </td>
-              <td className="px-3 py-3">{item.sekolah}</td>
-              <td className="px-3 py-3">{item.keteranganSP}</td>
-              <td className="px-3 py-3">{item.statusSP}</td>
-              <td className="px-3 py-3">{item.tanggal}</td>
-              <td className="px-3 py-3 flex justify-center gap-3">
-                <button onClick={() => handleView(item)} title="Lihat">
-                  <i className="bi bi-eye" style={{ color: 'orange', fontSize: '1.5rem' }}></i>
-                </button>
-                <button onClick={() => handlePrint(item)} title="Print">
-                  <i className="bi bi-printer" style={{ color: '#007bff', fontSize: '1.5rem' }}></i>
-                </button>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {filteredData.length > 0 ? (
+            filteredData.map((item) => (
+              <tr key={item.id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10">
+                      <img className="h-10 w-10 rounded-full" src={item.image} alt={item.nama} />
+                    </div>
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900">{item.nama}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">{item.sekolah}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">{item.keteranganSP}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="px-2.5 py-0.5 rounded-full text-xs font-medium 
+                    {item.statusSP === 'SP 1' ? 'bg-yellow-100 text-yellow-800' : 
+                     item.statusSP === 'SP 2' ? 'bg-orange-100 text-orange-800' : 
+                     'bg-red-100 text-red-800'}">
+                    {item.statusSP}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
+                    {new Date(item.tanggal).toLocaleDateString("id-ID")}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div className="flex space-x-3">
+                    <button className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1">
+                      <Eye size={20} />
+
+                    </button>
+                    <button className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1">
+                      <Printer size={20} />
+
+                    </button>
+                    <button 
+                      onClick={() => onBuatSurat(item.id)} 
+                      className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1"
+                    >
+                      <Trash size={20} />
+
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6" className="px-6 py-4 text-center">
+                <div className="text-gray-500">Tidak ada data yang ditemukan</div>
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>

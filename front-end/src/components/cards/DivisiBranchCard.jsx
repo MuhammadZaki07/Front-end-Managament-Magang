@@ -80,6 +80,13 @@ export default function DivisiBranchCard() {
     setIsDetaildivisiOpen(true);
   };
 
+  // Format date to "DD Month YYYY" in Indonesian
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('id-ID', options);
+  };
+
   if (loading) return <LoadingCards />;
 
   
@@ -131,11 +138,11 @@ export default function DivisiBranchCard() {
                       onClick={() => handleDetailDevision(branch)}
                     />
                   </div>
-                  <h3 className="font-bold text-sm text-gray-800">
+                  <h3 className="font-bold text-sm text-gray-800 text-center">
                     {branch.nama}
                   </h3>
 
-                  {branch.kategori && branch.kategori.length > 0 && (
+                  {/* {branch.kategori && branch.kategori.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {branch.kategori.map((category, index) => (
                         <span
@@ -146,24 +153,24 @@ export default function DivisiBranchCard() {
                         </span>
                       ))}
                     </div>
-                  )}
-
+                  )} */}
                   <div className="border-t border-[#D5DBE7] mt-2 pt-2">
-                    <p className="text-xs text-black-500 flex justify-between">
-                      <span className="flex items-center">
-                        <i className="bi bi-calendar-event mr-1 text-blue-500"></i>{" "}
-                        {branch.created_at}
+                    <div className="text-xs flex justify-end items-center gap-1">
+                      <i className="bi bi-calendar text-blue-500"></i>
+                      <span className="text-black font-medium">
+                        {formatDate(branch.created_at)}
                       </span>
-                    </p>
+                    </div>
                   </div>
+
                   <div className="flex justify-center mt-3">
-                    <div className="border border-[#D5DBE7] rounded p-2 w-full flex justify-between items-center space-x-2">
-                      <button
+                    <div className="rounded p-2 w-full flex justify-between items-center space-x-2">
+                      {/* <button
                         onClick={() => handlePlace(branch)}
                         className="text-[#0069AB] border border-[#0069AB] rounded px-3 py-1 text-xs hover:bg-orange-50"
                       >
                         Tempatkan
-                      </button>
+                      </button> */}
                       <button
                         onClick={() => {
                           setShowModal(true);
