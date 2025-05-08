@@ -83,13 +83,12 @@ export default function DivisiBranchCard() {
   // Format date to "DD Month YYYY" in Indonesian
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString('id-ID', options);
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return date.toLocaleDateString("id-ID", options);
   };
 
   if (loading) return <LoadingCards />;
 
-  
   return (
     <Card>
       <div className="mt-8 px-1 pb-6">
@@ -115,7 +114,7 @@ export default function DivisiBranchCard() {
 
         {branches.length === 0 ? (
           <div className="py-10">
-            <DataNotAvaliable/>
+            <DataNotAvaliable />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -138,9 +137,18 @@ export default function DivisiBranchCard() {
                       onClick={() => handleDetailDevision(branch)}
                     />
                   </div>
-                  <h3 className="font-bold text-sm text-gray-800 text-center">
-                    {branch.nama}
-                  </h3>
+                  <div className="flex justify-between px-2">
+                    <h3 className="font-bold text-sm text-gray-800 text-left">
+                      {branch.nama}
+                    </h3>
+
+                    <div className="text-xs flex justify-end items-center gap-1">
+                      <i className="bi bi-calendar text-blue-500"></i>
+                      <span className="text-black font-medium">
+                        {formatDate(branch.created_at)}
+                      </span>
+                    </div>
+                  </div>
 
                   {/* {branch.kategori && branch.kategori.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1">
@@ -154,16 +162,8 @@ export default function DivisiBranchCard() {
                       ))}
                     </div>
                   )} */}
-                  <div className="border-t border-[#D5DBE7] mt-2 pt-2">
-                    <div className="text-xs flex justify-end items-center gap-1">
-                      <i className="bi bi-calendar text-blue-500"></i>
-                      <span className="text-black font-medium">
-                        {formatDate(branch.created_at)}
-                      </span>
-                    </div>
-                  </div>
 
-                  <div className="flex justify-center mt-3">
+                  <div className="flex justify-center mt-3 border-t border-t-slate-300">
                     <div className="rounded p-2 w-full flex justify-between items-center space-x-2">
                       {/* <button
                         onClick={() => handlePlace(branch)}

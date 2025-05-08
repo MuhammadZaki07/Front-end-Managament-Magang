@@ -19,14 +19,6 @@ const CompanyCard = () => {
   const [location, setLocation] = useState("Malang, Indonesia");
   const [contactPerson, setContactPerson] = useState("Afrizal Hilmawan");
 
-  const [branchName, setBranchName] = useState("");
-  const [businessField, setBusinessField] = useState("");
-  const [address, setAddress] = useState("");
-  const [charCount, setCharCount] = useState(0);
-  const [websiteUrl, setWebsiteUrl] = useState("");
-  const [instagramUrl, setInstagramUrl] = useState("");
-  const [linkedinUrl, setLinkedinUrl] = useState("");
-
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);

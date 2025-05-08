@@ -124,25 +124,6 @@ const CompanyCard = () => {
           {activeMenu === "Password" && <Password />}
         </div>
       </div>
-
-      {/* <style jsx>{`
-        @keyframes bounceIn {
-          0% {
-            transform: translateY(20px);
-            opacity: 0;
-          }
-          60% {
-            transform: translateY(-5px);
-          }
-          100% {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-        .animate-bounce-in {
-          animation: bounceIn 0.5s ease-out;
-        }
-      `}</style> */}
     </>
   );
 };

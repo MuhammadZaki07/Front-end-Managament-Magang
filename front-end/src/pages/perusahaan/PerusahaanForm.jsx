@@ -208,7 +208,7 @@ export default function CompanyRegistrationForm() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-sm">
+    <div className="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-sm mb-8">
       <form onSubmit={handleSubmit}>
         {/* Header */}
         <div className="mb-6">
@@ -327,7 +327,6 @@ export default function CompanyRegistrationForm() {
                   onChange={handleChange}
                   required
                 />
-                <Calendar className="absolute right-2 top-2.5 h-5 w-5 text-gray-400" />
               </div>
             </div>
 
@@ -443,7 +442,7 @@ export default function CompanyRegistrationForm() {
                 Kode Pos<span className="text-red-500">*</span>
               </label>
               <input
-                type="text"
+                type="number"
                 name="kode_pos"
                 placeholder="Masukkan Kode Pos"
                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
