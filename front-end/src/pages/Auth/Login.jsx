@@ -14,10 +14,42 @@ const Login = () => {
   const navigate = useNavigate();
   const { setRole, setToken } = useContext(AuthContext);
 
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {};
+    
+    // Email validation
+    if (!email) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+      isValid = false;
+    }
+    
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+      isValid = false;
+    }
+    
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
+
+    // Run validation before proceeding
+    if (!validateForm()) {
+      setLoading(false);
+      return;
+    }
 
     const data = {
       email,
@@ -111,6 +143,9 @@ const Login = () => {
             value={email}
             setValue={setEmail}
           />
+          {errors.email && (
+            <p className="text-red-500 text-xs my-1 mb-2">{errors.email}</p>
+          )}
           {errors.message && (
             <p className="text-red-500 text-xs my-1 mb-2">{errors.message}</p>
           )}
@@ -124,6 +159,9 @@ const Login = () => {
             value={password}
             setValue={setPassword}
           />
+          {errors.password && (
+            <p className="text-red-500 text-xs my-1 mb-2">{errors.password}</p>
+          )}
           {errors.message && (
             <p className="text-red-500 text-xs my-1 mb-2">{errors.message}</p>
           )}
@@ -156,7 +194,7 @@ const Login = () => {
 
         <div className="text-center py-5">
           <h1 className="font-medium text-slate-800 text-sm">
-            Don’t have an account?{" "}
+            Don't have an account?{" "}
             <Link
               to={`/auth/register`}
               className="text-sky-500 font-semibold"
