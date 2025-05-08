@@ -107,6 +107,11 @@ export default function UniversityCardGrid() {
   };
 
   const viewDetail = (p) => {
+    // Tambahkan logging untuk debugging
+    console.log("View Detail clicked:", p);
+    console.log("Photo data:", p.foto);
+    console.log("BASE_URL:", BASE_URL);
+    
     setDetailPartner(p);
     setShowDetailModal(true);
   };
@@ -256,8 +261,8 @@ export default function UniversityCardGrid() {
                       <p className="text-gray-500 text-sm mb-2">
                         {university.alamat}
                       </p>
-                      <p className="text-sm text-gray-700 mb-4 line-clamp-3">
-                        {university.jurusan.map((j) => j.nama).join(", ")}
+                      <p className="text-xs text-gray-700 mb-4 line-clamp-3">
+                      Tempat para pemimpin masa depan tumbuh, belajar, dan berkontribusi untuk dunia
                       </p>
                     </div>
                     <div className="mt-auto flex border-t border-gray-200">
@@ -317,14 +322,14 @@ export default function UniversityCardGrid() {
         />
       )}
 
-      {showDetailModal && detailPartner && (
-        <DetailModal
-          show={showDetailModal}
-          onClose={() => setShowDetailModal(false)}
-          partner={detailPartner}
-          baseUrl={BASE_URL}
-        />
-      )}
+{showDetailModal && detailPartner && (
+  <DetailModal
+    show={showDetailModal}
+    onClose={() => setShowDetailModal(false)}
+    partner={detailPartner}
+    baseUrl={BASE_URL} // Pastikan BASE_URL sudah benar
+  />
+)}
     </div>
   );
 }

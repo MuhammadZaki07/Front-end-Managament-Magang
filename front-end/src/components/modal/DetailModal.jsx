@@ -1,25 +1,26 @@
 import { X } from "lucide-react";
 
-export default function PartnerDetailModal({ 
-  partner, 
-  isOpen, 
-  onClose, 
-  baseFileUrl 
+export default function DetailModal({
+  show,
+  partner,
+  onClose,
+  baseUrl,
+  onDeleteMajor, // Fungsi untuk hapus jurusan
 }) {
-  if (!isOpen || !partner) return null;
+  if (!show || !partner) return null;
 
   const coverImage = partner.foto?.find(f => f.type === "foto_header");
   const logoImage = partner.foto?.find(f => f.type === "logo");
 
   return (
     <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]">
-      <div className="bg-white rounded-lg w-full max-w-lg overflow-hidden">
+      <div className="bg-white rounded-lg w-full max-w-lg overflow-hidden max-h-[90vh]">
         <div className="relative">
           {/* Header image */}
           <img
             src={
               coverImage
-                ? `${baseFileUrl}/storage/${coverImage.path}`
+                ? `${baseUrl}/${coverImage.path}`
                 : "/assets/img/Cover.png"
             }
             alt="Partner Cover"
@@ -32,7 +33,7 @@ export default function PartnerDetailModal({
               <img
                 src={
                   logoImage
-                    ? `${baseFileUrl}/storage/${logoImage.path}`
+                    ? `${baseUrl}/${logoImage.path}`
                     : "/assets/img/logoperusahaan.png"
                 }
                 alt="Partner Logo"
@@ -56,7 +57,11 @@ export default function PartnerDetailModal({
           <p className="text-gray-600 mt-1">{partner.alamat}</p>
           {partner.website && (
             <a
-              href={partner.website}
+              href={
+                partner.website.startsWith("http")
+                  ? partner.website
+                  : `https://${partner.website}`
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 mt-1 block text-sm"
@@ -65,33 +70,39 @@ export default function PartnerDetailModal({
             </a>
           )}
           <p className="text-gray-700 mt-1">{partner.telepon}</p>
-          <p className="text-gray-500 mt-1">
-            Jenis: {partner.jenis_institusi}
-          </p>
         </div>
 
         {/* Majors list */}
         <div className="px-8 pb-8">
           <h2 className="font-semibold text-xl mb-4">Daftar Jurusan</h2>
-          {partner.jurusan && partner.jurusan.length > 0 ? (
-            <div className="space-y-2">
-              {partner.jurusan.map((major, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between py-2 border-b-2 border-gray-200"
-                >
-                  <div className="flex items-center font-medium">
-                    <span className="text-gray-600 mr-2">{index + 1}.</span>
-                    <span className="text-gray-800">{major.nama}</span>
+          <div className="max-h-52 overflow-y-auto pr-2">
+            {partner.jurusan && partner.jurusan.length > 0 ? (
+              <div className="space-y-2">
+                {partner.jurusan.map((major, index) => (
+                  <div
+                    key={major.id ?? index}
+                    className="flex items-center justify-between py-2 border-b-2 border-gray-200"
+                  >
+                    <div className="flex items-center font-medium">
+                      <span className="text-gray-600 mr-2">{index + 1}.</span>
+                      <span className="text-gray-800">{major.nama}</span>
+                    </div>
+                    <button
+                      onClick={() => onDeleteMajor(major.id)}
+                      className="flex items-center text-red-600 hover:text-red-800 text-sm"
+                    >
+                      <i className="bi bi-trash mr-1"></i>
+                      Hapus Data
+                    </button>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">
-              Tidak ada jurusan terdaftar
-            </p>
-          )}
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">
+                Tidak ada jurusan terdaftar
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

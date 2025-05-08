@@ -16,6 +16,9 @@ export default function CompanyRegistrationForm() {
   // State untuk verifikasi status perusahaan
   const [verified, setVerified] = useState(null);
   
+  // State untuk validasi
+  const [errors, setErrors] = useState({});
+  
   // State untuk form data
   const [formData, setFormData] = useState({
     // Data Penanggung Jawab
@@ -28,7 +31,7 @@ export default function CompanyRegistrationForm() {
     nama: "",
     tanggal_berdiri: "",
     deskripsi: "",
-    bidang_usaha: "",
+    // bidang_usaha: "",
     
     // Data Kontak
     telepon: "",
@@ -86,9 +89,92 @@ export default function CompanyRegistrationForm() {
     fetchProvinces();
   }, []);
 
+  // Fungsi validasi input
+  const validateInput = (name, value) => {
+    let error = "";
+
+    switch (name) {
+      case "nama_penanggung_jawab":
+        // Hanya huruf dan spasi
+        if (!/^[A-Za-z\s]+$/.test(value)) {
+          error = "Nama hanya boleh berisi huruf dan spasi";
+        }
+        break;
+      
+      case "nomor_penanggung_jawab":
+        // Hanya angka dan maksimal 13 digit
+        if (!/^\d+$/.test(value)) {
+          error = "Nomor HP hanya boleh berisi angka";
+        } else if (value.length < 10 || value.length > 13) {
+          error = "Nomor HP harus 10-13 digit";
+        }
+        break;
+      
+      case "email_penanggung_jawab":
+        // Format email
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          error = "Format email tidak valid";
+        }
+        break;
+      
+      case "nama":
+        // Minimal 3 karakter
+        if (value.length < 3) {
+          error = "Nama perusahaan minimal 3 karakter";
+        }
+        break;
+      
+      case "telepon":
+        // Hanya angka dengan format yang valid
+        if (!/^\d+$/.test(value)) {
+          error = "Nomor telepon hanya boleh berisi angka";
+        } else if (value.length < 8 || value.length > 15) {
+          error = "Nomor telepon harus 8-15 digit";
+        }
+        break;
+      
+      case "kode_pos":
+        // 5 digit angka
+        if (!/^\d{5}$/.test(value)) {
+          error = "Kode pos harus 5 digit angka";
+        }
+        break;
+      
+      case "website":
+        // Format URL
+        if (value && !value.match(/^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/)) {
+          error = "Format website tidak valid (contoh: https://example.com)";
+        }
+        break;
+      
+      case "alamat":
+        // Minimal 10 karakter
+        if (value.length < 10) {
+          error = "Alamat minimal 10 karakter";
+        }
+        break;
+      
+      default:
+        break;
+    }
+
+    return error;
+  };
+
   // Handler untuk perubahan input
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Validasi input
+    const error = validateInput(name, value);
+    
+    // Update state errors
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: error,
+    }));
+    
+    // Update form data
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -97,17 +183,47 @@ export default function CompanyRegistrationForm() {
     const { name, files } = e.target;
     
     if (files.length > 0) {
+      const file = files[0];
+      
+      // Validasi jenis file
+      let error = "";
+      
+      if (name === "logo") {
+        // Validasi logo hanya gambar
+        if (!file.type.includes("image/")) {
+          error = "Logo harus berupa file gambar (JPG, JPEG, PNG)";
+        } else if (file.size > 2 * 1024 * 1024) { // 2MB
+          error = "Ukuran logo maksimal 2MB";
+        }
+      } else {
+        // Validasi dokumen lain
+        const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+        if (!allowedTypes.includes(file.type)) {
+          error = "File harus berformat JPG, JPEG, PNG, PDF, atau DOC/DOCX";
+        } else if (file.size > 5 * 1024 * 1024) { // 5MB
+          error = "Ukuran file maksimal 5MB";
+        }
+      }
+      
+      // Update state errors
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: error,
+      }));
+      
       // Update UI to show selected filename
       const fileNameElement = e.target.parentElement.querySelector("span");
       if (fileNameElement) {
         fileNameElement.textContent = files[0].name;
       }
       
-      // Update form data
-      setFormData((prev) => ({
-        ...prev,
-        [name]: files[0]
-      }));
+      // Update form data jika tidak ada error
+      if (!error) {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: files[0]
+        }));
+      }
     }
   };
 
@@ -176,9 +292,58 @@ export default function CompanyRegistrationForm() {
     }));
   };
 
+  // Validasi keseluruhan form
+  const validateForm = () => {
+    const newErrors = {};
+    const requiredFields = [
+      "nama_penanggung_jawab", 
+      "nomor_penanggung_jawab", 
+      "email_penanggung_jawab",
+      "jabatan_penanggung_jawab",
+      "nama",
+      "tanggal_berdiri",
+      "telepon",
+      "provinsi",
+      "kota",
+      "kecamatan",
+      "alamat",
+      "kode_pos",
+      "website"
+    ];
+    
+    // Cek field required
+    requiredFields.forEach(field => {
+      if (!formData[field]) {
+        newErrors[field] = "Field ini wajib diisi";
+      } else {
+        // Validasi format setiap field
+        const error = validateInput(field, formData[field]);
+        if (error) {
+          newErrors[field] = error;
+        }
+      }
+    });
+    
+    // Update state errors
+    setErrors(newErrors);
+    
+    // Form valid jika tidak ada error
+    return Object.keys(newErrors).length === 0;
+  };
+
   // Handler untuk submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validasi form
+    if (!validateForm()) {
+      // Scroll ke error pertama
+      const firstErrorField = document.querySelector(".text-red-500");
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
   
     const formPayload = new FormData();
     
@@ -190,7 +355,7 @@ export default function CompanyRegistrationForm() {
     }
   
     try {
-    const response =  await axios.post(
+      const response = await axios.post(
         `${import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api"}/perusahaan`, 
         formPayload, 
         {
@@ -204,12 +369,19 @@ export default function CompanyRegistrationForm() {
       navigate("/perusahaan/dashboard");
     } catch (error) {
       console.error("Error submitting form:", error);
+      
+      // Tampilkan error dari server jika ada
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(`Error: ${error.response.data.message}`);
+      } else {
+        alert("Terjadi kesalahan saat mengirim data. Silakan coba lagi.");
+      }
     }
   };
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-sm mb-8">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-xl font-bold text-gray-800">
@@ -238,11 +410,14 @@ export default function CompanyRegistrationForm() {
                 type="text"
                 name="nama_penanggung_jawab"
                 placeholder="Masukkan Nama"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-2 border ${errors.nama_penanggung_jawab ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 value={formData.nama_penanggung_jawab}
                 onChange={handleChange}
                 required
               />
+              {errors.nama_penanggung_jawab && (
+                <p className="text-red-500 text-xs mt-1">{errors.nama_penanggung_jawab}</p>
+              )}
             </div>
 
             {/* Nomor HP Penanggung Jawab */}
@@ -254,12 +429,15 @@ export default function CompanyRegistrationForm() {
                 type="tel"
                 name="nomor_penanggung_jawab"
                 placeholder="Masukkan Nomor HP"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-2 border ${errors.nomor_penanggung_jawab ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 value={formData.nomor_penanggung_jawab}
                 onChange={handleChange}
                 required
                 maxLength={13}
               />
+              {errors.nomor_penanggung_jawab && (
+                <p className="text-red-500 text-xs mt-1">{errors.nomor_penanggung_jawab}</p>
+              )}
             </div>
 
             {/* Jabatan Penanggung Jawab */}
@@ -269,7 +447,7 @@ export default function CompanyRegistrationForm() {
               </label>
               <select
                 name="jabatan_penanggung_jawab"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className={`w-full p-2 border ${errors.jabatan_penanggung_jawab ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
                 value={formData.jabatan_penanggung_jawab}
                 onChange={handleChange}
                 required
@@ -279,6 +457,9 @@ export default function CompanyRegistrationForm() {
                 <option value="manager">Manager</option>
                 <option value="supervisor">Supervisor</option>
               </select>
+              {errors.jabatan_penanggung_jawab && (
+                <p className="text-red-500 text-xs mt-1">{errors.jabatan_penanggung_jawab}</p>
+              )}
             </div>
 
             {/* Email Penanggung Jawab */}
@@ -290,15 +471,18 @@ export default function CompanyRegistrationForm() {
                 type="email"
                 name="email_penanggung_jawab"
                 placeholder="Masukkan Email"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-2 border ${errors.email_penanggung_jawab ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 value={formData.email_penanggung_jawab}
                 onChange={handleChange}
                 required
               />
+              {errors.email_penanggung_jawab && (
+                <p className="text-red-500 text-xs mt-1">{errors.email_penanggung_jawab}</p>
+              )}
             </div>
 
             {/* Nama Perusahaan */}
-            <div className="space-y-2">
+            <div className="space-y-2 mb-5">
               <label className="block text-sm font-medium text-gray-700">
                 Nama Perusahaan<span className="text-red-500">*</span>
               </label>
@@ -306,11 +490,14 @@ export default function CompanyRegistrationForm() {
                 type="text"
                 name="nama"
                 placeholder="Masukkan Nama Perusahaan"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-2 border ${errors.nama ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 value={formData.nama}
                 onChange={handleChange}
                 required
               />
+              {errors.nama && (
+                <p className="text-red-500 text-xs mt-1">{errors.nama}</p>
+              )}
             </div>
 
             {/* Tanggal Berdiri */}
@@ -322,45 +509,37 @@ export default function CompanyRegistrationForm() {
                 <input
                   type="date"
                   name="tanggal_berdiri"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full p-2 border ${errors.tanggal_berdiri ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   value={formData.tanggal_berdiri}
                   onChange={handleChange}
                   required
+                  max={new Date().toISOString().split("T")[0]} // Tanggal tidak boleh di masa depan
                 />
               </div>
-            </div>
-
-            {/* Bidang Usaha */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Bidang Usaha<span className="text-red-500">*</span>
-              </label>
-              <select
-                name="bidang_usaha"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                value={formData.bidang_usaha}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Pilih Bidang Usaha</option>
-                <option value="teknologi">Teknologi</option>
-                <option value="manufaktur">Manufaktur</option>
-                <option value="jasa">Jasa</option>
-                <option value="perdagangan">Perdagangan</option>
-              </select>
+              {errors.tanggal_berdiri && (
+                <p className="text-red-500 text-xs mt-1">{errors.tanggal_berdiri}</p>
+              )}
             </div>
           </div>
 
           {/* Deskripsi Perusahaan */}
-          <div className="grid grid-cols-2 gap-3 mt-5">
-            <textarea
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              name="deskripsi"
-              placeholder="Deskripsi Perusahaan"
-              value={formData.deskripsi}
-              onChange={handleChange}
-              rows={4}
-            ></textarea>
+          <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+                Deskripsi Perusahaan<span className="text-red-500">*</span>
+              </label>
+            <div>
+              <textarea
+                className={`w-150 p-2 border ${errors.deskripsi ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
+                name="deskripsi"
+                placeholder="Deskripsi Perusahaan"
+                value={formData.deskripsi}
+                onChange={handleChange}
+                rows={4}
+              ></textarea>
+              {errors.deskripsi && (
+                <p className="text-red-500 text-xs mt-1">{errors.deskripsi}</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -378,7 +557,7 @@ export default function CompanyRegistrationForm() {
               </label>
               <select
                 name="provinsi"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className={`w-full p-2 border ${errors.provinsi ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
                 value={selectedProvince}
                 onChange={handleProvinceChange}
                 required
@@ -390,6 +569,9 @@ export default function CompanyRegistrationForm() {
                   </option>
                 ))}
               </select>
+              {errors.provinsi && (
+                <p className="text-red-500 text-xs mt-1">{errors.provinsi}</p>
+              )}
             </div>
 
             {/* Kabupaten/Kota */}
@@ -399,7 +581,7 @@ export default function CompanyRegistrationForm() {
               </label>
               <select
                 name="kota"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className={`w-full p-2 border ${errors.kota ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
                 value={selectedCity}
                 onChange={handleCityChange}
                 required
@@ -412,6 +594,9 @@ export default function CompanyRegistrationForm() {
                   </option>
                 ))}
               </select>
+              {errors.kota && (
+                <p className="text-red-500 text-xs mt-1">{errors.kota}</p>
+              )}
             </div>
 
             {/* Kecamatan */}
@@ -421,7 +606,7 @@ export default function CompanyRegistrationForm() {
               </label>
               <select
                 name="kecamatan"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className={`w-full p-2 border ${errors.kecamatan ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
                 value={formData.kecamatan}
                 onChange={handleDistrictChange}
                 required
@@ -434,6 +619,9 @@ export default function CompanyRegistrationForm() {
                   </option>
                 ))}
               </select>
+              {errors.kecamatan && (
+                <p className="text-red-500 text-xs mt-1">{errors.kecamatan}</p>
+              )}
             </div>
 
             {/* Kode Pos */}
@@ -442,16 +630,19 @@ export default function CompanyRegistrationForm() {
                 Kode Pos<span className="text-red-500">*</span>
               </label>
               <input
-                type="number"
+                type="text"
                 name="kode_pos"
                 placeholder="Masukkan Kode Pos"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-2 border ${errors.kode_pos ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 value={formData.kode_pos}
                 onChange={handleChange}
                 required
                 maxLength={5}
                 pattern="[0-9]{5}"
               />
+              {errors.kode_pos && (
+                <p className="text-red-500 text-xs mt-1">{errors.kode_pos}</p>
+              )}
             </div>
 
             {/* Nomor Telepon Perusahaan */}
@@ -463,15 +654,18 @@ export default function CompanyRegistrationForm() {
                 type="tel"
                 name="telepon"
                 placeholder="Masukkan Nomor Telepon"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-2 border ${errors.telepon ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 value={formData.telepon}
                 onChange={handleChange}
                 required
               />
+              {errors.telepon && (
+                <p className="text-red-500 text-xs mt-1">{errors.telepon}</p>
+              )}
             </div>
 
             {/* Website Perusahaan */}
-            <div className="space-y-2">
+            <div className="space-y-2 mb-5">
               <label className="block text-sm font-medium text-gray-700">
                 Website Perusahaan<span className="text-red-500">*</span>
               </label>
@@ -479,25 +673,35 @@ export default function CompanyRegistrationForm() {
                 type="url"
                 name="website"
                 placeholder="https://website-perusahaan.com"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full p-2 border ${errors.website ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 value={formData.website}
                 onChange={handleChange}
                 required
               />
+              {errors.website && (
+                <p className="text-red-500 text-xs mt-1">{errors.website}</p>
+              )}
             </div>
           </div>
 
           {/* Alamat Perusahaan */}
-          <div className="grid grid-cols-2 gap-3 mt-5">
-            <textarea
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              name="alamat"
-              placeholder="Alamat Perusahaan"
-              value={formData.alamat}
-              onChange={handleChange}
-              rows={4}
-              required
-            ></textarea>
+          <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+                Alamat Perusahaan<span className="text-red-500">*</span>
+              </label>            <div>
+              <textarea
+                className={`w-full p-2 border ${errors.alamat ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                name="alamat"
+                placeholder="Alamat Perusahaan"
+                value={formData.alamat}
+                onChange={handleChange}
+                rows={4}
+                required
+              ></textarea>
+              {errors.alamat && (
+                <p className="text-red-500 text-xs mt-1">{errors.alamat}</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -508,93 +712,102 @@ export default function CompanyRegistrationForm() {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-  {/* Dokumen Perusahaan */}
-  <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-700">
-      Dokumen Perusahaan
-    </label>
-    <div className="flex items-center space-x-2 border border-slate-400/[0.5] rounded-lg overflow-hidden">
-      <input
-        type="file"
-        id="surat_legalitas"
-        name="surat_legalitas"
-        accept=".pdf,.docx,.jpeg,.png,.jpg"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-      <label
-        htmlFor="surat_legalitas"
-        className="cursor-pointer px-3 py-2 bg-slate-100 text-slate-700 border-r border-r-slate-300"
-      >
-        Choose File
-      </label>
-      <span className="text-sm text-gray-500 truncate px-2">
-        No File Chosen
-      </span>
-    </div>
-    <p className="text-xs text-red-500 mt-1">
-      *File harus berformat .pdf, .doc, .jpg, .jpeg, atau .png
-    </p>
-  </div>
-  
-  {/* NPWP Perusahaan */}
-  <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-700">
-      NPWP Perusahaan
-    </label>
-    <div className="flex items-center space-x-2 border border-slate-400/[0.5] rounded-lg overflow-hidden">
-      <input
-        type="file"
-        id="npwp"
-        name="npwp"
-        accept=".pdf,.docx,.jpeg,.png,.jpg"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-      <label
-        htmlFor="npwp"
-        className="cursor-pointer px-3 py-2 bg-slate-100 text-slate-700 border-r border-r-slate-300"
-      >
-        Choose File
-      </label>
-      <span className="text-sm text-gray-500 truncate px-2">
-        No File Chosen
-      </span>
-    </div>
-    <p className="text-xs text-red-500 mt-1">
-      *File harus berformat .pdf, .doc, .jpg, .jpeg, atau .png
-    </p>
-  </div>
-  
-  {/* Logo Perusahaan */}
-  <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-700">
-      Logo Perusahaan
-    </label>
-    <div className="flex items-center space-x-2 border border-slate-400/[0.5] rounded-lg overflow-hidden">
-      <input
-        type="file"
-        id="logo"
-        name="logo"
-        accept=".jpeg,.png,.jpg"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-      <label
-        htmlFor="logo"
-        className="cursor-pointer px-3 py-2 bg-slate-100 text-slate-700 border-r border-r-slate-300"
-      >
-        Choose File
-      </label>
-      <span className="text-sm text-gray-500 truncate px-2">
-        No File Chosen
-      </span>
-    </div>
-    <p className="text-xs text-red-500 mt-1">
-      *File harus berformat .jpg, .jpeg, atau .png
-    </p>
-  </div>
-</div>
+            {/* Dokumen Perusahaan */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Dokumen Perusahaan
+              </label>
+              <div className={`flex items-center space-x-2 border ${errors.surat_legalitas ? "border-red-500" : "border-slate-400/[0.5]"} rounded-lg overflow-hidden`}>
+                <input
+                  type="file"
+                  id="surat_legalitas"
+                  name="surat_legalitas"
+                  accept=".pdf,.docx,.jpeg,.png,.jpg"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                <label
+                  htmlFor="surat_legalitas"
+                  className="cursor-pointer px-3 py-2 bg-slate-100 text-slate-700 border-r border-r-slate-300"
+                >
+                  Choose File
+                </label>
+                <span className="text-sm text-gray-500 truncate px-2">
+                  No File Chosen
+                </span>
+              </div>
+              {errors.surat_legalitas && (
+                <p className="text-red-500 text-xs mt-1">{errors.surat_legalitas}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                *File harus berformat .pdf, .doc, .jpg, .jpeg, atau .png (maks. 2MB)
+              </p>
+            </div>
+            
+            {/* NPWP Perusahaan */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                NPWP Perusahaan
+              </label>
+              <div className={`flex items-center space-x-2 border ${errors.npwp ? "border-red-500" : "border-slate-400/[0.5]"} rounded-lg overflow-hidden`}>
+                <input
+                  type="file"
+                  id="npwp"
+                  name="npwp"
+                  accept=".pdf,.docx,.jpeg,.png,.jpg"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                <label
+                  htmlFor="npwp"
+                  className="cursor-pointer px-3 py-2 bg-slate-100 text-slate-700 border-r border-r-slate-300"
+                >
+                  Choose File
+                </label>
+                <span className="text-sm text-gray-500 truncate px-2">
+                  No File Chosen
+                </span>
+              </div>
+              {errors.npwp && (
+                <p className="text-red-500 text-xs mt-1">{errors.npwp}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                *File harus berformat .pdf, .doc, .jpg, .jpeg, atau .png (maks. 2MB)
+              </p>
+            </div>
+            
+            {/* Logo Perusahaan */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Logo Perusahaan
+              </label>
+              <div className={`flex items-center space-x-2 border ${errors.logo ? "border-red-500" : "border-slate-400/[0.5]"} rounded-lg overflow-hidden`}>
+                <input
+                  type="file"
+                  id="logo"
+                  name="logo"
+                  accept=".jpeg,.png,.jpg"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                <label
+                  htmlFor="logo"
+                  className="cursor-pointer px-3 py-2 bg-slate-100 text-slate-700 border-r border-r-slate-300"
+                >
+                  Choose File
+                </label>
+                <span className="text-sm text-gray-500 truncate px-2">
+                  No File Chosen
+                </span>
+              </div>
+              {errors.logo && (
+                <p className="text-red-500 text-xs mt-1">{errors.logo}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                *File harus berformat .jpg, .jpeg, atau .png (maks. 2MB)
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Submit Button */}

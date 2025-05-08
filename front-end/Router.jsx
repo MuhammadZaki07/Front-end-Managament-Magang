@@ -272,7 +272,11 @@ export const router = createBrowserRouter([
       {
         path : "settings-cabang",
         element : <SettingCabang/>
-      }
+      },
+      // {
+      //   path : "mitra-terdaftar",
+      //   element : <MitraTerdaftar/>
+      // }
     ],
   },
   {

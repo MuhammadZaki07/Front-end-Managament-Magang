@@ -8,6 +8,8 @@ const PerusahaanLayout = () => {
   const { role, token } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
+  // Tambahkan state untuk status sidebar
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const sidebarMenus = [
     {
@@ -39,11 +41,6 @@ const PerusahaanLayout = () => {
           icon: "bi-pc-display",
           label: "Divisi",
           link: "/perusahaan/divisi",
-        },
-        {
-          icon: "bi-buildings",
-          label: "Mitra",
-          link: "/perusahaan/mitra",
         },
         {
           icon: "bi-check-square",
@@ -98,17 +95,34 @@ const PerusahaanLayout = () => {
     }
   }, [role]);
 
+  // Fungsi untuk toggle sidebar
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
     <div className="w-full flex">
-      {/* Sidebar */}
-      <div className="bg-white border-r border-r-slate-300 w-[238px] h-screen fixed py-4 px-2 z-[50] overflow-y-auto flex flex-col justify-between">
+      {/* Sidebar dengan kondisi lebar berbeda saat collapsed */}
+      <div 
+        className={`bg-white border-r border-r-slate-300 ${
+          sidebarCollapsed ? "w-[60px]" : "w-[238px]"
+        } h-screen fixed py-4 px-2 z-[50] overflow-y-auto flex flex-col justify-between transition-all duration-300`}
+      >
         <div>
-          <Link to={`/`}>
-            <img
-              src="/assets/img/Logo.png"
-              alt="Logo"
-              className="w-48 mx-auto object-cover"
-            />
+          <Link to={`/`} className="flex justify-center">
+            {sidebarCollapsed ? (
+              <img
+                src="/assets/img/LogoIcon.png" // Gunakan icon logo saja ketika sidebar tertutup
+                alt="Logo Icon"
+                className="w-10 mx-auto object-cover"
+              />
+            ) : (
+              <img
+                src="/assets/img/Logo.png"
+                alt="Logo"
+                className="w-48 mx-auto object-cover"
+              />
+            )}
           </Link>
           <div className="flex flex-col gap-3 mt-8">
             {sidebarMenus.map((menu, idx) => (
@@ -127,15 +141,19 @@ const PerusahaanLayout = () => {
                     >
                       <div className="flex gap-3 items-center">
                         <i className={`bi ${menu.icon} text-lg`}></i>
-                        <span className="font-light text-sm">{menu.label}</span>
+                        {!sidebarCollapsed && (
+                          <span className="font-light text-sm">{menu.label}</span>
+                        )}
                       </div>
-                      <i
-                        className={`bi bi-chevron-${
-                          openMenu === menu.label ? "up" : "down"
-                        } text-xs`}
-                      ></i>
+                      {!sidebarCollapsed && (
+                        <i
+                          className={`bi bi-chevron-${
+                            openMenu === menu.label ? "up" : "down"
+                          } text-xs`}
+                        ></i>
+                      )}
                     </button>
-                    {openMenu === menu.label && (
+                    {openMenu === menu.label && !sidebarCollapsed && (
                       <div className="ml-4 mt-1 flex flex-col gap-2">
                         {menu.submenu.map((sub, subIdx) => (
                           <Link
@@ -165,7 +183,9 @@ const PerusahaanLayout = () => {
                     } ${openMenu === menu.label ? "bg-transparent" : ""}`}
                   >
                     <i className={`bi ${menu.icon} text-lg`}></i>
-                    <span className="font-light text-sm">{menu.label}</span>
+                    {!sidebarCollapsed && (
+                      <span className="font-light text-sm">{menu.label}</span>
+                    )}
                   </Link>
                 )}
               </div>
@@ -174,7 +194,7 @@ const PerusahaanLayout = () => {
         </div>
 
         {/* Hapus Cabang Button - hanya tampil di halaman tertentu */}
-        {location.pathname === "/perusahaan/settings-cabang" && (
+        {location.pathname === "/perusahaan/settings-cabang" && !sidebarCollapsed && (
           <div className="px-4 mt-10 pb-4">
             <button
               onClick={() => {
@@ -192,9 +212,9 @@ const PerusahaanLayout = () => {
         )}
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 ml-[238px] flex flex-col min-h-screen">
-        <NavAdmin />
+      {/* Main Content Area dengan penyesuaian margin sesuai lebar sidebar */}
+      <div className={`flex-1 ${sidebarCollapsed ? "ml-[60px]" : "ml-[238px]"} flex flex-col min-h-screen transition-all duration-300`}>
+        <NavAdmin toggleSidebar={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
         <div className="flex-grow bg-indigo-50 px-3 pt-5 pb-0">
           <Outlet />
         </div>

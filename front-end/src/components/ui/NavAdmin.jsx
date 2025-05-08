@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import ModalTambahCabang from "../modal/ModalTambahCabang";
 
-const NavAdmin = () => {
+const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCabangDropdownOpen, setIsCabangDropdownOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
@@ -26,6 +26,7 @@ const NavAdmin = () => {
   const [cabang, setisCabang] = useState([]);
   const cabangDropdownRef = useRef(null);
   const isActive = (path) => currentPath === path;
+  
   useEffect(() => {
     if (user && user.id) {
       setId(user.id);
@@ -47,6 +48,7 @@ const NavAdmin = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  
   const packagePrice = 100000;
   const calculateSubtotal = () => {
     const months = parseInt(selectedDuration.split(" ")[0]);
@@ -211,7 +213,19 @@ const NavAdmin = () => {
   };
 
   return (
-    <nav className="bg-white w-full h-[60px] flex items-center px-10 sticky top-0 z-50 border-b border-b-slate-300">
+    <nav className="bg-white w-full h-[60px] flex items-center px-6 sticky top-0 z-50 border-b border-b-slate-300">
+      {/* Tombol Toggle Sidebar */}
+      <button 
+        onClick={toggleSidebar}
+        className="mr-4 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        {sidebarCollapsed ? (
+          <i className="bi bi-arrow-right-square text-xl"></i>
+        ) : (
+          <i className="bi bi-arrow-left-square text-xl"></i>
+        )}
+      </button>
+      
       <div className="flex gap-4 items-center">
         {/* Dashboard Link */}
         <Link

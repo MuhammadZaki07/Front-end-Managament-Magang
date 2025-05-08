@@ -165,12 +165,12 @@ export default function TablePendaftaran({ data, searchTerm, selectedDate }) {
         <thead className="bg-[#F9FAFB] text-[#667085] border-t border-gray-200">
           <tr>
             <th className="px-2 py-3 text-center font-medium w-12">
-              <input
+              {/* <input
                 type="checkbox"
                 checked={selectAll}
                 onChange={handleSelectAll}
                 className="w-4 h-4 text-[#0069AB] bg-gray-100 border-gray-300 rounded focus:ring-[#0069AB]"
-              />
+              /> */}
             </th>
             <th className="px-3 py-3 text-center font-medium w-12">No</th>
             <th className="px-3 py-3 text-center font-medium">Nama</th>
