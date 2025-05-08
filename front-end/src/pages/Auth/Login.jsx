@@ -179,7 +179,7 @@ const Login = () => {
                 Remember Me
               </label>
             </div>
-            <Link className="text-sm font-medium text-sky-500">
+            <Link to="/auth/ForgotPassword" className="text-sm font-medium text-sky-500">
               Forgot Password ?
             </Link>
           </div>

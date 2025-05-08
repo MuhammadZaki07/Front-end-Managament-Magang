@@ -46,6 +46,8 @@ import DetailPresentasi from "./src/pages/student/DetailPresentasi";
 import RiwayatPresentasi from "./src/pages/student/RiwayatPresentasi";
 import SelectAuth from "./src/pages/Auth/SelectAuth";
 import GoogleSuccess from "./src/pages/Auth/GoogleSuccess";
+import ForgotPassword from "./src/pages/Auth/ForgotPasword";
+import VerificationCode from "./src/pages/Auth/VerificationCode";
 import AuthLayout from "./src/layout/AuthLayout";
 import CompanyRegistrationForm from "./src/pages/perusahaan/PerusahaanForm";
 import DetailMentor from "./src/components/cards/DetailMentor";
@@ -178,6 +180,14 @@ export const router = createBrowserRouter([
       {
         path: "google/success",
         element: <GoogleSuccess />,
+      },
+      {
+        path: "ForgotPassword",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "VerificationCode",
+        element: <VerificationCode />,
       },
     ],
   },
