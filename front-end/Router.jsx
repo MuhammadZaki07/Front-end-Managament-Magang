@@ -40,6 +40,7 @@ import Procedure from "./src/pages/Procedure";
 import Contact from "./src/pages/Contact";
 import Absensi from "./src/pages/student/Absensi";
 import Jurnal from "./src/pages/student/Jurnal";
+import Vacancy from "./src/pages/Vacancy";
 import Presentasi from "./src/pages/student/Presentasi";
 import DetailPresentasi from "./src/pages/student/DetailPresentasi";
 import RiwayatPresentasi from "./src/pages/student/RiwayatPresentasi";
@@ -77,6 +78,10 @@ export const router = createBrowserRouter([
         path: "/contact_us",
         element: <Contact />,
       },
+      {
+        path: "/vacancy",
+        element: <Vacancy/>
+      }
     ],
   },
   {

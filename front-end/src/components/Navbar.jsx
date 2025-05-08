@@ -24,6 +24,7 @@ const Navbar = () => {
     { link: "/gallery", name: "Gallery" },
     { link: "/procedure", name: "Procedure" },
     { link: "/contact_us", name: "Contact us" },
+    { link: "/vacancy", name: "Vacancy"},
   ];
 
   useEffect(() => {
