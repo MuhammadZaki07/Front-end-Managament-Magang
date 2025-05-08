@@ -78,7 +78,7 @@ const PerusahaanLayout = () => {
         {
           icon: "bi bi-sliders2-vertical",
           label: "Profile Settings",
-          link: "/perusahaan/surat",
+          link: "/perusahaan/settings-cabang",
         }
       ],
     },
@@ -174,7 +174,7 @@ const PerusahaanLayout = () => {
         </div>
 
         {/* Hapus Cabang Button - hanya tampil di halaman tertentu */}
-        {location.pathname === "/perusahaan/surat" && (
+        {location.pathname === "/perusahaan/settings-cabang" && (
           <div className="px-4 mt-10 pb-4">
             <button
               onClick={() => {

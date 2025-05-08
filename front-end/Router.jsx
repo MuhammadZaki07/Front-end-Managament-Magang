@@ -52,6 +52,7 @@ import DetailMentor from "./src/components/cards/DetailMentor";
 import RegistrasiPeserta from "./src/pages/student/RegistrasiPeserta";
 import Piket from "./src/pages/perusahaan/piket";
 import Laporan from "./src/pages/perusahaan/Laporan";
+import SettingCabang from "./src/pages/perusahaan/SettingCabang";
 
 export const router = createBrowserRouter([
   {
@@ -267,6 +268,10 @@ export const router = createBrowserRouter([
       {
         path : "laporan",
         element : <Laporan/>
+      },
+      {
+        path : "settings-cabang",
+        element : <SettingCabang/>
       }
     ],
   },

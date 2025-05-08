@@ -182,12 +182,12 @@ export default function InternshipModal() {
               className="mt-2 text-blue-600 text-sm flex items-center hover:text-blue-800 transition-colors"
               onClick={() => {
                 // Pada implementasi sebenarnya, URL ini akan mengarah ke endpoint backend yang menyajikan file
-                const templateUrl = "/api/templates/surat-pernyataan-diri.docx";
+                const templateUrl = "../berkas/Surat_Pernyataan_Diri.pdf";
 
                 // Membuat link untuk download
                 const link = document.createElement("a");
                 link.href = templateUrl;
-                link.download = "template_surat_pernyataan_diri.docx";
+                link.download = "Surat_Pernyataan_Diri.pdf";
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
