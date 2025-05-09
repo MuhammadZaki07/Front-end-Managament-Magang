@@ -136,8 +136,7 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     setErrors(prev => ({ ...prev, ...newErrors }));
     
     // Form is valid if there are no errors
-    return Object.values(newErrors).every(error => !error) && 
-           Object.values(errors).every(error => !error);
+   return Object.values({ ...errors, ...newErrors }).every(error => !error);
   };
 
   const handleBlur = (e) => {
@@ -150,49 +149,48 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Mark all fields as touched
-    const allTouched = {};
-    Object.keys(formData).forEach(key => {
-      allTouched[key] = true;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const allTouched = {};
+  Object.keys(formData).forEach(key => { allTouched[key] = true; });
+  setTouched(allTouched);
+
+  const isValid = validateForm();
+  if (!isValid) return;
+
+  try {
+    const url = editingData
+      ? `${import.meta.env.VITE_API_URL}/lowongan/${formData.id}`
+      : `${import.meta.env.VITE_API_URL}/lowongan`;
+
+    const method = editingData ? "put" : "post";
+
+    const cleanData = {
+      ...formData,
+      max_kuota: parseInt(formData.max_kuota),
+      durasi: parseInt(formData.durasi),
+    };
+
+    const response = await axios({
+      method,
+      url,
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      data: cleanData,
     });
-    setTouched(allTouched);
-    
-    // Validate form
-    const isValid = validateForm();
-    
-    if (!isValid) {
-      return;
+
+    console.log("Respon sukses:", response.data);
+    setShowModal(false);
+    onSucces();
+  } catch (error) {
+    console.error("Gagal menyimpan:", error.response?.data || error.message);
+    if (error.response?.data?.message) {
+      setErrors(prev => ({ ...prev, form: error.response.data.message }));
+    } else {
+      setErrors(prev => ({ ...prev, form: "Terjadi kesalahan saat menyimpan data" }));
     }
+  }
+};
 
-    try {
-      const url = editingData
-        ? `${import.meta.env.VITE_API_URL}/lowongan/${formData.id}`
-        : `${import.meta.env.VITE_API_URL}/lowongan`;
-
-      const method = editingData ? "put" : "post";
-
-      await axios({
-        method,
-        url,
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        data: formData,
-      });
-      
-      setShowModal(false);
-      onSucces();
-    } catch (error) {
-      console.error("Gagal menyimpan:", error);
-      if (error.response?.data?.message) {
-        // Handle API error messages
-        setErrors(prev => ({ ...prev, form: error.response.data.message }));
-      } else {
-        setErrors(prev => ({ ...prev, form: "Terjadi kesalahan saat menyimpan data" }));
-      }
-    }
-  };
 
   return (
     <div
