@@ -5,10 +5,7 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
   const [duration, setDuration] = useState([]);
   const [cabang, setCabang] = useState([]);
   const [divisi, setDevisi] = useState([]);
-  const maxWords = 150;
 
-  const [requirementCount, setRequirementCount] = useState(0);
-  const [jobdescCount, setJobdescCount] = useState(0);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
@@ -98,36 +95,6 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const countWords = (text) => {
-    return text.trim().split(/\s+/).filter(Boolean).length;
-  };
-
-  useEffect(() => {
-    setRequirementCount(countWords(formData.requirement));
-    
-    // Validate requirement field
-    if (formData.requirement && !isNaN(formData.requirement)) {
-      setErrors(prev => ({ ...prev, requirement: "Requirement harus berupa teks" }));
-    } else if (touched.requirement && requirementCount > 0 && requirementCount < maxWords) {
-      setErrors(prev => ({ ...prev, requirement: `Minimal ${maxWords} kata` }));
-    } else {
-      setErrors(prev => ({ ...prev, requirement: "" }));
-    }
-  }, [formData.requirement, touched.requirement]);
-
-  useEffect(() => {
-    setJobdescCount(countWords(formData.jobdesc));
-    
-    // Validate jobdesc field
-    if (formData.jobdesc && !isNaN(formData.jobdesc)) {
-      setErrors(prev => ({ ...prev, jobdesc: "Deskripsi pekerjaan harus berupa teks" }));
-    } else if (touched.jobdesc && jobdescCount > 0 && jobdescCount < maxWords) {
-      setErrors(prev => ({ ...prev, jobdesc: `Minimal ${maxWords} kata` }));
-    } else {
-      setErrors(prev => ({ ...prev, jobdesc: "" }));
-    }
-  }, [formData.jobdesc, touched.jobdesc]);
-
   // Validate dates when either date changes
   useEffect(() => {
     if (formData.tanggal_mulai && formData.tanggal_selesai) {
@@ -164,15 +131,6 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
         newErrors[field.name] = `${field.label} wajib diisi`;
       }
     });
-    
-    // Check requirement and jobdesc word count
-    if (formData.requirement && requirementCount < maxWords) {
-      newErrors.requirement = `Minimal ${maxWords} kata`;
-    }
-    
-    if (formData.jobdesc && jobdescCount < maxWords) {
-      newErrors.jobdesc = `Minimal ${maxWords} kata`;
-    }
     
     // Merge with existing errors
     setErrors(prev => ({ ...prev, ...newErrors }));
@@ -372,7 +330,7 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
                 <p className="text-red-500 text-xs mt-1">{errors.max_kuota}</p>
               )}
             </div>
-            <div>
+            {/* <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Durasi Magang <span className="text-red-500">*</span>
               </label>
@@ -395,7 +353,7 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
               {errors.durasi && touched.durasi && (
                 <p className="text-red-500 text-xs mt-1">{errors.durasi}</p>
               )}
-            </div>
+            </div> */}
           </div>
 
           {/* Requirements */}
@@ -404,13 +362,9 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
               Requirements Lowongan <span className="text-red-500">*</span>
             </label>
             <textarea
-              className={`w-full border rounded-md py-2 px-3 text-xs ${
-                errors.requirement && touched.requirement 
-                  ? "border-red-500" 
-                  : requirementCount < maxWords 
-                    ? "border-gray-300" 
-                    : "border-gray-300"
-              }`}
+              className={`w-full border ${
+                errors.requirement && touched.requirement ? "border-red-500" : "border-gray-300"
+              } rounded-md py-2 px-3 text-xs`}
               name="requirement"
               value={formData.requirement}
               onChange={handleValue}
@@ -418,14 +372,6 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
               placeholder="Masukkan persyaratan"
               rows="3"
             />
-            <div className="flex justify-between mt-1 text-xs">
-              <span className={requirementCount < maxWords ? "text-gray-600" : "text-gray-400"}>
-                Minimal Kata: {maxWords}
-              </span>
-              <span className={requirementCount < maxWords ? "text-gray-600" : "text-gray-400"}>
-                {requirementCount}/{maxWords}
-              </span>
-            </div>
             {errors.requirement && touched.requirement && (
               <p className="text-red-500 text-xs mt-1">{errors.requirement}</p>
             )}
@@ -437,13 +383,9 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
               Deskripsi Pekerjaan <span className="text-red-500">*</span>
             </label>
             <textarea
-              className={`w-full border rounded-md py-2 px-3 text-xs ${
-                errors.jobdesc && touched.jobdesc
-                  ? "border-red-500" 
-                  : jobdescCount < maxWords 
-                    ? "border-gray-400" 
-                    : "border-gray-300"
-              }`}
+              className={`w-full border ${
+                errors.jobdesc && touched.jobdesc ? "border-red-500" : "border-gray-300"
+              } rounded-md py-2 px-3 text-xs`}
               name="jobdesc"
               value={formData.jobdesc}
               onChange={handleValue}
@@ -451,14 +393,6 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
               placeholder="Masukkan deskripsi"
               rows="3"
             />
-            <div className="flex justify-between mt-1 text-xs">
-              <span className={jobdescCount < maxWords ? "text-gray-600" : "text-gray-400"}>
-                Minimal Kata: {maxWords}
-              </span>
-              <span className={jobdescCount < maxWords ? "text-gray-600" : "text-gray-400"}>
-                {jobdescCount}/{maxWords}
-              </span>
-            </div>
             {errors.jobdesc && touched.jobdesc && (
               <p className="text-red-500 text-xs mt-1">{errors.jobdesc}</p>
             )}
