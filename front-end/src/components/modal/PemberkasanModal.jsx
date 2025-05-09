@@ -1,37 +1,78 @@
 import { useState } from "react";
 import { X, Calendar, Upload } from "lucide-react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-export default function InternshipModal() {
-  const [isOpen, setIsOpen] = useState(true);
+export default function InternshipModal({ isOpen, onClose, jobData }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
+  const navigate = useNavigate();
   const [showStartCalendar, setShowStartCalendar] = useState(false);
   const [showEndCalendar, setShowEndCalendar] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const idLowongan = jobData?.id;
 
   const handleFileChange = (e) => {
     if (e.target.files.length > 0) {
+      setFile(e.target.files[0]);
       setFileName(e.target.files[0].name);
     } else {
+      setFile(null);
       setFileName("");
     }
   };
 
   const closeModal = () => {
-    setIsOpen(false);
+    onClose();
   };
 
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    return `${year}-${month}-${day}`;
   };
 
-  // Simple DatePicker component
-  const DatePicker = ({ selectedDate, onChange }) => {
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError("");
+
+    const formData = new FormData();
+    formData.append("id_lowongan", idLowongan);
+    formData.append("mulai", startDate);
+    formData.append("selesai", endDate);
+    formData.append("surat_pernyataan_diri", file);
+
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/magang`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log("Berhasil:", res.data);
+      navigate("/peserta/dashboard");
+      onClose();
+    } catch (err) {
+      console.error("Gagal:", err);
+      setError("Gagal menyimpan. Periksa kembali input Anda.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const DatePicker = ({ selectedDate, onChange, minDate }) => {
     const today = new Date();
-    const initialDate = selectedDate && !isNaN(selectedDate.getTime()) ? selectedDate : today;
+    const initialDate =
+      selectedDate && !isNaN(selectedDate.getTime()) ? selectedDate : today;
 
     const [currentMonth, setCurrentMonth] = useState(initialDate.getMonth());
     const [currentYear, setCurrentYear] = useState(initialDate.getFullYear());
@@ -57,7 +98,20 @@ export default function InternshipModal() {
       }
     };
 
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
 
     const renderCalendarDays = () => {
       const days = [];
@@ -69,14 +123,27 @@ export default function InternshipModal() {
 
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(currentYear, currentMonth, day);
-        const isSelected = selectedDate && date.getDate() === selectedDate.getDate() && date.getMonth() === selectedDate.getMonth() && date.getFullYear() === selectedDate.getFullYear();
+        const isSelected =
+          selectedDate &&
+          date.getDate() === selectedDate.getDate() &&
+          date.getMonth() === selectedDate.getMonth() &&
+          date.getFullYear() === selectedDate.getFullYear();
+
+        const isDisabled = minDate && date < minDate;
 
         days.push(
           <div
             key={day}
-            onClick={() => onChange(new Date(currentYear, currentMonth, day))}
+            onClick={() => {
+              if (!isDisabled) onChange(date);
+            }}
             className={`h-8 w-8 flex items-center justify-center cursor-pointer rounded-full
-              ${isSelected ? "bg-blue-600 text-white" : "hover:bg-gray-100"}`}
+              ${isSelected ? "bg-blue-600 text-white" : ""}
+              ${
+                isDisabled
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "hover:bg-gray-100"
+              }`}
           >
             {day}
           </div>
@@ -99,11 +166,13 @@ export default function InternshipModal() {
             &gt;
           </button>
         </div>
-
         <div className="grid grid-cols-7 gap-1 text-center">
-          {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-            <div key={day} className="h-8 w-8 font-medium text-xs flex items-center justify-center">
-              {day}
+          {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
+            <div
+              key={d}
+              className="h-8 w-8 text-xs font-medium flex items-center justify-center"
+            >
+              {d}
             </div>
           ))}
           {renderCalendarDays()}
@@ -115,29 +184,46 @@ export default function InternshipModal() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]">
+    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[9999]">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Pemberkasan Magang</h2>
-          <button onClick={closeModal} className="text-gray-600 hover:text-gray-800">
+          <button
+            onClick={closeModal}
+            className="text-gray-600 hover:text-gray-800"
+          >
             <X size={20} />
           </button>
         </div>
 
         <div className="space-y-6">
+          {/* Tanggal Mulai */}
           <div>
-            <label className="block text-sm font-medium mb-2">Mulai Magang</label>
+            <label className="block text-sm font-medium mb-2">
+              Mulai Magang
+            </label>
             <div className="relative">
-              <input type="text" placeholder="dd/mm/yyyy" value={startDate} onClick={() => setShowStartCalendar(!showStartCalendar)} readOnly className="w-full border border-gray-300 rounded-md p-2 pl-3 pr-10 cursor-pointer" />
-              <Calendar className="absolute right-3 top-2.5 text-gray-400 cursor-pointer" size={18} onClick={() => setShowStartCalendar(!showStartCalendar)} />
-
+              <input
+                type="text"
+                placeholder="yyyy-mm-dd"
+                value={startDate}
+                onClick={() => setShowStartCalendar(!showStartCalendar)}
+                readOnly
+                className="w-full border border-gray-300 rounded-md p-2 pl-3 pr-10 cursor-pointer"
+              />
+              <Calendar
+                className="absolute right-3 top-2.5 text-gray-400 cursor-pointer"
+                size={18}
+              />
               {showStartCalendar && (
-                <div className="absolute z-10 mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-2">
+                <div className="absolute z-10 mt-1 bg-white border rounded-md shadow-lg p-2">
                   <DatePicker
-                    selectedDate={startDate ? new Date(startDate.split("/").reverse().join("-")) : new Date()}
+                    selectedDate={startDate ? new Date(startDate) : new Date()}
+                    minDate={new Date()}
                     onChange={(date) => {
                       setStartDate(formatDate(date));
                       setShowStartCalendar(false);
+                      setEndDate(""); // reset end date
                     }}
                   />
                 </div>
@@ -145,16 +231,29 @@ export default function InternshipModal() {
             </div>
           </div>
 
+          {/* Tanggal Selesai */}
           <div>
-            <label className="block text-sm font-medium mb-2">Selesai Magang</label>
+            <label className="block text-sm font-medium mb-2">
+              Selesai Magang
+            </label>
             <div className="relative">
-              <input type="text" placeholder="dd/mm/yyyy" value={endDate} onClick={() => setShowEndCalendar(!showEndCalendar)} readOnly className="w-full border border-gray-300 rounded-md p-2 pl-3 pr-10 cursor-pointer" />
-              <Calendar className="absolute right-3 top-2.5 text-gray-400 cursor-pointer" size={18} onClick={() => setShowEndCalendar(!showEndCalendar)} />
-
+              <input
+                type="text"
+                placeholder="yyyy-mm-dd"
+                value={endDate}
+                onClick={() => setShowEndCalendar(!showEndCalendar)}
+                readOnly
+                className="w-full border border-gray-300 rounded-md p-2 pl-3 pr-10 cursor-pointer"
+              />
+              <Calendar
+                className="absolute right-3 top-2.5 text-gray-400 cursor-pointer"
+                size={18}
+              />
               {showEndCalendar && (
-                <div className="absolute z-10 mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-2">
+                <div className="absolute z-10 mt-1 bg-white border rounded-md shadow-lg p-2">
                   <DatePicker
-                    selectedDate={endDate ? new Date(endDate.split("/").reverse().join("-")) : new Date()}
+                    selectedDate={endDate ? new Date(endDate) : new Date()}
+                    minDate={startDate ? new Date(startDate) : new Date()}
                     onChange={(date) => {
                       setEndDate(formatDate(date));
                       setShowEndCalendar(false);
@@ -165,26 +264,32 @@ export default function InternshipModal() {
             </div>
           </div>
 
+          {/* Upload Surat */}
           <div>
-            <label className="block text-sm font-medium mb-2">Surat pernyataan Diri</label>
+            <label className="block text-sm font-medium mb-2">
+              Surat Pernyataan Diri
+            </label>
             <label className="flex flex-col">
               <div className="w-full border border-gray-300 rounded-md p-2 pl-3 flex justify-between items-center cursor-pointer hover:bg-gray-50">
-                <span className="text-gray-500 truncate">{fileName || "Choose File"}</span>
-                <div className="flex items-center space-x-1">
-                  {!fileName && <span className="text-gray-500 text-sm">No File Chosen</span>}
-                  <Upload size={18} className="text-gray-400" />
-                </div>
+                <span className="text-gray-500 truncate">
+                  {fileName || "Choose File"}
+                </span>
+                <Upload size={18} className="text-gray-400" />
               </div>
-              <input type="file" className="hidden" onChange={handleFileChange} />
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                className="hidden"
+                onChange={handleFileChange}
+              />
             </label>
-            <p className="text-red-500 text-xs mt-1">*File Harus Berformat .pdf, .doc, .jpg, .jpeg, atau .png</p>
+            <p className="text-red-500 text-xs mt-1">
+              *Format: pdf, doc, jpg, jpeg, png. Max 2MB
+            </p>
             <button
-              className="mt-2 text-blue-600 text-sm flex items-center hover:text-blue-800 transition-colors"
+              className="mt-2 text-blue-600 text-sm flex items-center hover:text-blue-800"
               onClick={() => {
-                // Pada implementasi sebenarnya, URL ini akan mengarah ke endpoint backend yang menyajikan file
                 const templateUrl = "../berkas/Surat_Pernyataan_Diri.pdf";
-
-                // Membuat link untuk download
                 const link = document.createElement("a");
                 link.href = templateUrl;
                 link.download = "Surat_Pernyataan_Diri.pdf";
@@ -193,7 +298,12 @@ export default function InternshipModal() {
                 document.body.removeChild(link);
               }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
                 <path
                   fillRule="evenodd"
                   d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
@@ -204,12 +314,26 @@ export default function InternshipModal() {
             </button>
           </div>
 
+          {/* Tombol Simpan */}
           <div className="flex space-x-3 pt-4">
-            <button className="bg-blue-600 text-white py-2 px-4 rounded-md flex-1 hover:bg-blue-700 transition-colors">Simpan</button>
-            <button onClick={closeModal} className="bg-pink-100 text-pink-600 py-2 px-4 rounded-md flex-1 hover:bg-pink-200 transition-colors">
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className={`bg-blue-600 text-white py-2 px-4 rounded-md flex-1 hover:bg-blue-700 transition-colors ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              {loading ? "Menyimpan..." : "Simpan"}
+            </button>
+            <button
+              onClick={closeModal}
+              className="bg-pink-100 text-pink-600 py-2 px-4 rounded-md flex-1 hover:bg-pink-200 transition-colors"
+            >
               Close
             </button>
           </div>
+
+          {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
       </div>
     </div>

@@ -220,9 +220,9 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
         className="mr-4 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
       >
         {sidebarCollapsed ? (
-          <i className="bi bi-arrow-right-square text-xl"></i>
+          <i className="bi bi-filter-right text-xl"></i>
         ) : (
-          <i className="bi bi-arrow-left-square text-xl"></i>
+          <i className="bi bi-filter-left text-xl"></i>
         )}
       </button>
       

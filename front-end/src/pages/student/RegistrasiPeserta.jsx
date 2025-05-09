@@ -51,7 +51,7 @@ export default function StudentRegistrationForm() {
       cvFileName: "",
     });
     setPreviewUrl("");
-    navigate("/")
+    navigate("/vacancy")
     // setSekolahSearch("");
     // setJurusanSearch("");
   };

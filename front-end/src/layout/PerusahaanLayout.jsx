@@ -76,7 +76,7 @@ const PerusahaanLayout = () => {
           icon: "bi bi-sliders2-vertical",
           label: "Profile Settings",
           link: "/perusahaan/settings-cabang",
-        }
+        },
       ],
     },
   ];
@@ -103,7 +103,7 @@ const PerusahaanLayout = () => {
   return (
     <div className="w-full flex">
       {/* Sidebar dengan kondisi lebar berbeda saat collapsed */}
-      <div 
+      <div
         className={`bg-white border-r border-r-slate-300 ${
           sidebarCollapsed ? "w-[60px]" : "w-[238px]"
         } h-screen fixed py-4 px-2 z-[50] overflow-y-auto flex flex-col justify-between transition-all duration-300`}
@@ -112,7 +112,7 @@ const PerusahaanLayout = () => {
           <Link to={`/`} className="flex justify-center">
             {sidebarCollapsed ? (
               <img
-                src="/assets/img/LogoIcon.png" // Gunakan icon logo saja ketika sidebar tertutup
+                src="/assets/icons/logohumma.svg"
                 alt="Logo Icon"
                 className="w-10 mx-auto object-cover"
               />
@@ -133,16 +133,28 @@ const PerusahaanLayout = () => {
                       onClick={() =>
                         setOpenMenu(openMenu === menu.label ? null : menu.label)
                       }
-                      className={`px-4 py-2 rounded-lg flex gap-3 text-xs items-center justify-between text-slate-500 transition-all duration-300 ${
+                      className={`${
+                        sidebarCollapsed
+                          ? "flex justify-center items-center"
+                          : ""
+                      } px-4 py-2 rounded-lg flex gap-3 text-xs items-center justify-between text-slate-500 transition-all duration-300 ${
                         openMenu === menu.label
                           ? "bg-sky-800 text-white"
                           : "hover:text-sky-500 hover:bg-sky-50"
                       }`}
                     >
-                      <div className="flex gap-3 items-center">
+                      <div
+                        className={`flex gap-3 items-center ${
+                          sidebarCollapsed
+                            ? "flex justify-center items-center"
+                            : ""
+                        }`}
+                      >
                         <i className={`bi ${menu.icon} text-lg`}></i>
                         {!sidebarCollapsed && (
-                          <span className="font-light text-sm">{menu.label}</span>
+                          <span className="font-light text-sm">
+                            {menu.label}
+                          </span>
                         )}
                       </div>
                       {!sidebarCollapsed && (
@@ -175,9 +187,10 @@ const PerusahaanLayout = () => {
                 ) : (
                   <Link
                     to={menu.link}
-                    className={`px-4 py-2 rounded-lg flex gap-3 items-center text-slate-500 transition-all duration-500 ease-in-out ${
-                      location.pathname === menu.link &&
-                      openMenu !== menu.label
+                    className={`${
+                      sidebarCollapsed ? "flex justify-center items-center" : ""
+                    } px-4 py-2 rounded-lg flex gap-3 items-center text-slate-500 transition-all duration-500 ease-in-out ${
+                      location.pathname === menu.link && openMenu !== menu.label
                         ? "bg-sky-800 text-white"
                         : "hover:text-sky-500 hover:bg-sky-50"
                     } ${openMenu === menu.label ? "bg-transparent" : ""}`}
@@ -194,27 +207,37 @@ const PerusahaanLayout = () => {
         </div>
 
         {/* Hapus Cabang Button - hanya tampil di halaman tertentu */}
-        {location.pathname === "/perusahaan/settings-cabang" && !sidebarCollapsed && (
-          <div className="px-4 mt-10 pb-4">
-            <button
-              onClick={() => {
-                if (
-                  window.confirm("Apakah Anda yakin ingin menghapus cabang ini?")
-                ) {
-                  console.log("Cabang berhasil dihapus");
-                }
-              }}
-              className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-all text-sm"
-            >
-              Hapus Cabang
-            </button>
-          </div>
-        )}
+        {location.pathname === "/perusahaan/settings-cabang" &&
+          !sidebarCollapsed && (
+            <div className="px-4 mt-10 pb-4">
+              <button
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Apakah Anda yakin ingin menghapus cabang ini?"
+                    )
+                  ) {
+                    console.log("Cabang berhasil dihapus");
+                  }
+                }}
+                className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-all text-sm"
+              >
+                Hapus Cabang
+              </button>
+            </div>
+          )}
       </div>
 
       {/* Main Content Area dengan penyesuaian margin sesuai lebar sidebar */}
-      <div className={`flex-1 ${sidebarCollapsed ? "ml-[60px]" : "ml-[238px]"} flex flex-col min-h-screen transition-all duration-300`}>
-        <NavAdmin toggleSidebar={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
+      <div
+        className={`flex-1 ${
+          sidebarCollapsed ? "ml-[60px]" : "ml-[238px]"
+        } flex flex-col min-h-screen transition-all duration-300`}
+      >
+        <NavAdmin
+          toggleSidebar={toggleSidebar}
+          sidebarCollapsed={sidebarCollapsed}
+        />
         <div className="flex-grow bg-indigo-50 px-3 pt-5 pb-0">
           <Outlet />
         </div>

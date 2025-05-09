@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { ChevronDown } from "lucide-react";
+import Loading from "../Loading";
 
 export default function ScheduleCard() {
   const API_URL = `${import.meta.env.VITE_API_URL}/jam-kantor`;
@@ -11,12 +12,19 @@ export default function ScheduleCard() {
     kamis: false,
     jumat: false,
   });
+  const [scheduleData, setScheduleData] = useState({
+    senin: { active: false, exists: false },
+    selasa: { active: false, exists: false },
+    rabu: { active: false, exists: false },
+    kamis: { active: false, exists: false },
+    jumat: { active: false, exists: false },
+  });
 
   const initialTimes = {
-    masuk: { start: "08.00", end: "09.00" },
-    istirahat: { start: "10.00", end: "11.00" },
-    kembali: { start: "12.00", end: "13.00" },
-    pulang: { start: "17.00", end: "18.00" },
+    masuk: { start: "08:00", end: "09:00" },
+    istirahat: { start: "12:00", end: "13:00" },
+    kembali: { start: "13:00", end: "13:30" },
+    pulang: { start: "17:00", end: "18:00" },
   };
 
   const [times, setTimes] = useState({
@@ -34,11 +42,33 @@ export default function ScheduleCard() {
     Authorization: `Bearer ${token}`,
   };
 
-  const normalizeTime = (time) => time.replace(".", ":");
-  const toDot = (time) => time.replace(":", ".");
+  const normalizeTime = (time) => {
+    const [hours, minutes] = time.split(":");
+    return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`;
+  };
+
+  const toDot = (time) => {
+    const [hours, minutes] = time.split(":");
+    return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`;
+  };
+
+  const mapTimesToPayloadFromTimes = (day, timesObj) => {
+    const t = timesObj[day];
+    return {
+      hari: day,
+      awal_masuk: normalizeTime(t.masuk.start),
+      akhir_masuk: normalizeTime(t.masuk.end),
+      awal_istirahat: normalizeTime(t.istirahat.start),
+      akhir_istirahat: normalizeTime(t.istirahat.end),
+      awal_kembali: normalizeTime(t.kembali.start),
+      akhir_kembali: normalizeTime(t.kembali.end),
+      awal_pulang: normalizeTime(t.pulang.start),
+      akhir_pulang: normalizeTime(t.pulang.end),
+    };
+  };
 
   const mapTimesToPayload = (day) => {
-    const t = times[day];
+    const t = times[day] || initialTimes;
     return {
       hari: day,
       awal_masuk: normalizeTime(t.masuk.start),
@@ -57,69 +87,76 @@ export default function ScheduleCard() {
   };
 
   const postSchedule = async (day) => {
-    setLoading((prev) => ({ ...prev, [day]: true }));
     const payload = mapTimesToPayload(day);
-
-    if (hasEmptyFields(payload)) {
-      alert("Harap lengkapi semua waktu sebelum mengaktifkan hari.");
-      setLoading((prev) => ({ ...prev, [day]: false }));
-      return;
-    }
+    console.log("Payload yang dikirim:", payload); // Debugging log
 
     try {
-      console.log("POST payload:", payload);
       const res = await axios.post(API_URL, payload, { headers });
-      console.log("POST response:", res.data);
-      setErrors((prev) => ({ ...prev, [day]: {} }));
+      console.log("Response dari server:", res.data);
     } catch (err) {
-      const apiErrors = err.response?.data?.meta || {};
-      setErrors((prev) => ({ ...prev, [day]: apiErrors }));
+      console.error("Error saat mengirim POST:", err);
     }
-
-    setLoading((prev) => ({ ...prev, [day]: false }));
   };
 
-  const updateSchedule = async (day) => {
-    setLoading((prev) => ({ ...prev, [day]: true }));
-    const payload = mapTimesToPayload(day);
+  const updateSchedule = async (day, newTimes) => {
+    const payload = mapTimesToPayloadFromTimes(day, newTimes);
 
     if (hasEmptyFields(payload)) {
       console.warn("Tidak mengirim PUT karena masih ada waktu kosong.");
-      setLoading((prev) => ({ ...prev, [day]: false }));
       return;
     }
 
     try {
-      console.log("PUT payload:", payload);
-      const res = await axios.put(`${API_URL}/${day}`, payload, { headers });
-      console.log("PUT response:", res.data);
+      await axios.put(`${API_URL}/${day}`, payload, { headers });
       setErrors((prev) => ({ ...prev, [day]: {} }));
+      await fetchData(); // fetch ulang data setelah update berhasil
     } catch (err) {
+      console.error("PUT error:", err);
       const apiErrors = err.response?.data?.meta || {};
       setErrors((prev) => ({ ...prev, [day]: apiErrors }));
-    } finally {
-      setLoading((prev) => ({ ...prev, [day]: false }));
-    }
-  };
-
-  const deleteSchedule = async (day) => {
-    try {
-      await axios.delete(`${API_URL}/${day}`, { headers });
-      setErrors((prev) => ({ ...prev, [day]: {} }));
-    } catch (err) {
-      console.log(err);
     }
   };
 
   const toggleDay = async (day) => {
-    const isActive = !days[day];
-    setDays((prev) => ({ ...prev, [day]: isActive }));
+    const current = scheduleData[day];
+    const isActive = !current.active; // toggle status
+    const exists = current.exists;
 
-    if (isActive) {
-      await postSchedule(day); // Menambahkan atau memperbarui data jika diaktifkan
+    if (!exists) {
+      // Data belum ada di DB, kirim POST
+      const payload = mapTimesToPayload(day);
+
+      if (hasEmptyFields(payload)) {
+        alert("Harap lengkapi semua waktu sebelum mengaktifkan hari.");
+        return;
+      }
+
+      try {
+        await axios.post(API_URL, payload, { headers });
+      } catch (err) {
+        console.error("Gagal membuat data jam kantor:", err);
+        const apiErrors = err.response?.data?.meta || {};
+        setErrors((prev) => ({ ...prev, [day]: apiErrors }));
+        return;
+      }
     } else {
-      await deleteSchedule(day); // Menghapus data jika dinonaktifkan
+      // Data sudah ada, tinggal toggle status
+      const url = isActive
+        ? `${API_URL}/${day}/aktif`
+        : `${API_URL}/${day}/nonaktif`;
+
+      try {
+        await axios.put(url, null, { headers });
+      } catch (err) {
+        console.error("Gagal mengubah status aktif/nonaktif:", err);
+        const apiErrors = err.response?.data?.meta || {};
+        setErrors((prev) => ({ ...prev, [day]: apiErrors }));
+        return;
+      }
     }
+
+    // Setelah semua operasi, fetch ulang data biar state paling baru dari backend
+    await fetchData();
   };
 
   const updateTime = (day, type, field, value) => {
@@ -135,12 +172,9 @@ export default function ScheduleCard() {
         },
       };
 
-      // Setelah setState selesai, kirim update (harus async pakai setTimeout)
+      // Pastikan data baru langsung diupdate ke backend
       if (days[day]) {
-        setTimeout(() => {
-          console.log("Mengirim updateSchedule untuk", day);
-          updateSchedule(day);
-        }, 0); // tunggu re-render
+        updateSchedule(day, updated); // Kirim updated times ke updateSchedule
       }
 
       return updated;
@@ -175,56 +209,65 @@ export default function ScheduleCard() {
     jumat: "Jum'at",
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get(API_URL, { headers });
-        console.log("Data dari API:", res.data);
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(API_URL, { headers });
+      const allDays = ["senin", "selasa", "rabu", "kamis", "jumat"];
+      const updatedScheduleData = {};
+      const updatedTimes = { ...times };
 
-        const allDays = ["senin", "selasa", "rabu", "kamis", "jumat"];
-        const fetchedDays = {};
-        const updatedTimes = { ...times };
+      allDays.forEach((day) => {
+        updatedScheduleData[day] = { active: false, exists: false };
+        updatedTimes[day] = { ...initialTimes };
+      });
 
-        // Set semua hari default ke tidak aktif
-        allDays.forEach((day) => {
-          fetchedDays[day] = false;
-          updatedTimes[day] = { ...initialTimes };
+      if (res.data && Array.isArray(res.data.data)) {
+        res.data.data.forEach((entry) => {
+          updatedScheduleData[entry.hari] = {
+            active: entry.status === true || entry.status === 1,
+            exists: true,
+          };
+          updatedTimes[entry.hari] = {
+            masuk: {
+              start: entry.awal_masuk,
+              end: entry.akhir_masuk,
+            },
+            istirahat: {
+              start: entry.awal_istirahat,
+              end: entry.akhir_istirahat,
+            },
+            kembali: {
+              start: entry.awal_kembali,
+              end: entry.akhir_kembali,
+            },
+            pulang: {
+              start: entry.awal_pulang,
+              end: entry.akhir_pulang,
+            },
+          };
         });
-
-        // Jika ada data dari backend, override
-        if (res.data && Array.isArray(res.data.data)) {
-          res.data.data.forEach((entry) => {
-            fetchedDays[entry.hari] = true;
-            updatedTimes[entry.hari] = {
-              masuk: {
-                start: entry.awal_masuk,
-                end: entry.akhir_masuk,
-              },
-              istirahat: {
-                start: entry.awal_istirahat,
-                end: entry.akhir_istirahat,
-              },
-              kembali: {
-                start: entry.awal_kembali,
-                end: entry.akhir_kembali,
-              },
-              pulang: {
-                start: entry.awal_pulang,
-                end: entry.akhir_pulang,
-              },
-            };
-          });
-        }
-
-        setDays(fetchedDays);
-        setTimes(updatedTimes);
-      } catch (error) {
-        console.error("Gagal ambil data jam kantor:", error);
       }
-    };
 
+      setScheduleData(updatedScheduleData);
+      setTimes(updatedTimes);
+
+      const updatedDays = {};
+      Object.keys(updatedScheduleData).forEach((day) => {
+        updatedDays[day] = updatedScheduleData[day].active;
+      });
+      setDays(updatedDays);
+    } catch (error) {
+      console.error("Gagal ambil data jam kantor:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
-  }, [API_URL]);
+  }, []);
+
+  if (loading) return <Loading />;
 
   return (
     <div className="bg-white-100 rounded-lg shadow-sm hover:shadow-md transition-shadow p-3 w-full max-w-2xl">

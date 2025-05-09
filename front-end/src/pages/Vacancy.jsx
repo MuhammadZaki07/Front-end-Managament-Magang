@@ -2,7 +2,6 @@ import Banner from "../components/Banner";
 import Footer from "../components/Footer";
 import Vacancy from "../components/section/Vacancy";
 
-
 const lowongan = () => {
   return (
     <>
@@ -14,8 +13,8 @@ const lowongan = () => {
         ilustration={`ilustration_blue`}
       />
       <div className="pl-20">
-              <Vacancy />
-            </div>
+        <Vacancy />
+      </div>
     </>
   );
 };

@@ -63,6 +63,7 @@ const StudentLayout = () => {
 
   const sidebarMenus = [
     { icon: "bi-grid", label: "Dashboard", link: "dashboard" },
+    { icon: "bi-list-task", label: "Lowongan", link: "lowongan" },
     { icon: "bi-calendar4-week", label: "Absensi", link: "absensi" },
     { icon: "bi-clipboard2-minus", label: "Jurnal", link: "jurnal" },
     { icon: "bi-mortarboard", label: "Presentasi", link: "presentasi" },
