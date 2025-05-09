@@ -38,7 +38,8 @@ const StudentLayout = () => {
     setIsLoggingOut(true);
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/logout",
+        `${import.meta.env.VITE_API_URL}/logout`
+,
         {},
         {
           headers: {
@@ -65,9 +66,9 @@ const StudentLayout = () => {
     { icon: "bi-grid", label: "Dashboard", link: "dashboard" },
     { icon: "bi-calendar4-week", label: "Absensi", link: "absensi" },
     { icon: "bi-clipboard2-minus", label: "Jurnal", link: "jurnal" },
-    { icon: "bi-mortarboard", label: "Presentasi", link: "presentasi" },
+    { icon: "bi-mortarboard", label: "Jadwal Presentasi", link: "presentasi" },
+    { icon: "bi-pin-map", label: "Riwayat Presentasi", link: "riwayat-presentasi" },
     { icon: "bi-pin-map", label: "Piket", link: "piket" },
-    { icon: "bi-gear", label: "Account Settings", link: "settings" },
   ];
 
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];
@@ -129,130 +130,41 @@ const StudentLayout = () => {
             alt="Logo"
             className="w-48 mx-auto object-cover"
           />
-          <div className="flex flex-col gap-3 mt-8">
-            {sidebarMenus.slice(0, -1).map((menu, idx) => {
-              const isActive = location.pathname.includes(
-                `/peserta/${menu.link}`
-              );
-              const isDisabled =
-                status === "false" && menu.label !== "Dashboard";
-              if (menu.label === "Presentasi") {
-                const isSubMenuActive = [
-                  "/peserta/detail-presentasi",
-                  "/peserta/riwayat-presentasi",
-                ].some((path) => location.pathname.includes(path));
+<div className="flex flex-col gap-3 mt-8">
+  {sidebarMenus.map((menu, idx) => {
+    const isActive = location.pathname.includes(`/peserta/${menu.link}`);
+    const isDisabled =
+      status === "false" && menu.label !== "Dashboard";
 
-                return (
-                  <div key={idx}>
-                    <div
-                      onClick={() => {
-                        if (isDisabled) return;
-                        setIsPresentasiOpen(!isPresentasiOpen);
-                      }}
-                      className={`w-full px-4 py-2 rounded-lg flex justify-between items-center gap-3 transition-all duration-500 ease-in-out ${
-                        isSubMenuActive
-                          ? "bg-sky-800 text-white"
-                          : isDisabled
-                          ? "text-slate-400 opacity-50 cursor-not-allowed"
-                          : "text-slate-500 hover:text-white hover:bg-sky-800"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <i className={`bi ${menu.icon} text-lg`}></i>
-                        <span className="font-light text-sm flex items-center gap-2">
-                          {menu.label}
-                          {isDisabled && <i className="bi bi-lock text-xs" />}
-                        </span>
-                      </div>
-                      <i
-                        className={`bi ${
-                          isPresentasiOpen ? "bi-chevron-up" : "bi-chevron-down"
-                        }`}
-                      ></i>
-                    </div>
+    return (
+      <Link
+        to={isDisabled ? "#" : `/peserta/${menu.link}`}
+        key={idx}
+        onClick={(e) => {
+          if (isDisabled) {
+            e.preventDefault();
+            return;
+          }
+          setIsPresentasiOpen(false);
+        }}
+        className={`px-4 py-2 rounded-lg flex gap-3 items-center transition-all duration-500 ease-in-out ${
+          isActive
+            ? "bg-sky-800 text-white"
+            : isDisabled
+            ? "text-slate-400 opacity-50 cursor-not-allowed"
+            : "text-slate-500 hover:text-white hover:bg-sky-800"
+        }`}
+      >
+        <i className={`bi ${menu.icon} text-lg`}></i>
+        <span className="font-light text-sm flex items-center gap-2">
+          {menu.label}
+          {isDisabled && <i className="bi bi-lock text-xs" />}
+        </span>
+      </Link>
+    );
+  })}
+</div>
 
-                    {isPresentasiOpen && !isDisabled && (
-                      <div className="ml-2 mt-2 flex flex-col gap-2">
-                        <Link
-                          to="/peserta/detail-presentasi"
-                          className={`${
-                            location.pathname === "/peserta/detail-presentasi"
-                              ? "text-sky-500"
-                              : "text-slate-500"
-                          } text-sm hover:text-sky-500 px-3 py-1 rounded transition flex gap-2 font-light`}
-                        >
-                          <i className="bi bi-info-circle"></i> Detail
-                          Presentasi
-                        </Link>
-                        <Link
-                          to="/peserta/riwayat-presentasi"
-                          className={`${
-                            location.pathname === "/peserta/riwayat-presentasi"
-                              ? "text-sky-500"
-                              : "text-slate-500"
-                          } text-sm hover:text-sky-500 px-3 py-1 rounded transition flex gap-2 font-light`}
-                        >
-                          <i className="bi bi-hourglass"></i> Riwayat Presentasi
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              return (
-                <Link
-                  to={isDisabled ? "#" : `/peserta/${menu.link}`}
-                  key={idx}
-                  onClick={(e) => {
-                    if (isDisabled) {
-                      e.preventDefault();
-                      return;
-                    }
-                    setIsPresentasiOpen(false);
-                  }}
-                  className={`px-4 py-2 rounded-lg flex gap-3 items-center transition-all duration-500 ease-in-out ${
-                    isActive
-                      ? "bg-sky-800 text-white"
-                      : isDisabled
-                      ? "text-slate-400 opacity-50 cursor-not-allowed"
-                      : "text-slate-500 hover:text-white hover:bg-sky-800"
-                  }`}
-                >
-                  <i className={`bi ${menu.icon} text-lg`}></i>
-                  <span className="font-light text-sm flex items-center gap-2">
-                    {menu.label}
-                    {isDisabled && <i className="bi bi-lock text-xs" />}
-                  </span>
-                </Link>
-              );
-            })}
-
-            <div className="bg-slate-400/[0.5] w-full h-0.5 rounded-full"></div>
-
-            {sidebarMenus.slice(-1).map((menu, idx) => {
-              const isActive = location.pathname.includes(
-                `/peserta/${menu.link}`
-              );
-
-              return (
-                <Link
-                  to={`/peserta/${menu.link}`}
-                  key={idx}
-                  className={`px-4 py-2 rounded-lg flex gap-3 items-center transition-all duration-500 ease-in-out ${
-                    isActive
-                      ? "bg-sky-800 text-white"
-                      : "text-slate-500 hover:text-white hover:bg-sky-800"
-                  }`}
-                >
-                  <i className={`bi ${menu.icon}`}></i>
-                  <span className="font-light text-sm flex items-center gap-2">
-                    {menu.label}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
         </div>
       )}
 
