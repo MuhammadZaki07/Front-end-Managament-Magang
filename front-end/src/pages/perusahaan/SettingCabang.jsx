@@ -56,37 +56,36 @@ const CompanyCard = () => {
     inputRef.current.click();
   };
 
-const handleFileChange = async (e, type) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const handleFileChange = async (e, type) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const formData = new FormData();
-  formData.append("foto", file);
-  formData.append("type", type);
+    const formData = new FormData();
+    formData.append("foto", file);
+    formData.append("type", type);
 
-  // Preview langsung
-  const previewUrl = URL.createObjectURL(file);
-  if (type === "logo") setLogoImage(previewUrl);
-  if (type === "profil_cover") setCoverImage(previewUrl);
+    // Preview langsung
+    const previewUrl = URL.createObjectURL(file);
+    if (type === "logo") setLogoImage(previewUrl);
+    if (type === "profil_cover") setCoverImage(previewUrl);
 
-  try {
-    await axios.post(
-      `${import.meta.env.VITE_API_URL}/cabang-update`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    );
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/cabang-update`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-    fetchCabangData();
-  } catch (err) {
-    console.error("Gagal upload gambar", err);
-  }
-};
-
+      fetchCabangData();
+    } catch (err) {
+      console.error("Gagal upload gambar", err);
+    }
+  };
 
   const menuItems = [{ label: "Data Cabang" }, { label: "Password" }];
 

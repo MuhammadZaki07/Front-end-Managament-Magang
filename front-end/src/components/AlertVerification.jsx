@@ -29,7 +29,7 @@ const AlertVerification = () => {
         onClick={handleVerificationClick}
         className="font-semibold text-red-500 text-sm bg-white border border-red-500 rounded-lg py-2 px-4"
       >
-        Verifikasi Data Anda
+        Lengkapi Data Anda
       </button>
     </div>
   );

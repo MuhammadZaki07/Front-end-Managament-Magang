@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import PemberkasanModal from "../modal/PemberkasanModal";
 import Loading from "../Loading";
+import DataNotAvaliable from "../DataNotAvaliable";
 
 export default function JobVacancyLayout() {
   const [jobVacancies, setJobVacancies] = useState([]);
@@ -80,7 +81,7 @@ export default function JobVacancyLayout() {
           }
         );
 
-        const jobs = (data?.data || []).map(mapJobData);
+        const jobs = (data?.data || []).map(mapJobData);        
         setJobVacancies(jobs);
         setSelectedJob(jobs[0] || null);
       } catch (error) {
@@ -119,6 +120,46 @@ export default function JobVacancyLayout() {
     setModalOpen(true);
   };
 
+  const getImportantDates = (job) => {
+    const { Pembukaan, Penutupan } = job.importantDates || {};
+
+    if (!Pembukaan || !Penutupan) {
+      return {
+        duration: "Tidak tersedia",
+        Pembukaan: "Tidak tersedia",
+        Penutupan: "Tidak tersedia",
+      };
+    }
+
+    const start = new Date(Pembukaan);
+    const end = new Date(Penutupan);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return {
+        duration: "Tanggal tidak valid",
+        Pembukaan: "Tanggal tidak valid",
+        Penutupan: "Tanggal tidak valid",
+      };
+    }
+
+    const duration = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+    return {
+      duration: `${duration} hari`,
+      Pembukaan: start.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+      Penutupan: end.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+    };
+  };
+  
+  const importantDates = selectedJob ? getImportantDates(selectedJob) : null;
   const closeModal = () => setModalOpen(false);
 
   if (loading)
@@ -137,246 +178,262 @@ export default function JobVacancyLayout() {
     );
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-white mt-10 p-6">
-      <div className="w-full md:w-1/3 bg-white overflow-y-auto px-6 py-9">
-        {currentJobs.map((job) => (
-          <div
-            key={job.id}
-            className={`mb-8 cursor-pointer ${
-              selectedJob?.id === job.id
-                ? "ring-2 ring-blue-500 rounded-xl"
-                : ""
-            }`}
-            onClick={() => handleSelectJob(job)}
-          >
-            <div className="relative bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="h-36 w-full overflow-hidden">
-                <img
-                  src={job.cover}
-                  alt="Company Cover"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="p-4">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  {job.company.name}
-                </h2>
-                <p className="text-gray-600 text-sm">{job.company.location}</p>
-                <p className="text-gray-600 text-xs mt-2 font-light">
-                  {job.importantDates.Pembukaan} -{" "}
-                  {job.importantDates.Penutupan}
-                </p>
-                <div className="border-t border-gray-200 pt-3 mt-3">
-                  <div className="text-md font-semibold text-gray-900">
-                    {job.position}
+    <>
+      {currentJobs.length === 0 ? (
+        <>
+          <DataNotAvaliable />
+          <h1 className="text-4xl font-bold text-center py-10">
+            Data Not Avaliable
+          </h1>
+        </>
+      ) : (
+        <div className="flex flex-col md:flex-row min-h-screen bg-white mt-10 p-6">
+          <div className="w-full md:w-1/3 bg-white overflow-y-auto px-6 py-9">
+            {currentJobs.map((job) => (
+              <div
+                key={job.id}
+                className={`mb-8 cursor-pointer ${
+                  selectedJob?.id === job.id
+                    ? "ring-2 ring-blue-500 rounded-xl"
+                    : ""
+                }`}
+                onClick={() => handleSelectJob(job)}
+              >
+                <div className="relative bg-white rounded-xl shadow-md overflow-hidden">
+                  <div className="h-36 w-full overflow-hidden">
+                    <img
+                      src={job.cover}
+                      alt="Company Cover"
+                      className="h-full w-full object-cover"
+                    />
                   </div>
-                  <div className="flex gap-3 items-center mt-2 text-gray-600">
-                    <i className="bi bi-people text-lg font-semibold"></i>
-                    <span className="font-light text-sm">
-                      {job.total_pendaftar}
-                    </span>
+                  <div className="p-4">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {job.company.name}
+                    </h2>
+                    <p className="text-gray-600 text-sm">
+                      {job.company.location}
+                    </p>
+                    <p className="text-gray-600 text-xs mt-2 font-light">
+                      {job.importantDates.Pembukaan} -{" "}
+                      {job.importantDates.Penutupan}
+                    </p>
+                    <div className="border-t border-gray-200 pt-3 mt-3">
+                      <div className="text-md font-semibold text-gray-900">
+                        Possition : {job.position}
+                      </div>
+                      <div className="flex gap-3 items-center mt-2 text-gray-600">
+                        <i className="bi bi-people text-lg font-semibold"></i>
+                        <span className="font-light text-sm">
+                          {job.total_pendaftar}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex justify-end mt-4">
+                      <button className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center text-sm hover:bg-blue-700">
+                        VIEW VACANCY
+                        <ArrowRight size={16} className="ml-2" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex justify-end mt-4">
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center text-sm hover:bg-blue-700">
-                    VIEW VACANCY
-                    <ArrowRight size={16} className="ml-2" />
-                  </button>
-                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            ))}
 
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-4">
-            <button
-              className={`w-8 h-8 flex items-center justify-center rounded-md border ${
-                currentPage === 1
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
-              }`}
-              onClick={() =>
-                currentPage > 1 && handlePageChange(currentPage - 1)
-              }
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft size={16} />
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (number) => (
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-4">
                 <button
-                  key={number}
                   className={`w-8 h-8 flex items-center justify-center rounded-md border ${
-                    currentPage === number
-                      ? "bg-blue-600 text-white"
+                    currentPage === 1
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                       : "bg-white text-gray-700 hover:bg-gray-100"
                   }`}
-                  onClick={() => handlePageChange(number)}
+                  onClick={() =>
+                    currentPage > 1 && handlePageChange(currentPage - 1)
+                  }
+                  disabled={currentPage === 1}
                 >
-                  {number}
+                  <ChevronLeft size={16} />
                 </button>
-              )
-            )}
-            <button
-              className={`w-8 h-8 flex items-center justify-center rounded-md border ${
-                currentPage === totalPages
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
-              }`}
-              onClick={() =>
-                currentPage < totalPages && handlePageChange(currentPage + 1)
-              }
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div
-        ref={jobDetailRef}
-        className="w-full md:w-2/3 border border-gray-300 bg-white rounded-lg overflow-y-auto p-10 mt-8"
-      >
-        {selectedJob && (
-          <>
-            <div className="flex flex-col md:flex-row-reverse justify-between items-start mb-6">
-              <div className="mb-4 md:mb-0 md:w-1/4 flex justify-end">
-                <img
-                  src={selectedJob.company.logo}
-                  alt={selectedJob.company.name}
-                  className="h-20 w-auto object-contain"
-                />
-              </div>
-
-              <div className="flex flex-col flex-1">
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">
-                  {selectedJob.position}
-                </h1>
-                <p className="text-blue-600 font-medium mb-2">
-                  {selectedJob.company.name}
-                </p>
-                <p className="text-gray-600 text-sm flex items-center mb-4">
-                  <MapPin size={14} className="mr-1" />
-                  {selectedJob.company.location}
-                </p>
-
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (number) => (
+                    <button
+                      key={number}
+                      className={`w-8 h-8 flex items-center justify-center rounded-md border ${
+                        currentPage === number
+                          ? "bg-blue-600 text-white"
+                          : "bg-white text-gray-700 hover:bg-gray-100"
+                      }`}
+                      onClick={() => handlePageChange(number)}
+                    >
+                      {number}
+                    </button>
+                  )
+                )}
                 <button
-                  className="bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-md hover:bg-blue-700 w-fit"
-                  onClick={openModal}
+                  className={`w-8 h-8 flex items-center justify-center rounded-md border ${
+                    currentPage === totalPages
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-white text-gray-700 hover:bg-gray-100"
+                  }`}
+                  onClick={() =>
+                    currentPage < totalPages &&
+                    handlePageChange(currentPage + 1)
+                  }
+                  disabled={currentPage === totalPages}
                 >
-                  APPLY VACANCY
+                  <ChevronRight size={16} />
                 </button>
               </div>
-            </div>
+            )}
+          </div>
 
-            <div className="border-b border-gray-300 mb-5"></div>
+          <div
+            ref={jobDetailRef}
+            className="w-full md:w-2/3 border border-gray-300 bg-white rounded-lg overflow-y-auto p-10 mt-8"
+          >
+            {selectedJob && (
+              <>
+                <div className="flex flex-col md:flex-row-reverse justify-between items-start mb-6">
+                  <div className="mb-4 md:mb-0 md:w-1/4 flex justify-end">
+                    <img
+                      src={selectedJob.company.logo}
+                      alt={selectedJob.company.name}
+                      className="h-20 w-auto object-contain"
+                    />
+                  </div>
 
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-2">
-                Tentang Perusahaan
-              </h2>
-              <p className="text-gray-700 text-sm">
-                {selectedJob.company.description}
-              </p>
+                  <div className="flex flex-col flex-1">
+                    <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                      {selectedJob.position}
+                    </h1>
+                    <p className="text-blue-600 font-medium mb-2">
+                      {selectedJob.company.name}
+                    </p>
+                    <p className="text-gray-600 text-sm flex items-center mb-4">
+                      <MapPin size={14} className="mr-1" />
+                      {selectedJob.company.location}
+                    </p>
 
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mt-4 text-sm">
-                <div className="flex items-center mb-2 md:mb-0">
-                  <Mail size={16} className="text-gray-500 mr-2" />
-                  <span className="text-gray-700">
-                    {selectedJob.company.email}
-                  </span>
+                    <button
+                      className="bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-md hover:bg-blue-700 w-fit"
+                      onClick={openModal}
+                    >
+                      APPLY VACANCY
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <ExternalLink size={16} className="text-gray-500 mr-2" />
-                  <a
-                    href={`https://${selectedJob.company.website}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-700 hover:underline"
-                  >
-                    {selectedJob.company.website}
-                  </a>
+
+                <div className="border-b border-gray-300 mb-5"></div>
+
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-800 mb-2">
+                    Tentang Perusahaan
+                  </h2>
+                  <p className="text-gray-700 text-sm">
+                    {selectedJob.company.description}
+                  </p>
+
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mt-4 text-sm">
+                    <div className="flex items-center mb-2 md:mb-0">
+                      <Mail size={16} className="text-gray-500 mr-2" />
+                      <span className="text-gray-700">
+                        {selectedJob.company.email}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <ExternalLink size={16} className="text-gray-500 mr-2" />
+                      <a
+                        href={`https://${selectedJob.company.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-700 hover:underline"
+                      >
+                        {selectedJob.company.website}
+                      </a>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="border-b border-gray-300 mb-5"></div>
+                <div className="border-b border-gray-300 mb-5"></div>
 
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-2">
-                Dokumen Yang Dibutuhkan
-              </h2>
-              <ul className="flex flex-wrap gap-8 pl-5 list-disc text-sm text-gray-700">
-                {selectedJob.documents.map((doc, index) => (
-                  <li key={index}>{doc}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="border-b border-gray-300 mb-5"></div>
-
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-2">
-                Tanggal Penting
-              </h2>
-              <div className="pl-5">
-                <div className="grid grid-cols-[200px_auto] text-sm text-gray-700 mb-1">
-                  <span>Durasi</span>
-                  <span>: {selectedJob.importantDates.duration}</span>
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-800 mb-2">
+                    Dokumen Yang Dibutuhkan
+                  </h2>
+                  <ul className="flex flex-wrap gap-8 pl-5 list-disc text-sm text-gray-700">
+                    {selectedJob.documents.map((doc, index) => (
+                      <li key={index}>{doc}</li>
+                    ))}
+                  </ul>
                 </div>
-                <div className="grid grid-cols-[200px_auto] text-sm text-gray-700 mb-1">
-                  <span>Pembukaan</span>
-                  <span>: {selectedJob.importantDates.Pembukaan}</span>
+
+                <div className="border-b border-gray-300 mb-5"></div>
+
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-800 mb-2">
+                    Tanggal Penting
+                  </h2>
+                  {importantDates && (
+                    <div className="pl-5">
+                      <div className="grid grid-cols-[200px_auto] text-sm text-gray-700 mb-1">
+                        <span>Durasi</span>
+                        <span>: {importantDates.duration}</span>
+                      </div>
+                      <div className="grid grid-cols-[200px_auto] text-sm text-gray-700 mb-1">
+                        <span>Pembukaan</span>
+                        <span>: {importantDates.Pembukaan}</span>
+                      </div>
+                      <div className="grid grid-cols-[200px_auto] text-sm text-gray-700 mb-1">
+                        <span>Penutupan</span>
+                        <span>: {importantDates.Penutupan}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="grid grid-cols-[200px_auto] text-sm text-gray-700 mb-1">
-                  <span>Penutupan</span>
-                  <span>: {selectedJob.importantDates.Penutupan}</span>
+
+                <div className="border-b border-gray-300 mb-5"></div>
+
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-gray-800 mb-3">
+                    Rincian Lowongan
+                  </h2>
+
+                  <div className="mb-6">
+                    <h3 className="font-medium text-gray-800 mb-2 pl-5">
+                      Requirements :
+                    </h3>
+                    <ol className="list-decimal pl-12 text-sm text-gray-700 space-y-2">
+                      {selectedJob.requirements.map((req, index) => (
+                        <li key={index}>{req}</li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  <div className="mb-6">
+                    <h3 className="font-medium text-gray-800 mb-2 pl-5">
+                      Benefits :
+                    </h3>
+                    <ol className="list-decimal pl-12 text-sm text-gray-700 space-y-2">
+                      {selectedJob.benefits.map((benefit, index) => (
+                        <li key={index}>{benefit}</li>
+                      ))}
+                    </ol>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
+          </div>
 
-            <div className="border-b border-gray-300 mb-5"></div>
-
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-3">
-                Rincian Lowongan
-              </h2>
-
-              <div className="mb-6">
-                <h3 className="font-medium text-gray-800 mb-2 pl-5">
-                  Requirements :
-                </h3>
-                <ol className="list-decimal pl-12 text-sm text-gray-700 space-y-2">
-                  {selectedJob.requirements.map((req, index) => (
-                    <li key={index}>{req}</li>
-                  ))}
-                </ol>
-              </div>
-
-              <div className="mb-6">
-                <h3 className="font-medium text-gray-800 mb-2 pl-5">
-                  Benefits :
-                </h3>
-                <ol className="list-decimal pl-12 text-sm text-gray-700 space-y-2">
-                  {selectedJob.benefits.map((benefit, index) => (
-                    <li key={index}>{benefit}</li>
-                  ))}
-                </ol>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      {modalOpen && (
-        <PemberkasanModal
-          isOpen={modalOpen}
-          onClose={closeModal}
-          jobData={selectedJob}
-        />
+          {modalOpen && (
+            <PemberkasanModal
+              isOpen={modalOpen}
+              onClose={closeModal}
+              jobData={selectedJob}
+            />
+          )}
+        </div>
       )}
-    </div>
+    </>
   );
 }

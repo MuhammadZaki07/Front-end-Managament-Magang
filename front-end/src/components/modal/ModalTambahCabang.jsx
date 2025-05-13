@@ -360,7 +360,7 @@ export default function ModalTambahCabang({ isOpen, onClose, onSave, getFetchDat
 
   return (
     <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-xl">
         <div className="p-5">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Tambah Cabang Perusahaan</h2>

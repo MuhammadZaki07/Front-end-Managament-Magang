@@ -1,22 +1,31 @@
 import React from "react";
 import { Eye, Printer, Trash } from "lucide-react";
 
-export default function DataPeringatan({ data, searchTerm, selectedDate, onBuatSurat }) {
+export default function DataPeringatan({
+  data,
+  searchTerm,
+  selectedDate,
+  onBuatSurat,
+}) {
   // Filter data berdasarkan kriteria pencarian
   const filteredData = data.filter((item) => {
     // Filter berdasarkan searchTerm (dalam nama, sekolah, atau keterangan SP)
-    const matchesSearch = 
-      searchTerm === "" || 
-      item.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.sekolah.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.keteranganSP.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.statusSP.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch =
+      searchTerm === "" ||
+      item.peserta.user.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.peserta.sekolah.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.keterangan_surat &&
+        item.keterangan_surat
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())) ||
+      (item.alasan &&
+        item.alasan.toLowerCase().includes(searchTerm.toLowerCase()));
+
     // Filter berdasarkan tanggal yang dipilih
-    const matchesDate = 
-      !selectedDate || 
-      (new Date(item.tanggal).toDateString() === selectedDate.toDateString());
-    
+    const matchesDate =
+      !selectedDate ||
+      new Date(item.created_at).toDateString() === selectedDate.toDateString();
+
     return matchesSearch && matchesDate;
   });
 
@@ -25,12 +34,24 @@ export default function DataPeringatan({ data, searchTerm, selectedDate, onBuatS
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sekolah</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan SP</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status SP</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Nama
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Sekolah
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Keterangan SP
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status SP
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Tanggal
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Aksi
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -40,48 +61,68 @@ export default function DataPeringatan({ data, searchTerm, selectedDate, onBuatS
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      <img className="h-10 w-10 rounded-full" src={item.image} alt={item.nama} />
+                      <img
+                        className="h-10 w-10 rounded-full"
+                        src={
+                          item.peserta.foto[0]?.path
+                            ? `${import.meta.env.VITE_API_URL_FILE}/storage/${
+                                item.peserta.foto[0].path
+                              }`
+                            : "/assets/img/default-avatar.png"
+                        }
+                        alt={item.peserta.user.nama}
+                      />
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{item.nama}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {item.peserta.user.nama}
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{item.sekolah}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{item.keteranganSP}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="px-2.5 py-0.5 rounded-full text-xs font-medium 
-                    {item.statusSP === 'SP 1' ? 'bg-yellow-100 text-yellow-800' : 
-                     item.statusSP === 'SP 2' ? 'bg-orange-100 text-orange-800' : 
-                     'bg-red-100 text-red-800'}">
-                    {item.statusSP}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {new Date(item.tanggal).toLocaleDateString("id-ID")}
+                    {item.peserta.sekolah}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
+                    {item.keterangan_surat || item.alasan}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div
+                    className={`w-2/3 py-0.5 rounded-full text-xs font-medium text-center
+                    ${
+                      item.keterangan_surat === "SP1"
+                        ? "bg-green-100 text-green-800"
+                        : item.keterangan_surat === "SP2"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {item.keterangan_surat}
+                  </div>
+                </td>
+
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
+                    {new Date(item.created_at).toLocaleDateString("id-ID")}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-3">
                     <button className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1">
                       <Eye size={20} />
-
                     </button>
                     <button className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1">
                       <Printer size={20} />
-
                     </button>
-                    <button 
-                      onClick={() => onBuatSurat(item.id)} 
+                    <button
+                      onClick={() => onBuatSurat(item.id)}
                       className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1"
                     >
                       <Trash size={20} />
-
                     </button>
                   </div>
                 </td>
@@ -90,7 +131,9 @@ export default function DataPeringatan({ data, searchTerm, selectedDate, onBuatS
           ) : (
             <tr>
               <td colSpan="6" className="px-6 py-4 text-center">
-                <div className="text-gray-500">Tidak ada data yang ditemukan</div>
+                <div className="text-gray-500">
+                  Tidak ada data yang ditemukan
+                </div>
               </td>
             </tr>
           )}

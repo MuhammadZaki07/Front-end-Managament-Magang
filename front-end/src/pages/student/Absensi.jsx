@@ -4,10 +4,11 @@ import Card from "../../components/cards/Card";
 import CardAbsensi from "../../components/cards/CardAbsensi";
 import TableAbsensi from "../../components/cards/TableAbsensi";
 import IzinModal from "../../components/ui/IzinModal";
+import axios from "axios";
 
 const Absensi = () => {
   const [isIzinModalOpen, setIsIzinModalOpen] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const dummyAbsensi = [
     {
       bgColor: "bg-indigo-500",
@@ -35,6 +36,29 @@ const Absensi = () => {
     },
   ];
 
+  const handleAbsen = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/absensi`, 
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+        }
+      );
+      
+    } catch (error) {
+      console.error("Error during absensi:", error);
+      alert("Terjadi kesalahan saat melakukan absensi.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-13 px-12">
@@ -50,7 +74,10 @@ const Absensi = () => {
       </div>
       <div className="mt-10 px-10">
         <div className="flex justify-end gap-2">
-          <Button>Absen</Button>
+          <Button onClick={handleAbsen}>
+            {" "}
+            {loading ? "Absen sedang diproses..." : "Absen"}
+          </Button>
           <Button
             bgColor="bg-orange-400"
             onClick={() => setIsIzinModalOpen(true)}
@@ -61,7 +88,10 @@ const Absensi = () => {
         </div>
         <TableAbsensi />
       </div>
-      <IzinModal isOpen={isIzinModalOpen} onClose={() => setIsIzinModalOpen(false)} />
+      <IzinModal
+        isOpen={isIzinModalOpen}
+        onClose={() => setIsIzinModalOpen(false)}
+      />
     </section>
   );
 };

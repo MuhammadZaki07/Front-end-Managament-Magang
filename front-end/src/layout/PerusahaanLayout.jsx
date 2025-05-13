@@ -8,7 +8,6 @@ const PerusahaanLayout = () => {
   const { role, token } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
-  // Tambahkan state untuk status sidebar
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const sidebarMenus = [

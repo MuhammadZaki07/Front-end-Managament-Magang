@@ -26,7 +26,7 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
   const [cabang, setisCabang] = useState([]);
   const cabangDropdownRef = useRef(null);
   const isActive = (path) => currentPath === path;
-  
+
   useEffect(() => {
     if (user && user.id) {
       setId(user.id);
@@ -48,7 +48,7 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  
+
   const packagePrice = 100000;
   const calculateSubtotal = () => {
     const months = parseInt(selectedDuration.split(" ")[0]);
@@ -117,17 +117,28 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
 
   const getAllCabang = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/cabang`, {
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      const url = `${import.meta.env.VITE_API_URL}/cabang?t=${Date.now()}`;
+
+      const res = await axios.get(url, {
         headers: {
-          Authorization: `Bearer ${
-            localStorage.getItem("token") || sessionStorage.getItem("token")
-          }`,
+          "Cache-Control": "no-store",
+          Authorization: `Bearer ${token}`,
         },
       });
+
       setIsLoadingCabang(true);
-      setisCabang(res.data.data);
+
+      if (res.status === 200 && res.data && res.data.data) {
+        setisCabang(res.data.data);
+      } else if (res.status === 304) {
+        console.log("Data cabang belum berubah, tidak perlu update.");
+      } else {
+        console.warn("Respons tidak sesuai harapan:", res.status, res.data);
+      }
     } catch (error) {
-      console.log("gagal mengambil dat cabang", error);
+      console.error("Gagal mengambil data cabang:", error);
     } finally {
       setIsLoadingCabang(false);
     }
@@ -135,9 +146,9 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
 
   const handleClickActivecabang = async ($id_cabang) => {
     try {
-       await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_URL}/set-cabang-aktif`,
-        {id_cabang: $id_cabang},
+        { id_cabang: $id_cabang },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -192,16 +203,12 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
 
   const handleSave = async (data) => {
     try {
-       await axios.post(
-        `${import.meta.env.VITE_API_URL}/cabang`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await axios.post(`${import.meta.env.VITE_API_URL}/cabang`, data, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
       getAllCabang();
     } catch (error) {
       if (error.response && error.response.status === 422) {
@@ -215,7 +222,7 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
   return (
     <nav className="bg-white w-full h-[60px] flex items-center px-6 sticky top-0 z-50 border-b border-b-slate-300">
       {/* Tombol Toggle Sidebar */}
-      <button 
+      <button
         onClick={toggleSidebar}
         className="mr-4 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
       >
@@ -225,7 +232,7 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
           <i className="bi bi-filter-left text-xl"></i>
         )}
       </button>
-      
+
       <div className="flex gap-4 items-center">
         {/* Dashboard Link */}
         <Link
@@ -329,7 +336,7 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
                         onClick={() => {
                           setIsCabangDropdownOpen(false);
                           handleClickActivecabang(cabang.id);
-                        }}                        
+                        }}
                       >
                         {cabang.nama}
                       </Link>
@@ -686,7 +693,7 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
         onClose={() => setIsTambahCabangModalOpen(false)}
         onSave={handleSave}
         getFetchData={() => getAllCabang()}
-        />
+      />
     </nav>
   );
 };
