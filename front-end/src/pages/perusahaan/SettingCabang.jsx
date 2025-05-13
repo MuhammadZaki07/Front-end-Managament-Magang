@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import DataCabang from "../../components/cards/DataCabang";
 import PasswordCabang from "../../components/cards/PasswordCabang";
-import { number } from "prop-types";
 
 const CompanyCard = () => {
   const [dataCabang, setDataCabang] = useState(null);
@@ -90,7 +89,7 @@ const CompanyCard = () => {
   const menuItems = [{ label: "Data Cabang" }, { label: "Password" }];
 
   if (!dataCabang) {
-    return <div>Loading...</div>;
+    return <div className="w-full h-60 bg-gray-200 animate-pulse rounded-lg"></div>
   }
 
   return (
