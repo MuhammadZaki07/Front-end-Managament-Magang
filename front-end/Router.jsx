@@ -40,6 +40,7 @@ import Procedure from "./src/pages/Procedure";
 import Contact from "./src/pages/Contact";
 import Absensi from "./src/pages/student/Absensi";
 import Jurnal from "./src/pages/student/Jurnal";
+import PiketPeserta from "./src/pages/student/piket";
 import Vacancy from "./src/pages/Vacancy";
 import Presentasi from "./src/pages/student/Presentasi";
 import DetailPresentasi from "./src/pages/student/DetailPresentasi";
@@ -118,6 +119,10 @@ export const router = createBrowserRouter([
       {
         path : "settings",
         element : <RegistrasiPeserta/>,
+      },
+      {
+         path : "piket",
+        element : <PiketPeserta/>,
       }
     ],
   },

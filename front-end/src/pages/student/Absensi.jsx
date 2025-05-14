@@ -42,7 +42,7 @@ const Absensi = () => {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/absensi`, 
+        `${import.meta.env.VITE_API_URL}/kehadiran`, 
         {},
         {
           headers: {

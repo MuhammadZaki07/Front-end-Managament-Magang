@@ -283,12 +283,12 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
     }
 
     // Validate phone number (tepat 13 digit)
-    const phoneRegex = /^\d{13}$/;
+    const phoneRegex = /^\d{12}$/;
     if (!formData.phoneNumber) {
       errors.phoneNumber = "Nomor telepon wajib diisi";
       isValid = false;
     } else if (!phoneRegex.test(formData.phoneNumber)) {
-      errors.phoneNumber = "Nomor telepon harus terdiri dari 13 digit";
+      errors.phoneNumber = "Nomor telepon harus terdiri dari 12 digit";
       isValid = false;
     }
 
