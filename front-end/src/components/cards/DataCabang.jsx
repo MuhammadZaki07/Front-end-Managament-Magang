@@ -4,7 +4,7 @@ import Loading from "../Loading";
 
 export default function CabangPerusahaan() {
   const [formData, setFormData] = useState({
-    nama_cabang: "",
+    nama: "",
     bidang_usaha: "",
     provinsi: "",
     kota: "",
@@ -49,7 +49,7 @@ export default function CabangPerusahaan() {
         : res.data.data;
 
       setFormData({
-        nama_cabang: data.nama || "",
+        nama: data.nama || "",
         bidang_usaha: data.bidang_usaha || "",
         provinsi: data.provinsi || "",
         kota: data.kota || "",
@@ -125,7 +125,7 @@ export default function CabangPerusahaan() {
 
     try {
       const dataToSend = {
-        nama: formData.nama_cabang,
+        nama: formData.nama,
         bidang_usaha: formData.bidang_usaha,
         provinsi: formData.provinsi,
         kota: formData.kota,
@@ -184,8 +184,8 @@ export default function CabangPerusahaan() {
             </label>
             <input
               type="text"
-              name="nama_cabang"
-              value={formData.nama_cabang}
+              name="nama"
+              value={formData.nama}
               onChange={handleChange}
               placeholder="Nama Cabang Perusahaan"
               className="w-full p-2 border border-[#D5DBE7] rounded placeholder-[#667797] focus:outline-none focus:ring-1 focus:ring-blue-500"

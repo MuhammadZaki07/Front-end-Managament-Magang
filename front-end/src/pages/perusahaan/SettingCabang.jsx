@@ -7,6 +7,10 @@ const CompanyCard = () => {
   const [dataCabang, setDataCabang] = useState(null);
   const [coverImage, setCoverImage] = useState(null);
   const [logoImage, setLogoImage] = useState(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [tempCoverImage, setTempCoverImage] = useState(null);
+  const [tempLogoImage, setTempLogoImage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const coverInputRef = useRef(null);
   const logoInputRef = useRef(null);
@@ -27,11 +31,21 @@ const CompanyCard = () => {
       const cabang = res.data.data[0];
       setDataCabang(cabang);
 
-      const logo = cabang.foto.find((f) => f.type === "logo");
-      const cover = cabang.foto.find((f) => f.type === "profil_cover");
+      // Kemungkinan struktur response berbeda, cek apakah logo dan profil_cover 
+      // disimpan sebagai path langsung atau dalam array foto
+      if (cabang.logo) {
+        setLogoImage(cabang.logo.startsWith('/') ? cabang.logo : `/storage/${cabang.logo}`);
+      } else if (cabang.foto) {
+        const logo = cabang.foto.find((f) => f.type === "logo");
+        setLogoImage(logo ? `/storage/${logo.path}` : null);
+      }
 
-      setLogoImage(logo ? `/storage/${logo.path}` : null);
-      setCoverImage(cover ? `/storage/${cover.path}` : null);
+      if (cabang.profil_cover) {
+        setCoverImage(cabang.profil_cover.startsWith('/') ? cabang.profil_cover : `/storage/${cabang.profil_cover}`);
+      } else if (cabang.foto) {
+        const cover = cabang.foto.find((f) => f.type === "profil_cover");
+        setCoverImage(cover ? `/storage/${cover.path}` : null);
+      }
     } catch (err) {
       console.error("Gagal fetch data cabang", err);
     }
@@ -51,39 +65,84 @@ const CompanyCard = () => {
     }
   };
 
-  const handleImageUpload = (inputRef) => {
-    inputRef.current.click();
-  };
-
-  const handleFileChange = async (e, type) => {
+  const handleImageSelect = (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("foto", file);
-    formData.append("type", type);
-
-    // Preview langsung
     const previewUrl = URL.createObjectURL(file);
-    if (type === "logo") setLogoImage(previewUrl);
-    if (type === "profil_cover") setCoverImage(previewUrl);
+    if (type === "cover") {
+      setTempCoverImage({ file, preview: previewUrl });
+    } else {
+      setTempLogoImage({ file, preview: previewUrl });
+    }
+  };
 
+  const handleSaveImages = async () => {
+    setIsUploading(true);
     try {
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/cabang-update`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const uploadPromises = [];
 
+      if (tempCoverImage) {
+        const coverFormData = new FormData();
+        coverFormData.append("profil_cover", tempCoverImage.file);
+        
+        uploadPromises.push(
+          axios.put(
+            `${import.meta.env.VITE_API_URL}/cabang-update`,
+            coverFormData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          )
+        );
+      }
+
+      if (tempLogoImage) {
+        const logoFormData = new FormData();
+        logoFormData.append("logo", tempLogoImage.file);
+        
+        uploadPromises.push(
+          axios.put(
+            `${import.meta.env.VITE_API_URL}/cabang-update`,
+            logoFormData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          )
+        );
+      }
+
+      await Promise.all(uploadPromises);
+      
+      // Update preview images
+      if (tempCoverImage) setCoverImage(tempCoverImage.preview);
+      if (tempLogoImage) setLogoImage(tempLogoImage.preview);
+      
+      // Close modal and reset
+      setShowUploadModal(false);
+      setTempCoverImage(null);
+      setTempLogoImage(null);
+      
+      // Refresh data
       fetchCabangData();
     } catch (err) {
       console.error("Gagal upload gambar", err);
+      alert("Gagal upload gambar. Silakan coba lagi.");
+    } finally {
+      setIsUploading(false);
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowUploadModal(false);
+    setTempCoverImage(null);
+    setTempLogoImage(null);
   };
 
   const menuItems = [{ label: "Data Cabang" }, { label: "Password" }];
@@ -101,18 +160,12 @@ const CompanyCard = () => {
             alt="Cover"
             className="w-full h-60 object-cover"
           />
-          <input
-            type="file"
-            ref={coverInputRef}
-            onChange={(e) => handleFileChange(e, "profil_cover")}
-            accept="image/*"
-            className="hidden"
-          />
           <button
             className="absolute top-4 right-4 flex items-center gap-2 border border-gray-300 bg-white bg-opacity-80 text-[#344054] px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-[#0069AB] hover:text-white"
-            onClick={() => handleImageUpload(coverInputRef)}
+            onClick={() => setShowUploadModal(true)}
           >
-            Edit Cover
+            <i className="bi bi-camera-fill"></i>
+            Edit Foto
           </button>
         </div>
 
@@ -124,33 +177,6 @@ const CompanyCard = () => {
                 alt="Logo"
                 className="w-14 h-14 rounded-full border border-gray-200 object-cover"
               />
-              <input
-                type="file"
-                ref={logoInputRef}
-                onChange={(e) => handleFileChange(e, "logo")}
-                accept="image/*"
-                className="hidden"
-              />
-              <button
-                className="absolute -bottom-1 -right-1 bg-white p-1.5 rounded-full border border-gray-200 shadow-sm hover:bg-gray-50"
-                onClick={() => handleImageUpload(logoInputRef)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-500"
-                >
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">
@@ -206,6 +232,136 @@ const CompanyCard = () => {
           {activeMenu === "Password" && <PasswordCabang />}
         </div>
       </div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Edit Foto Profil</h3>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <i className="bi bi-x-lg text-xl"></i>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Cover Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Foto Cover
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  {tempCoverImage ? (
+                    <div className="relative">
+                      <img
+                        src={tempCoverImage.preview}
+                        alt="Cover Preview"
+                        className="w-full h-40 object-cover rounded"
+                      />
+                      <button
+                        onClick={() => setTempCoverImage(null)}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded"
+                      >
+                        <i className="bi bi-x"></i>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <i className="bi bi-image text-4xl text-gray-400"></i>
+                      <p className="mt-2 text-sm text-gray-600">Klik untuk upload</p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    ref={coverInputRef}
+                    onChange={(e) => handleImageSelect(e, "cover")}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => coverInputRef.current.click()}
+                    className="w-full mt-3 py-2 px-4 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100"
+                  >
+                    Pilih Gambar
+                  </button>
+                </div>
+              </div>
+
+              {/* Logo Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Logo
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  {tempLogoImage ? (
+                    <div className="relative">
+                      <img
+                        src={tempLogoImage.preview}
+                        alt="Logo Preview"
+                        className="w-full h-40 object-cover rounded"
+                      />
+                      <button
+                        onClick={() => setTempLogoImage(null)}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded"
+                      >
+                        <i className="bi bi-x"></i>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <i className="bi bi-building text-4xl text-gray-400"></i>
+                      <p className="mt-2 text-sm text-gray-600">Klik untuk upload</p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    ref={logoInputRef}
+                    onChange={(e) => handleImageSelect(e, "logo")}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => logoInputRef.current.click()}
+                    className="w-full mt-3 py-2 px-4 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100"
+                  >
+                    Pilih Gambar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSaveImages}
+                disabled={(!tempCoverImage && !tempLogoImage) || isUploading}
+                className={`px-4 py-2 rounded-md ${
+                  (!tempCoverImage && !tempLogoImage) || isUploading
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-[#0069AB] text-white hover:bg-[#005689]"
+                }`}
+              >
+                {isUploading ? (
+                  <span className="flex items-center gap-2">
+                    <i className="bi bi-arrow-repeat animate-spin"></i>
+                    Menyimpan...
+                  </span>
+                ) : (
+                  "Simpan"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
