@@ -25,26 +25,66 @@ export default function Surat() {
 
   const fetchPenerimaan = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/surat`, {
+      console.log("Fetching penerimaan data...");
+      
+      // Coba endpoint yang berbeda sesuai dengan ApprovalTable
+      const response = await axios.get(`${apiUrl}/magang`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (response.data.status === "success") {
-        setDataPenerimaan(
-          response.data.data.filter((item) => item.jenis === "penerimaan")
-        );
-      } else {
-        console.error("Unexpected response:", response.data);
+      
+      console.log("Response penerimaan:", response);
+      
+      if (response.data) {
+        // Ambil data dan filter yang statusnya diterima/approved
+        const allData = response.data.data || response.data;
+        console.log("All data magang:", allData);
+        
+        // Filter data yang sudah diterima
+        const approvedData = allData.filter(item => {
+          console.log("Item status:", item.status);
+          // Status mungkin "approved", "diterima", atau format lain
+          return item.status === "approved" || 
+                 item.status === "diterima" || 
+                 item.status === "accepted";
+        });
+        
+        console.log("Approved data:", approvedData);
+        setDataPenerimaan(approvedData);
       }
     } catch (error) {
       console.error("Error fetching data penerimaan:", error);
+      console.error("Error details:", error.response);
+      
+      // Fallback ke endpoint /surat jika /magang gagal
+      try {
+        console.log("Trying fallback endpoint /surat...");
+        const fallbackResponse = await axios.get(`${apiUrl}/surat`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        console.log("Fallback response:", fallbackResponse.data);
+        
+        if (fallbackResponse.data.status === "success") {
+          const filteredData = fallbackResponse.data.data.filter(
+            (item) => item.jenis === "penerimaan"
+          );
+          console.log("Filtered surat data:", filteredData);
+          setDataPenerimaan(filteredData);
+        }
+      } catch (fallbackError) {
+        console.error("Fallback also failed:", fallbackError);
+      }
     }
   };
 
   const fetchPeringatan = async () => {
     try {
+      console.log("Fetching peringatan data...");
       const response = await axios.get(`${apiUrl}/surat-peringatan`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log("Response peringatan:", response.data);
+      
       if (response.data.status === "success") {
         setDataPeringatan(response.data.data);
       } else {
@@ -62,8 +102,14 @@ export default function Surat() {
   };
 
   useEffect(() => {
+    console.log("Component mounted, fetching data...");
     fetchData();
   }, []);
+
+  // Debug log setiap kali data berubah
+  useEffect(() => {
+    console.log("Data penerimaan updated:", dataPenerimaan);
+  }, [dataPenerimaan]);
 
   const handleBuatSurat = (id) => {
     const selectedData = dataPeringatan.find((item) => item.id === id);
@@ -89,6 +135,23 @@ export default function Surat() {
     </button>
   ));
 
+  // Persiapkan data untuk CSV export dengan struktur yang benar
+  const getCSVData = () => {
+    const data = activeTab === "DataPenerimaan" ? dataPenerimaan : dataPeringatan;
+    console.log("Preparing CSV data for:", activeTab, data);
+    
+    return data.map(item => {
+      // Sesuaikan struktur data untuk CSV
+      return {
+        nama: item.user?.nama || item.peserta?.nama || item.nama || "",
+        sekolah: item.user?.sekolah || item.peserta?.sekolah || item.sekolah || "",
+        jurusan: item.user?.jurusan || item.peserta?.jurusan || item.jurusan || "",
+        tanggal_daftar: item.created_at || "",
+        status: item.status || ""
+      };
+    });
+  };
+
   return (
     <div className="w-full">
       <div className="bg-white rounded-xl border border-gray-200 shadow-md overflow-hidden">
@@ -112,17 +175,14 @@ export default function Surat() {
                 showPopperArrow={false}
               />
               <CSVLink
-                data={
-                  activeTab === "DataPenerimaan"
-                    ? dataPenerimaan
-                    : dataPeringatan
-                }
+                data={getCSVData()}
                 filename={`data_${activeTab}.csv`}
                 headers={[
-                  { label: "Nama", key: "peserta.user.nama" },
-                  { label: "Sekolah", key: "peserta.sekolah" },
-                  { label: "Jurusan", key: "peserta.jurusan" },
-                  { label: "Tanggal Daftar", key: "created_at" },
+                  { label: "Nama", key: "nama" },
+                  { label: "Sekolah", key: "sekolah" },
+                  { label: "Jurusan", key: "jurusan" },
+                  { label: "Tanggal Daftar", key: "tanggal_daftar" },
+                  { label: "Status", key: "status" }
                 ]}
               >
                 <button className="flex items-center gap-2 border border-gray-300 text-[#344054] px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-[#0069AB] hover:text-white">
@@ -185,19 +245,29 @@ export default function Surat() {
           {loading ? (
             <p>Loading...</p>
           ) : activeTab === "DataPenerimaan" ? (
-            <DataPenerimaan
-              data={dataPenerimaan}
-              searchTerm={searchTerm}
-              selectedDate={selectedDate}
-              selectedJurusan={selectedJurusan}
-            />
+            <>
+              <p className="text-sm text-gray-500 mb-2">
+                Total data penerimaan: {dataPenerimaan.length}
+              </p>
+              <DataPenerimaan
+                data={dataPenerimaan}
+                searchTerm={searchTerm}
+                selectedDate={selectedDate}
+                selectedJurusan={selectedJurusan}
+              />
+            </>
           ) : (
-            <DataPeringatan
-              data={dataPeringatan}
-              searchTerm={searchTerm}
-              selectedDate={selectedDate}
-              onBuatSurat={handleBuatSurat}
-            />
+            <>
+              <p className="text-sm text-gray-500 mb-2">
+                Total data peringatan: {dataPeringatan.length}
+              </p>
+              <DataPeringatan
+                data={dataPeringatan}
+                searchTerm={searchTerm}
+                selectedDate={selectedDate}
+                onBuatSurat={handleBuatSurat}
+              />
+            </>
           )}
         </div>
       </div>

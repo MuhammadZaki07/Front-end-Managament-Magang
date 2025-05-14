@@ -13,7 +13,7 @@ export default function JadwalPiketPeserta() {
   const fetchSchedule = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/piket`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/piket-peserta`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

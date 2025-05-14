@@ -14,7 +14,7 @@ const TableAbsensi = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/absensi?page=${page}`,
+        `${import.meta.env.VITE_API_URL}/kehadiran`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -22,11 +22,41 @@ const TableAbsensi = () => {
         }
       );
 
-      const result = response.data;     
-      setData(result.data);
-      setLastPage(result.meta?.last_page || 1);
+      // Mengakses data dari struktur response yang benar
+      const result = response.data.data;
+      
+      // Cek dan gunakan data absensi jika kehadiran kosong
+      let absensiData = [];
+      if (result.kehadiran && Array.isArray(result.kehadiran.data) && result.kehadiran.data.length > 0) {
+        absensiData = result.kehadiran.data;
+      } else if (Array.isArray(result.kehadiran) && result.kehadiran.length > 0) {
+        absensiData = result.kehadiran;
+      } else if (Array.isArray(result.absensi) && result.absensi.length > 0) {
+        // Transformasi data absensi ke format yang diharapkan oleh komponen
+        absensiData = result.absensi.map(item => ({
+          id: item.id,
+          tanggal: item.tanggal,
+          jam_masuk: "-",
+          jam_istirahat: "-",
+          jam_kembali: "-",
+          jam_pulang: "-",
+          status: item.status,
+          status_kehadiran: item.status // Ini akan ditampilkan sebagai status_kehadiran
+        }));
+      }
+      
+      setData(absensiData);
+      
+      // Set last page berdasarkan metadata yang tersedia
+      if (result.kehadiran && result.kehadiran.meta && result.kehadiran.meta.last_page) {
+        setLastPage(result.kehadiran.meta.last_page);
+      } else {
+        // Jika tidak ada meta.last_page, gunakan 1 atau hitung berdasarkan jumlah data
+        setLastPage(Math.ceil(absensiData.length / 10) || 1);
+      }
     } catch (error) {
       console.error("Gagal mengambil data absensi:", error);
+      setData([]); // Ensure data is always an array on error
     } finally {
       setLoading(false);
     }
@@ -47,11 +77,31 @@ const TableAbsensi = () => {
     );
   };
 
+  // Helper function untuk menentukan warna berdasarkan status
+  const getStatusClass = (status) => {
+    switch(status?.toLowerCase()) {
+      case "telat":
+        return "bg-orange-100 text-orange-600";
+      case "hadir":
+        return "bg-green-100 text-green-600";
+      case "sakit":
+        return "bg-red-100 text-red-600";
+      case "izin":
+        return "bg-blue-100 text-blue-600";
+      case "alpha":
+        return "bg-gray-100 text-gray-600";
+      default:
+        return "bg-green-100 text-green-600";
+    }
+  };
+
   return (
     <>
       <Card className="mt-5">
         {loading ? (
           <p className="text-center py-10">Loading...</p>
+        ) : data.length === 0 ? (
+          <p className="text-center py-10">Tidak ada data absensi</p>
         ) : (
           <table className="min-w-full text-left divide-y divide-gray-200">
             <thead className="bg-white text-black font-bold text-sm border-b border-slate-300">
@@ -90,19 +140,17 @@ const TableAbsensi = () => {
                   className="border-b hover:bg-gray-50 transition-all duration-150"
                 >
                   <td className="py-3 px-6 text-center">{item.tanggal}</td>
-                  <td className="py-3 px-6 text-center">{item.masuk || "-"}</td>
-                  <td className="py-3 px-6 text-center">{item.istirahat || "-"}</td>
-                  <td className="py-3 px-6 text-center">{item.kembali || "-"}</td>
-                  <td className="py-3 px-6 text-center">{item.pulang || "-"}</td>
+                  <td className="py-3 px-6 text-center">{item.jam_masuk || "-"}</td>
+                  <td className="py-3 px-6 text-center">{item.jam_istirahat || "-"}</td>
+                  <td className="py-3 px-6 text-center">{item.jam_kembali || "-"}</td>
+                  <td className="py-3 px-6 text-center">{item.jam_pulang || "-"}</td>
                   <td className="py-3 px-6 text-center">
                     <span
                       className={`px-3 py-1 text-xs rounded-full font-semibold ${
-                        item.status === "telat"
-                          ? "bg-orange-100 text-orange-600"
-                          : "bg-green-100 text-green-600"
+                        getStatusClass(item.status)
                       }`}
                     >
-                      {item.status}
+                      {item.status_kehadiran || item.status}
                     </span>
                   </td>
                 </tr>
@@ -116,7 +164,7 @@ const TableAbsensi = () => {
         <button
           className="px-4 py-2 font-semibold border rounded-full text-sm text-gray-600 hover:bg-blue-50"
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          disabled={page === 1}
+          disabled={page === 1 || data.length === 0}
         >
           ← Previous
         </button>
@@ -138,7 +186,7 @@ const TableAbsensi = () => {
         <button
           className="px-4 py-2 border rounded-full text-sm text-blue-600 font-semibold hover:bg-blue-50"
           onClick={() => setPage((prev) => Math.min(prev + 1, lastPage))}
-          disabled={page === lastPage}
+          disabled={page === lastPage || data.length === 0}
         >
           Next →
         </button>
