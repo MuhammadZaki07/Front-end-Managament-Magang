@@ -62,9 +62,6 @@ export default function JadwalPiket() {
         },
       });
       // Log response data yang diterima
-      console.log("Data Jadwal:", res.data);
-
-      // Pisahkan berdasarkan shift
       const pagi = res.data.data.filter(
         (schedule) => schedule.shift.toLowerCase() === "pagi"
       );

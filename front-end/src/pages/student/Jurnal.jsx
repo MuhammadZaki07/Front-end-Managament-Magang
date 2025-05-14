@@ -5,6 +5,8 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { X, Image, Upload } from "lucide-react";
 import "../../components/cards/calendar-custom.css";
+import axios from "axios";
+import dayjs from "dayjs";
 
 const Jurnal = () => {
   const [view, setView] = useState("month");
@@ -21,69 +23,63 @@ const Jurnal = () => {
     created_at: "",
     updated_at: "",
   });
+  const [editMode, setEditMode] = useState(false); // true saat klik edit
+  const [selectedJournal, setSelectedJournal] = useState(null); // data jurnal yang akan diedit
 
   // File upload state
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
-
+  const [showFullDescription, setShowFullDescription] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [animateDetailModal, setAnimateDetailModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const sampleParticipants = [
-    [
-      { id_peserta: 1, judul: "Laporan Mingguan", deskripsi: "Perkembangan proyek minggu ini", created_at: "2025-04-01T09:00:00", updated_at: "2025-04-01T10:30:00" },
-      { id_peserta: 2, judul: "Meeting Sales", deskripsi: "Diskusi target penjualan bulan depan", created_at: "2025-04-01T11:00:00", updated_at: "2025-04-01T11:45:00" },
-      { id_peserta: 3, judul: "Evaluasi Kinerja", deskripsi: "Review pencapaian Q1", created_at: "2025-04-01T13:30:00", updated_at: "2025-04-01T14:15:00" },
-    ],
-    [
-      { id_peserta: 4, judul: "Training Product", deskripsi: "Pengenalan fitur baru aplikasi", created_at: "2025-04-08T13:00:00", updated_at: "2025-04-08T14:30:00" },
-      { id_peserta: 5, judul: "Brainstorming", deskripsi: "Ide pengembangan produk baru", created_at: "2025-04-08T15:00:00", updated_at: "2025-04-08T15:45:00" },
-      { id_peserta: 6, judul: "Review Desain", deskripsi: "Feedback mockup website", created_at: "2025-04-08T16:00:00", updated_at: "2025-04-08T16:30:00" },
-      { id_peserta: 7, judul: "Daily Standup", deskripsi: "Update progress harian tim", created_at: "2025-04-08T09:00:00", updated_at: "2025-04-08T09:15:00" },
-    ],
-    [
-      { id_peserta: 8, judul: "Presentasi Client", deskripsi: "Demo aplikasi kepada client potensial", created_at: "2025-04-15T10:00:00", updated_at: "2025-04-15T11:30:00" },
-      { id_peserta: 9, judul: "Rapat Tim", deskripsi: "Koordinasi antar divisi", created_at: "2025-04-15T15:00:00", updated_at: "2025-04-15T16:00:00" },
-    ],
-    [
-      { id_peserta: 10, judul: "Workshop UI/UX", deskripsi: "Pelatihan desain interface", created_at: "2025-04-11T14:00:00", updated_at: "2025-04-11T16:00:00" },
-      { id_peserta: 11, judul: "Perencanaan Sprint", deskripsi: "Penetapan target sprint berikutnya", created_at: "2025-04-11T10:00:00", updated_at: "2025-04-11T11:30:00" },
-      { id_peserta: 12, judul: "Code Review", deskripsi: "Review pull request anggota tim", created_at: "2025-04-11T13:00:00", updated_at: "2025-04-11T14:00:00" },
-      { id_peserta: 13, judul: "Retrospective", deskripsi: "Evaluasi sprint sebelumnya", created_at: "2025-04-11T16:30:00", updated_at: "2025-04-11T17:30:00" },
-      { id_peserta: 14, judul: "One-on-One", deskripsi: "Feedback pribadi dengan manager", created_at: "2025-04-11T09:00:00", updated_at: "2025-04-11T09:30:00" },
-    ],
-    [
-      { id_peserta: 15, judul: "Diskusi Strategi", deskripsi: "Perencanaan strategi pemasaran", created_at: "2025-04-11T11:00:00", updated_at: "2025-04-11T12:30:00" },
-      { id_peserta: 16, judul: "Interview Kandidat", deskripsi: "Wawancara calon karyawan baru", created_at: "2025-04-11T14:00:00", updated_at: "2025-04-11T15:00:00" },
-    ],
-    [
-      { id_peserta: 17, judul: "Onboarding", deskripsi: "Orientasi karyawan baru", created_at: "2025-04-12T09:00:00", updated_at: "2025-04-12T10:30:00" },
-      { id_peserta: 18, judul: "Tech Talk", deskripsi: "Sharing knowledge teknologi terbaru", created_at: "2025-04-12T13:30:00", updated_at: "2025-04-12T14:30:00" },
-      { id_peserta: 19, judul: "Hackathon Prep", deskripsi: "Persiapan tim untuk hackathon", created_at: "2025-04-12T15:00:00", updated_at: "2025-04-12T16:00:00" },
-    ],
-  ];
-  const [events, setEvents] = useState([
-    {
-      title: "Mengisi",
-      start: "2025-04-01",
-      allDay: true,
-      backgroundColor: "#ECF2FE", // Yellow for online
-      textColor: "#0069AB",
-      borderColor: "#ECF2FE",
-    },
-    {
-      title: "Tidak Mengisi",
-      start: "2025-04-08",
-      backgroundColor: "#FEE2E2", // Blue for offline
-      textColor: "#EA5455",
-      borderColor: "#E6EFFF",
-    },
-  ]);
+  const [errors, setErrors] = useState({});
+  const [events, setEvents] = useState([]);
+
+  const fetchJurnal = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/jurnal`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const jurnalData = response.data.data.map((jurnal) => ({
+        id: jurnal.id,
+        title: jurnal.judul,
+        start: jurnal.tanggal,
+        allDay: true,
+        extendedProps: {
+          deskripsi: jurnal.deskripsi,
+          created_at: jurnal.created_at,
+          bukti: jurnal.bukti?.path || null,
+          originalData: jurnal,
+        },
+        backgroundColor: "#ECFDF5",
+        textColor: "#059669",
+        borderColor: "#D1FAE5",
+      }));
+
+      setEvents(jurnalData);
+    } catch (error) {
+      console.error("Gagal mengambil data jurnal", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchJurnal();
+  }, []);
+
   const formatMonthYear = (date) => {
     const options = { month: "long", year: "numeric" };
     return new Intl.DateTimeFormat("en-US", options).format(date);
   };
+
   const updateTitle = () => {
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
@@ -101,16 +97,20 @@ const Jurnal = () => {
   // Handle file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
+    if (!file) return;
 
-      // Create a preview URL
-      const fileReader = new FileReader();
-      fileReader.onload = () => {
-        setPreviewUrl(fileReader.result);
-      };
-      fileReader.readAsDataURL(file);
+    const validTypes = ["image/png", "image/jpeg"];
+    if (!validTypes.includes(file.type)) {
+      setErrors((prev) => ({
+        ...prev,
+        bukti: "File harus berupa PNG atau JPEG.",
+      }));
+      return;
     }
+
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setErrors((prev) => ({ ...prev, bukti: null }));
   };
 
   // Handler for clicking on the upload area
@@ -184,8 +184,8 @@ const Jurnal = () => {
   };
 
   // Handle event click to show detail modal
-  const handleEventClick = (clickInfo) => {
-    setSelectedEvent(clickInfo.event);
+  const handleEventClick = (info) => {
+    setSelectedEvent(info.event);
     setShowDetailModal(true);
     // Use setTimeout to allow the modal to render before animating
     setTimeout(() => {
@@ -210,31 +210,22 @@ const Jurnal = () => {
     }
   };
 
-  const handleOutsideDetailClick = (e) => {
-    // Check if the click is outside the modal content
-    if (e.target.classList.contains("modal-overlay")) {
-      closeDetailModal();
-    }
-  };
+  // const handleOutsideDetailClick = (e) => {
+  //   // Check if the click is outside the modal content
+  //   if (e.target.classList.contains("modal-overlay")) {
+  //     closeDetailModal();
+  //   }
+  // };
 
   const closeModal = () => {
-    setAnimateModal(false);
-    setTimeout(() => {
-      setShowModal(false);
-      // Reset form data
-      setFormData({
-        title: "",
-        quota: "",
-        startTime: "",
-        endTime: "",
-        zoomLink: "",
-        location: "",
-      });
-      setSelectedStatus("");
-      setDescription("");
-      setSelectedFile(null);
-      setPreviewUrl(null);
-    }, 300); // Match the duration of the transition
+    setShowModal(false);
+    setFormData({ title: "" });
+    setDescription("");
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setErrors({});
+    setEditMode(false);
+    setSelectedJournal(null);
   };
 
   const closeDetailModal = () => {
@@ -253,70 +244,84 @@ const Jurnal = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Get current date from calendar
-    const calendarApi = calendarRef.current.getApi();
-    const currentDate = calendarApi.getDate();
+    const newErrors = {};
+    if (!formData.title?.trim()) newErrors.title = "Judul wajib diisi.";
+    if (!description?.trim()) newErrors.description = "Deskripsi wajib diisi.";
+    if (!selectedFile && !editMode) newErrors.bukti = "Bukti wajib diunggah."; // file tidak wajib saat edit
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
-    // Format the date as YYYY-MM-DD
-    const formattedDate = currentDate.toISOString().split("T")[0];
+    const form = new FormData();
+    form.append("judul", formData.title);
+    form.append("deskripsi", description);
+    if (selectedFile) form.append("bukti", selectedFile);
 
-    // Set the background and text colors based on the selected status
-    let backgroundColor, textColor, borderColor;
-
-    if (selectedStatus === "online") {
-      backgroundColor = "#FEF9C3"; // Yellow for online
-      textColor = "#CA8A04";
-      borderColor = "#FEF9C3";
-    } else {
-      backgroundColor = "#E6EFFF"; // Blue for offline
-      textColor = "#3B82F6";
-      borderColor = "#E6EFFF";
+    // Edit: tambahkan method override
+    if (editMode && selectedJournal) {
+      form.append("_method", "PUT");
     }
 
-    // Create the new event
-    const newEvent = {
-      title: formData.title,
-      start: formattedDate,
-      backgroundColor,
-      textColor,
-      borderColor,
-      extendedProps: {
-        status: selectedStatus,
-        quota: formData.quota,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        zoomLink: formData.zoomLink,
-        location: formData.location,
-        participants: [], // Start with empty participants list
-        fileData: selectedFile
-          ? {
-              name: selectedFile.name,
-              type: selectedFile.type,
-              size: selectedFile.size,
-              preview: previewUrl,
-            }
-          : null,
-      },
-    };
+    try {
+      const token = localStorage.getItem("token");
+      const url = editMode
+        ? `${import.meta.env.VITE_API_URL}/jurnal/${selectedJournal.id}`
+        : `${import.meta.env.VITE_API_URL}/jurnal`;
 
-    // Add the new event to the events array
-    setEvents((prevEvents) => [...prevEvents, newEvent]);
+      await axios.post(url, form, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    console.log("New event added:", newEvent);
+      // Reset state
+      setFormData({ title: "" });
+      setDescription("");
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setErrors({});
+      setEditMode(false);
+      setSelectedJournal(null);
+      fetchJurnal();
+      closeModal();
+    } catch (error) {
+      const backendErrors = error.response?.data?.meta;
+      const statusCode = error.response?.status;
 
-    // Close the modal
-    closeModal();
+      // Tangani error 409 khusus (jurnal sudah diisi hari ini)
+      if (statusCode === 409) {
+        alert(error.response.data.message); // atau tampilkan dengan komponen notifikasi
+        return;
+      }
+      const parsedErrors = {};
+      if (backendErrors?.judul) parsedErrors.title = backendErrors.judul[0];
+      if (backendErrors?.deskripsi)
+        parsedErrors.description = backendErrors.deskripsi[0];
+      if (backendErrors?.bukti) parsedErrors.bukti = backendErrors.bukti[0];
+      if (backendErrors?.tanggal)
+        parsedErrors.tanggal = backendErrors.tanggal[0];
+      setErrors(parsedErrors);
+      console.error("Submit error:", error);
+    }
   };
 
-  // Format date for display
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
-    return new Intl.DateTimeFormat("id-ID", options).format(date);
+  const handleEditClick = async (journal) => {
+    if (!journal) return console.log("Data jurnal tidak ditemukan.");
+
+    setShowModal(true);
+    setShowDetailModal(false);
+    setEditMode(true);
+    setSelectedJournal(journal);
+    setFormData({ title: journal.judul });
+    setDescription(journal.deskripsi);
+
+    const imageUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${
+      journal.bukti.path
+    }`;
+    setPreviewUrl(imageUrl);
   };
 
   return (
@@ -335,13 +340,22 @@ const Jurnal = () => {
           {/* Center section - Day Week Month */}
           <div className="center-section">
             <div className="view-options">
-              <button className={`view-btn ${view === "day" ? "active" : ""}`} onClick={() => handleViewChange("day")}>
+              <button
+                className={`view-btn ${view === "day" ? "active" : ""}`}
+                onClick={() => handleViewChange("day")}
+              >
                 Day
               </button>
-              <button className={`view-btn ${view === "week" ? "active" : ""}`} onClick={() => handleViewChange("week")}>
+              <button
+                className={`view-btn ${view === "week" ? "active" : ""}`}
+                onClick={() => handleViewChange("week")}
+              >
                 Week
               </button>
-              <button className={`view-btn ${view === "month" ? "active" : ""}`} onClick={() => handleViewChange("month")}>
+              <button
+                className={`view-btn ${view === "month" ? "active" : ""}`}
+                onClick={() => handleViewChange("month")}
+              >
                 Month
               </button>
             </div>
@@ -387,45 +401,75 @@ const Jurnal = () => {
 
       {/* Modal for adding event */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999] modal-overlay" onClick={handleOutsideClick}>
+        <div
+          className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999] modal-overlay"
+          onClick={handleOutsideClick}
+        >
           <div className="bg-white rounded-lg w-full max-w-md shadow-lg">
             <div className="flex justify-between items-center p-6 pb-4 border-b">
               <div>
-                <h2 className="text-xl font-bold">Buat Jurnal</h2>
-                <p className="text-gray-500 text-sm">Ayo Laporkan Kegiatanmu hari ini!</p>
+                <h2 className="text-xl font-bold">
+                  {editMode ? "Edit Jurnal" : "Buat Jurnal"}
+                </h2>
+                {!editMode && (
+                  <p className="text-gray-500 text-sm">
+                    Ayo Laporkan Kegiatanmu hari ini!
+                  </p>
+                )}
               </div>
-              <button onClick={closeModal} className="text-gray-500 hover:text-gray-700">
+              <button
+                onClick={closeModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6">
+            <form
+              onSubmit={handleSubmit}
+              className="p-6"
+              encType="multipart/form-data"
+            >
               {/* Title Input */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Masukkan Judul</label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">
+                  Masukkan Judul <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full border rounded px-3 py-2 focus:outline-none ${
+                    errors.title ? "border-red-500" : "border-gray-300"
+                  } focus:ring-2 focus:ring-blue-500`}
                   placeholder="Masukkan Judul Disini"
                 />
+                {errors.title && (
+                  <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+                )}
               </div>
 
               {/* File Upload */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">
-                  Masukkan Bukti<span className="text-red-500">*</span>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">
+                  Masukkan Bukti <span className="text-red-500">*</span>
                 </label>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/png,image/jpeg"
+                  className="hidden"
+                />
 
-                {/* Hidden file input */}
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png,image/jpeg" className="hidden" />
-
-                {/* Show preview if file is selected */}
                 {previewUrl ? (
                   <div className="mb-2 relative">
-                    <img src={previewUrl} alt="Preview" className="w-full h-48 object-cover rounded" />
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="w-full h-48 object-cover rounded"
+                    />
                     <button
                       type="button"
                       onClick={() => {
@@ -451,27 +495,54 @@ const Jurnal = () => {
                       <span>Drag or </span>
                       <span className="text-blue-500">Browse</span>
                     </div>
-                    <p className="text-gray-500 text-xs">PNG, JPEG (max 2mb size)</p>
+                    <p className="text-gray-500 text-xs">
+                      PNG, JPEG (max 2mb size)
+                    </p>
                   </div>
+                )}
+                {errors.bukti && (
+                  <p className="text-red-500 text-sm mt-1">{errors.bukti}</p>
                 )}
               </div>
 
-              {/* Description */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Deskripsi</label>
-                <textarea className="w-full border border-gray-300 rounded px-3 py-2 h-28 focus:outline-none focus:ring-2 focus:ring-blue-500" value={description} onChange={(e) => setDescription(e.target.value)} />
+              {/* Deskripsi */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1">
+                  Deskripsi <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  className={`w-full border rounded px-3 py-2 h-28 focus:outline-none ${
+                    errors.description ? "border-red-500" : "border-gray-300"
+                  } focus:ring-2 focus:ring-blue-500`}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
                 <div className="flex justify-between text-xs text-gray-400 mt-1">
                   <span>Minimal Kata</span>
-                  <span>{description.split(/\s+/).filter(Boolean).length}/150</span>
+                  <span>
+                    {description.split(/\s+/).filter(Boolean).length}/150
+                  </span>
                 </div>
+                {errors.description && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.description}
+                  </p>
+                )}
               </div>
 
               {/* Buttons */}
               <div className="flex gap-3 justify-end">
-                <button type="button" className="px-6 py-2 rounded-lg bg-red-400 text-white font-medium hover:bg-red-500" onClick={closeModal}>
+                <button
+                  type="button"
+                  className="px-6 py-2 rounded-lg bg-red-400 text-white font-medium hover:bg-red-500"
+                  onClick={closeModal}
+                >
                   Batal
                 </button>
-                <button type="submit" className="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700">
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+                >
                   Simpan
                 </button>
               </div>
@@ -480,49 +551,110 @@ const Jurnal = () => {
         </div>
       )}
 
-      {/* Modal for event details */}
       {showDetailModal && selectedEvent && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999] modal-overlay" onClick={handleOutsideDetailClick}>
-          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden shadow-lg">
-            {/* Header */}
+        <div
+          className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999] modal-overlay"
+          onClick={closeDetailModal}
+        >
+          <div
+            className="bg-white rounded-lg w-full max-w-2xl overflow-hidden shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-4 pb-2">
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-xl font-bold">William James Moriarty</h2>
-                  <p className="text-gray-500 text-sm">SMK NEGERI 12 BOROWOOSO</p>
+                  <h2 className="text-xl font-bold">{selectedEvent.title}</h2>
+                  <p className="text-gray-500 text-sm">
+                    SMK NEGERI 12 BOROWOOSO
+                  </p>
                 </div>
-                <button onClick={closeDetailModal} className="text-gray-500 hover:text-gray-700">
+                <button
+                  onClick={closeDetailModal}
+                  className="text-gray-500 hover:text-gray-700"
+                >
                   <X size={20} />
                 </button>
               </div>
-
               <p className="text-sm mt-4 mb-2 font-medium">Bukti Kegiatan</p>
             </div>
 
-            {/* Image */}
             <div className="w-full">
-              <img src="/api/placeholder/800/400" alt="Bukti kegiatan" className="w-full h-48 object-cover" />
+              <img
+                src={`${import.meta.env.VITE_API_URL_FILE}/storage/${
+                  selectedEvent.extendedProps?.bukti
+                }`}
+                alt="Bukti kegiatan"
+                className="w-full h-48 object-cover"
+              />
             </div>
 
-            {/* Details */}
             <div className="p-4">
               <div className="mb-3">
                 <p className="text-sm font-medium">Tanggal</p>
-                <p className="text-sm text-gray-600">{selectedEvent.start ? selectedEvent.start.toISOString() : "2025-03-20 18:39:05"}</p>
+                <p className="text-sm text-gray-600">
+                  {selectedEvent.startStr}
+                </p>
               </div>
 
-              <div>
+              <div className="overflow-y-auto h-auto">
                 <p className="text-sm font-medium mb-1">Kegiatan</p>
-                <p className="text-sm text-gray-600">{selectedEvent.title || "Lorem ipsum dolor sit amet, consectetur adipiscing elit."}</p>
+                <p className="text-sm text-gray-600">
+                  {selectedEvent.extendedProps?.deskripsi?.length > 200 &&
+                  !showFullDescription
+                    ? `${selectedEvent.extendedProps.deskripsi.slice(
+                        0,
+                        200
+                      )}...`
+                    : selectedEvent.extendedProps?.deskripsi}
+                </p>
+                {selectedEvent.extendedProps?.deskripsi?.length > 200 && (
+                  <button
+                    onClick={() => setShowFullDescription(!showFullDescription)}
+                    className="text-blue-500 text-sm mt-1 hover:underline"
+                  >
+                    {showFullDescription ? "Sembunyikan" : "Selengkapnya"}
+                  </button>
+                )}
               </div>
 
-              {/* Buttons */}
-              <div className="flex gap-3 justify-end mt-6">
-                <button className="px-6 py-2 rounded-full bg-orange-400 text-white font-medium hover:bg-orange-500">Edit</button>
-                <button onClick={closeDetailModal} className="px-6 py-2 rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700">
-                  Tutup
-                </button>
-              </div>
+              {/* Tombol hanya tampil jika belum lewat 24 jam */}
+              {(() => {
+                const createdAt = new Date(
+                  selectedEvent.extendedProps?.created_at
+                );
+                const now = new Date();
+                const selisihJam = (now - createdAt) / (1000 * 60 * 60);
+
+                return selisihJam < 24 ? (
+                  <div className="flex gap-3 justify-end mt-6">
+                    <button
+                      onClick={() =>
+                        handleEditClick(
+                          selectedEvent?.extendedProps.originalData
+                        )
+                      }
+                      className="px-6 py-2 rounded-full bg-orange-400 text-white font-medium hover:bg-orange-500"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={closeDetailModal}
+                      className="px-6 py-2 rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700"
+                    >
+                      Tutup
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={closeDetailModal}
+                      className="px-6 py-2 rounded-full bg-blue-600 text-white font-medium hover:bg-blue-700"
+                    >
+                      Tutup
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

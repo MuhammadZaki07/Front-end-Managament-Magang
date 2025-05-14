@@ -19,39 +19,43 @@ export default function ApprovalTable() {
   const apiUrl = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    const fetchPeserta = async () => {
-      try {
-        const res = await axios.get(`${apiUrl}/peserta-by-cabang`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+useEffect(() => {
+  const fetchPesertaDanDivisi = async () => {
+    try {
+      // Ambil data peserta
+      const pesertaRes = await axios.get(`${apiUrl}/peserta-by-cabang`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        if (res.data.status === "success") {
-          const pesertaData = res.data.data;
-          setDataPendaftaran(pesertaData);
-
-          const divisiSet = new Set();
-          const statusSet = new Set();
-
-          pesertaData.forEach((item) => {
-            if (item.divisi) divisiSet.add(item.divisi?.nama || "");
-            if (item.status_magang) statusSet.add(item.status_magang);
-          });
-
-          setDivisiOptions([...divisiSet]);
-          setStatusOptions([...statusSet]);
-        }
-      } catch (err) {
-        console.error("Gagal mengambil data peserta:", err);
+      if (pesertaRes.data.status === "success") {
+        const pesertaData = pesertaRes.data.data;
+        setDataPendaftaran(pesertaData);
       }
-    };
-    fetchPeserta();
-  }, []);
 
-  console.log(dataPendaftaran);
-  
+      // Ambil data divisi dari API
+      const divisiRes = await axios.get(`${apiUrl}/divisi`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (divisiRes.data.data) {
+        const divisiList = divisiRes.data.data.map((d) => d.nama);
+        setDivisiOptions(divisiList);
+      }
+
+      // Status dummy
+      setStatusOptions(["aktif", "non-aktif"]);
+    } catch (err) {
+      console.error("Gagal mengambil data:", err);
+    }
+  };
+
+  fetchPesertaDanDivisi();
+}, []);
+
 
   const CustomButton = React.forwardRef(({ value, onClick }, ref) => (
     <button

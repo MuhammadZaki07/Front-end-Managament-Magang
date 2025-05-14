@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import React from "react";
 
 export default function TablePendaftaran({
@@ -7,10 +8,11 @@ export default function TablePendaftaran({
   selectedDivisi,
   selectedStatus,
 }) {
-  // Fungsi bantu untuk ambil path foto profile
   const getProfilePhoto = (fotoArr) => {
     const profile = fotoArr?.find((f) => f.type === "profile");
-    return profile ? `${import.meta.env.VITE_API_URL_FILE}/storage/${profile.path}` : "/default-avatar.png";
+    return profile
+      ? `${import.meta.env.VITE_API_URL_FILE}/storage/${profile.path}`
+      : "/default-avatar.png";
   };
 
   // Fungsi bantu untuk status warna
@@ -23,6 +25,17 @@ export default function TablePendaftaran({
       default:
         return "text-gray-700";
     }
+  };
+
+  const getStatusMagang = (mulai, selesai) => {
+    const today = dayjs();
+    const mulaiDate = dayjs(mulai);
+    const selesaiDate = dayjs(selesai);
+
+    return today.isBefore(selesaiDate.add(1, "day")) &&
+      today.isAfter(mulaiDate.subtract(1, "day"))
+      ? "aktif"
+      : "-";
   };
 
   // Filter data sesuai inputan
@@ -43,7 +56,8 @@ export default function TablePendaftaran({
       : true;
 
     const isMatchStatus = selectedStatus
-      ? item.status_magang === selectedStatus
+      ? getStatusMagang(item.mulai_magang, item.selesai_magang) ===
+        selectedStatus
       : true;
 
     return isMatchSearch && isMatchDate && isMatchDivisi && isMatchStatus;
@@ -89,10 +103,19 @@ export default function TablePendaftaran({
                     item.status_magang
                   )}`}
                 >
-                  {item.status_magang || "-"}
+                  <span className="text-sm font-medium">
+                    {getStatusMagang(item.mulai_magang, item.selesai_magang) ===
+                    "aktif" ? (
+                      <span className="bg-green-100 text-green-800 px-4 py-1.5 rounded text-xs font-semibold">
+                        Aktif
+                      </span>
+                    ) : (
+                      "-"
+                    )}
+                  </span>
                 </td>
                 <td className="px-3 py-3">{item.sekolah || "-"}</td>
-                <td className="px-3 py-3">{item.divisi?.nama || "-"}</td>
+                <td className="px-3 py-3">{item.divisi || "-"}</td>
               </tr>
             ))
           ) : (
