@@ -69,17 +69,8 @@ export default function JobVacancyLayout() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
         const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL}/lowongan-all`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          `${import.meta.env.VITE_API_URL}/lowongan-all`);
 
         const jobs = (data?.data || []).map(mapJobData);        
         setJobVacancies(jobs);

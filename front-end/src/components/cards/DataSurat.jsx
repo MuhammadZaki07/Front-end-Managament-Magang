@@ -23,67 +23,35 @@ export default function Surat() {
   const apiUrl = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
-  const fetchPenerimaan = async () => {
-    try {
-      console.log("Fetching penerimaan data...");
-      
-      // Coba endpoint yang berbeda sesuai dengan ApprovalTable
-      const response = await axios.get(`${apiUrl}/magang`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      console.log("Response penerimaan:", response);
-      
-      if (response.data) {
-        // Ambil data dan filter yang statusnya diterima/approved
-        const allData = response.data.data || response.data;
-        console.log("All data magang:", allData);
-        
-        // Filter data yang sudah diterima
-        const approvedData = allData.filter(item => {
-          console.log("Item status:", item.status);
-          // Status mungkin "approved", "diterima", atau format lain
-          return item.status === "approved" || 
-                 item.status === "diterima" || 
-                 item.status === "accepted";
-        });
-        
-        console.log("Approved data:", approvedData);
-        setDataPenerimaan(approvedData);
-      }
-    } catch (error) {
-      console.error("Error fetching data penerimaan:", error);
-      console.error("Error details:", error.response);
-      
-      // Fallback ke endpoint /surat jika /magang gagal
-      try {
-        console.log("Trying fallback endpoint /surat...");
-        const fallbackResponse = await axios.get(`${apiUrl}/surat`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        
-        console.log("Fallback response:", fallbackResponse.data);
-        
-        if (fallbackResponse.data.status === "success") {
-          const filteredData = fallbackResponse.data.data.filter(
-            (item) => item.jenis === "penerimaan"
-          );
-          console.log("Filtered surat data:", filteredData);
-          setDataPenerimaan(filteredData);
-        }
-      } catch (fallbackError) {
-        console.error("Fallback also failed:", fallbackError);
-      }
-    }
-  };
+const fetchPenerimaan = async () => {
+  try {
+    const response = await axios.get(`${apiUrl}/surat`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // console.log("Response penerimaan:", response);
+
+    const suratData = response?.data?.data || [];
+    const approvedData = suratData.filter((item) => {
+      const jenisPenerimaan = item.jenis === "penerimaan";
+      const statusMagang = item.peserta?.magang?.status?.toLowerCase() === "diterima";
+      return jenisPenerimaan && statusMagang;
+    });
+
+    console.log("Filtered penerimaan:", approvedData);
+    setDataPenerimaan(approvedData);
+  } catch (error) {
+    console.error("Error fetching data penerimaan:", error);
+    console.error("Error details:", error.response);
+  }
+};
+
 
   const fetchPeringatan = async () => {
     try {
-      console.log("Fetching peringatan data...");
       const response = await axios.get(`${apiUrl}/surat-peringatan`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Response peringatan:", response.data);
       
       if (response.data.status === "success") {
         setDataPeringatan(response.data.data);
@@ -102,14 +70,8 @@ export default function Surat() {
   };
 
   useEffect(() => {
-    console.log("Component mounted, fetching data...");
     fetchData();
   }, []);
-
-  // Debug log setiap kali data berubah
-  useEffect(() => {
-    console.log("Data penerimaan updated:", dataPenerimaan);
-  }, [dataPenerimaan]);
 
   const handleBuatSurat = (id) => {
     const selectedData = dataPeringatan.find((item) => item.id === id);
@@ -137,9 +99,7 @@ export default function Surat() {
 
   // Persiapkan data untuk CSV export dengan struktur yang benar
   const getCSVData = () => {
-    const data = activeTab === "DataPenerimaan" ? dataPenerimaan : dataPeringatan;
-    console.log("Preparing CSV data for:", activeTab, data);
-    
+    const data = activeTab === "DataPenerimaan" ? dataPenerimaan : dataPeringatan;    
     return data.map(item => {
       // Sesuaikan struktur data untuk CSV
       return {
