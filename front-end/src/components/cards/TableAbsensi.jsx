@@ -21,19 +21,33 @@ const TableAbsensi = () => {
           },
         }
       );
-
-      // Mengakses data dari struktur response yang benar
+      // console.log(response.data);
+      
+      // Mengakses data dari struktur response
       const result = response.data.data;
       
-      // Cek dan gunakan data absensi jika kehadiran kosong
-      let absensiData = [];
-      if (result.kehadiran && Array.isArray(result.kehadiran.data) && result.kehadiran.data.length > 0) {
-        absensiData = result.kehadiran.data;
-      } else if (Array.isArray(result.kehadiran) && result.kehadiran.length > 0) {
-        absensiData = result.kehadiran;
-      } else if (Array.isArray(result.absensi) && result.absensi.length > 0) {
-        // Transformasi data absensi ke format yang diharapkan oleh komponen
-        absensiData = result.absensi.map(item => ({
+      // Gabungkan data kehadiran dan absensi
+      let combinedData = [];
+      
+      // Proses data kehadiran jika ada
+      if (result.kehadiran && Array.isArray(result.kehadiran)) {
+        const kehadiranData = Array.isArray(result.kehadiran.data) ? result.kehadiran.data : result.kehadiran;
+        
+        combinedData = kehadiranData.map(item => ({
+          id: item.id,
+          tanggal: item.tanggal,
+          jam_masuk: item.jam_masuk || "-",
+          jam_istirahat: item.jam_istirahat || "-",
+          jam_kembali: item.jam_kembali || "-",
+          jam_pulang: item.jam_pulang || "-",
+          status: item.status_kehadiran === 1 ? "hadir" : "telat",
+          status_kehadiran: item.status_kehadiran === 1 ? "hadir" : "telat"
+        }));
+      }
+      
+      // Proses dan tambahkan data absensi jika ada
+      if (result.absensi && Array.isArray(result.absensi)) {
+        const absensiData = result.absensi.map(item => ({
           id: item.id,
           tanggal: item.tanggal,
           jam_masuk: "-",
@@ -41,19 +55,21 @@ const TableAbsensi = () => {
           jam_kembali: "-",
           jam_pulang: "-",
           status: item.status,
-          status_kehadiran: item.status // Ini akan ditampilkan sebagai status_kehadiran
+          status_kehadiran: item.status
         }));
+        
+        // Gabungkan dengan data kehadiran
+        combinedData = [...combinedData, ...absensiData];
       }
       
-      setData(absensiData);
+      // Urutkan data berdasarkan tanggal (terbaru di atas)
+      combinedData.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
       
-      // Set last page berdasarkan metadata yang tersedia
-      if (result.kehadiran && result.kehadiran.meta && result.kehadiran.meta.last_page) {
-        setLastPage(result.kehadiran.meta.last_page);
-      } else {
-        // Jika tidak ada meta.last_page, gunakan 1 atau hitung berdasarkan jumlah data
-        setLastPage(Math.ceil(absensiData.length / 10) || 1);
-      }
+      setData(combinedData);
+      
+      // Set last page berdasarkan jumlah data yang digabungkan
+      setLastPage(Math.ceil(combinedData.length / 10) || 1);
+      
     } catch (error) {
       console.error("Gagal mengambil data absensi:", error);
       setData([]); // Ensure data is always an array on error
@@ -94,6 +110,11 @@ const TableAbsensi = () => {
         return "bg-green-100 text-green-600";
     }
   };
+  
+  // Paginate data untuk tampilan saat ini
+  const itemsPerPage = 10;
+  const startIndex = (page - 1) * itemsPerPage;
+  const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <>
@@ -134,23 +155,23 @@ const TableAbsensi = () => {
               </tr>
             </thead>
             <tbody className="text-sm text-gray-700">
-              {data.map((item) => (
+              {paginatedData.map((item) => (
                 <tr
-                  key={item.id}
+                  key={item.id + item.tanggal}
                   className="border-b hover:bg-gray-50 transition-all duration-150"
                 >
                   <td className="py-3 px-6 text-center">{item.tanggal}</td>
-                  <td className="py-3 px-6 text-center">{item.jam_masuk || "-"}</td>
-                  <td className="py-3 px-6 text-center">{item.jam_istirahat || "-"}</td>
-                  <td className="py-3 px-6 text-center">{item.jam_kembali || "-"}</td>
-                  <td className="py-3 px-6 text-center">{item.jam_pulang || "-"}</td>
+                  <td className="py-3 px-6 text-center">{item.jam_masuk}</td>
+                  <td className="py-3 px-6 text-center">{item.jam_istirahat}</td>
+                  <td className="py-3 px-6 text-center">{item.jam_kembali}</td>
+                  <td className="py-3 px-6 text-center">{item.jam_pulang}</td>
                   <td className="py-3 px-6 text-center">
                     <span
                       className={`px-3 py-1 text-xs rounded-full font-semibold ${
                         getStatusClass(item.status)
                       }`}
                     >
-                      {item.status_kehadiran || item.status}
+                      {item.status_kehadiran}
                     </span>
                   </td>
                 </tr>
