@@ -7,7 +7,6 @@ import StaticJurnal from "../../components/charts/StaticJurnal";
 import Title from "../../components/Title";
 import RevisionCard from "../../components/cards/RevisionCard";
 import ProjectStats from "../../components/charts/ProjectStats";
-import PresentationHistory from "../../components/cards/PresentationCard";
 import { Link, useLocation } from "react-router-dom";
 import PresentationCard from "../../components/cards/PresentationCard";
 import axios from "axios";
@@ -15,10 +14,11 @@ import axios from "axios";
 const Dashboard = () => {
   const location = useLocation();
   localStorage.setItem("location", location.pathname);
-  const [status, setStaus] = useState(null);
+  const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [magangStatus, setMagangStatus] = useState(null);
 
-  const chcekDataStatus = async () => {
+  const checkDataStatus = async () => {
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/complete/peserta`,
@@ -28,7 +28,23 @@ const Dashboard = () => {
           },
         }
       );
-      setStaus(res.data.data);
+      setStatus(res.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const checkMagangStatus = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/magang`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setMagangStatus(res.data.data.status);
     } catch (error) {
       console.log(error);
     } finally {
@@ -37,7 +53,8 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    chcekDataStatus();
+    checkDataStatus();
+    checkMagangStatus();
   }, []);
 
   const statsData = [
@@ -113,6 +130,20 @@ const Dashboard = () => {
         </div>
       </div>
     );
+    
+  // Menampilkan halaman menunggu persetujuan jika status magang "pending"
+  if (magangStatus === "false") {
+    return (
+      <div className="w-full">
+        <div className="w-xl mx-auto h-screen flex flex-col items-center justify-center">
+          <img src="/assets/svg/Company-amico.svg" alt="Company-amico.svg" className="max-w-md" />
+          <p className="text-lg font-medium text-gray-700 mt-4">
+            Pengajuan magang Anda sedang menunggu persetujuan
+          </p>
+        </div>
+      </div>
+    );
+  }
     
   return (
     <div className="w-full">
