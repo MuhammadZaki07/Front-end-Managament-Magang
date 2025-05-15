@@ -11,12 +11,13 @@ const StudentLayout = () => {
   const [isPresentasiOpen, setIsPresentasiOpen] = useState(false);
   const { role, token } = useContext(AuthContext);
   const [status, setStatus] = useState();
+  const [approvalStatus, setApprovalStatus] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
 
-  const chcekDataStatus = async () => {
+  const checkDataStatus = async () => {
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/complete/peserta`,
@@ -29,6 +30,23 @@ const StudentLayout = () => {
       setStatus(res.data.data);
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const checkApprovalStatus = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/magang`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setApprovalStatus(res.data.data.isApproved || false);
+    } catch (error) {
+      console.log("Approval status check error:", error);
+      setApprovalStatus(false);
     } finally {
       setLoading(false);
     }
@@ -38,8 +56,7 @@ const StudentLayout = () => {
     setIsLoggingOut(true);
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/logout`
-,
+        `${import.meta.env.VITE_API_URL}/logout`,
         {},
         {
           headers: {
@@ -74,7 +91,12 @@ const StudentLayout = () => {
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];
 
   useEffect(() => {
-    chcekDataStatus();
+    const fetchData = async () => {
+      await checkDataStatus();
+      await checkApprovalStatus();
+    };
+    
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -133,8 +155,17 @@ const StudentLayout = () => {
 <div className="flex flex-col gap-3 mt-8">
   {sidebarMenus.map((menu, idx) => {
     const isActive = location.pathname.includes(`/peserta/${menu.link}`);
+    // Menu is disabled if either profile data is incomplete or participant is not approved by company
     const isDisabled =
-      status === "false" && menu.label !== "Dashboard";
+      (status === "false" && menu.label !== "Dashboard") || 
+      (!approvalStatus && menu.label !== "Dashboard");
+    
+    // Show appropriate message on hover based on disable reason
+    const disableReason = status === "false" 
+      ? "Complete your profile first" 
+      : !approvalStatus 
+      ? "Waiting for company approval" 
+      : "";
 
     return (
       <Link
@@ -154,6 +185,7 @@ const StudentLayout = () => {
             ? "text-slate-400 opacity-50 cursor-not-allowed"
             : "text-slate-500 hover:text-white hover:bg-sky-800"
         }`}
+        title={isDisabled ? disableReason : ""}
       >
         <i className={`bi ${menu.icon} text-lg`}></i>
         <span className="font-light text-sm flex items-center gap-2">

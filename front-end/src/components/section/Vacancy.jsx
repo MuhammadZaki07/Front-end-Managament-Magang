@@ -9,6 +9,7 @@ import {
   MapPin,
   Mail,
   ExternalLink,
+  AlertCircle,
 } from "lucide-react";
 import PemberkasanModal from "../modal/PemberkasanModal";
 import Loading from "../Loading";
@@ -19,6 +20,8 @@ export default function JobVacancyLayout() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
+  const [userMagangStatus, setUserMagangStatus] = useState(null);
+  const [statusError, setStatusError] = useState("");
   const jobsPerPage = 3;
   const jobDetailRef = useRef(null);
   const { user, token } = useContext(AuthContext);
@@ -85,6 +88,33 @@ export default function JobVacancyLayout() {
     fetchJobs();
   }, []);
 
+  useEffect(() => {
+    // Fetch user's internship/magang status when user is logged in
+    const fetchUserMagangStatus = async () => {
+      if (!token || !user) return;
+      
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/complete/magang`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        
+        // API merespons dengan data: "true" jika peserta sudah terdaftar magang
+        // dan data: "false" jika peserta belum terdaftar magang
+        const isTerdaftarMagang = response.data.data === "true";
+        setUserMagangStatus(isTerdaftarMagang ? "terdaftar" : "belum_terdaftar");
+      } catch (error) {
+        console.error("Gagal memuat status magang user:", error);
+      }
+    };
+
+    fetchUserMagangStatus();
+  }, [user, token]);
+
   const handleSelectJob = (job) => {
     setSelectedJob(job);
     jobDetailRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -104,10 +134,21 @@ export default function JobVacancyLayout() {
 
   const openModal = (e) => {
     e.preventDefault();
+    setStatusError("");
+    
+    // Check if user is logged in
     if (!token || !user) {
       navigate("/auth/login");
       return;
     }
+    
+    // Check user's internship status
+    if (userMagangStatus === "terdaftar") {
+      setStatusError("Anda sudah terdaftar magang. Tidak dapat melamar lowongan baru.");
+      return;
+    }
+    
+    // If status is "belum_terdaftar" or null/undefined, allow them to apply
     setModalOpen(true);
   };
 
@@ -306,9 +347,21 @@ export default function JobVacancyLayout() {
                       {selectedJob.company.location}
                     </p>
 
+                    {statusError && (
+                      <div className="flex items-center p-3 mb-4 bg-red-100 text-red-700 rounded-md">
+                        <AlertCircle size={16} className="mr-2" />
+                        <span>{statusError}</span>
+                      </div>
+                    )}
+
                     <button
-                      className="bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-md hover:bg-blue-700 w-fit"
+                      className={`text-sm font-bold py-2 px-4 rounded-md w-fit ${
+                        userMagangStatus === "terdaftar"
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-600 text-white hover:bg-blue-700"
+                      }`}
                       onClick={openModal}
+                      disabled={userMagangStatus === "terdaftar"}
                     >
                       APPLY VACANCY
                     </button>
