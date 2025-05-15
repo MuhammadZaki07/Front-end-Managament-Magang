@@ -79,11 +79,21 @@ export default function TableJurnal({
         <thead className="bg-[#F9FAFB] text-[#667085] border-t border-gray-200">
           <tr>
             <th className="px-3 py-3 text-center font-medium w-[50px]">No</th>
-            <th className="px-3 py-3 text-center font-medium w-[180px]">Nama</th>
-            <th className="px-3 py-3 text-center font-medium w-[200px]">Nama Sekolah</th>
-            <th className="px-3 py-3 text-center font-medium w-[130px]">Tanggal</th>
-            <th className="px-3 py-3 text-center font-medium w-[250px]">Deskripsi</th>
-            <th className="px-3 py-3 text-center font-medium w-[140px]">Status Jurnal</th>
+            <th className="px-3 py-3 text-center font-medium w-[180px]">
+              Nama
+            </th>
+            <th className="px-3 py-3 text-center font-medium w-[200px]">
+              Nama Sekolah
+            </th>
+            <th className="px-3 py-3 text-center font-medium w-[130px]">
+              Tanggal
+            </th>
+            <th className="px-3 py-3 text-center font-medium w-[250px]">
+              Deskripsi
+            </th>
+            <th className="px-3 py-3 text-center font-medium w-[140px]">
+              Status Jurnal
+            </th>
             <th className="px-3 py-3 text-center font-medium w-[80px]">Aksi</th>
           </tr>
         </thead>
@@ -96,7 +106,9 @@ export default function TableJurnal({
               <td className="px-3 py-3">{index + 1}</td>
               <td className="px-3 py-3 flex items-center gap-2 justify-start text-left">
                 <img
-                  src={`${import.meta.env.VITE_API_URL_FILE}/storage/${item.image}`}
+                  src={`${import.meta.env.VITE_API_URL_FILE}/storage/${
+                    item.image
+                  }`}
                   alt={item.nama}
                   className="w-8 h-8 rounded-full"
                 />
@@ -123,17 +135,55 @@ export default function TableJurnal({
 
       {isModalOpen && selectedItem && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50">
-          <div ref={modalRef} className="bg-white rounded-lg max-w-2xl w-full h-auto">
+          <div
+            ref={modalRef}
+            className="bg-white rounded-lg max-w-2xl w-full h-auto"
+          >
             <div className="p-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold">Detail Jurnal</h2>
                 <button onClick={closeModal} className="text-black">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
-
+              <div>
+                <label className="block text-gray-500 text-sm">
+                  Bukti Kegiatan
+                </label>
+                <div className="mt-2 flex justify-center">
+                  {selectedItem.buktiJurnal ? (
+                    <a
+                      href={selectedItem.buktiJurnal}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <img
+                        src={`${import.meta.env.VITE_API_URL_FILE}/storage/${
+                          selectedItem.buktiJurnal
+                        }`}
+                        alt="Bukti Kegiatan"
+                        className="max-w-[300px] h-auto rounded-lg"
+                      />
+                    </a>
+                  ) : (
+                    <div className="mb-2 text-4xl text-gray-600">
+                      <i className="bi bi-file-earmark-arrow-up"></i>
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="mt-4 space-y-4">
                 <div>
                   <label className="block text-gray-500 text-sm">Nama</label>
@@ -148,7 +198,9 @@ export default function TableJurnal({
                   <div>{selectedItem.tanggal}</div>
                 </div>
                 <div>
-                  <label className="block text-gray-500 text-sm">Deskripsi</label>
+                  <label className="block text-gray-500 text-sm">
+                    Deskripsi
+                  </label>
                   <div className="whitespace-pre-wrap break-words text-sm">
                     {(() => {
                       const words = selectedItem.deskripsi?.split(/\s+/) || [];
@@ -162,32 +214,18 @@ export default function TableJurnal({
                           {isLong && (
                             <button
                               className="mt-1 block text-blue-600 hover:underline text-sm"
-                              onClick={() => setShowFullDeskripsi(!showFullDeskripsi)}
+                              onClick={() =>
+                                setShowFullDeskripsi(!showFullDeskripsi)
+                              }
                             >
-                              {showFullDeskripsi ? "Sembunyikan" : "Selengkapnya"}
+                              {showFullDeskripsi
+                                ? "Sembunyikan"
+                                : "Selengkapnya"}
                             </button>
                           )}
                         </>
                       );
                     })()}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-gray-500 text-sm">Bukti Kegiatan</label>
-                  <div className="mt-2 flex justify-center">
-                    {selectedItem.buktiJurnal ? (
-                      <a href={selectedItem.buktiJurnal} target="_blank" rel="noopener noreferrer">
-                        <img
-                          src={selectedItem.buktiJurnal}
-                          alt="Bukti Kegiatan"
-                          className="max-w-[200px] h-auto rounded-lg"
-                        />
-                      </a>
-                    ) : (
-                      <div className="mb-2 text-4xl text-gray-600">
-                        <i className="bi bi-file-earmark-arrow-up"></i>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

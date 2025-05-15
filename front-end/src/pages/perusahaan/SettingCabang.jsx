@@ -31,17 +31,21 @@ const CompanyCard = () => {
       const cabang = res.data.data[0];
       setDataCabang(cabang);
 
-      // Kemungkinan struktur response berbeda, cek apakah logo dan profil_cover 
-      // disimpan sebagai path langsung atau dalam array foto
       if (cabang.logo) {
-        setLogoImage(cabang.logo.startsWith('/') ? cabang.logo : `/storage/${cabang.logo}`);
+        setLogoImage(
+          cabang.logo.startsWith("/") ? cabang.logo : `/storage/${cabang.logo}`
+        );
       } else if (cabang.foto) {
         const logo = cabang.foto.find((f) => f.type === "logo");
         setLogoImage(logo ? `/storage/${logo.path}` : null);
       }
 
       if (cabang.profil_cover) {
-        setCoverImage(cabang.profil_cover.startsWith('/') ? cabang.profil_cover : `/storage/${cabang.profil_cover}`);
+        setCoverImage(
+          cabang.profil_cover.startsWith("/")
+            ? cabang.profil_cover
+            : `/storage/${cabang.profil_cover}`
+        );
       } else if (cabang.foto) {
         const cover = cabang.foto.find((f) => f.type === "profil_cover");
         setCoverImage(cover ? `/storage/${cover.path}` : null);
@@ -68,7 +72,6 @@ const CompanyCard = () => {
   const handleImageSelect = (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const previewUrl = URL.createObjectURL(file);
     if (type === "cover") {
       setTempCoverImage({ file, preview: previewUrl });
@@ -77,17 +80,34 @@ const CompanyCard = () => {
     }
   };
 
+  const handleOpenModal = () => {
+    if (!tempCoverImage && coverImage) {
+      setTempCoverImage({
+        file: null,
+        preview: `${import.meta.env.VITE_API_URL_FILE}${coverImage}`,
+      });
+    }
+    if (!tempLogoImage && logoImage) {
+      setTempLogoImage({
+        file: null,
+        preview: `${import.meta.env.VITE_API_URL_FILE}${logoImage}`,
+      });
+    }
+    setShowUploadModal(true);
+  };
+
   const handleSaveImages = async () => {
     setIsUploading(true);
     try {
       const uploadPromises = [];
 
-      if (tempCoverImage) {
+      if (tempCoverImage?.file) {
         const coverFormData = new FormData();
+        coverFormData.append("_method", "PUT");
         coverFormData.append("profil_cover", tempCoverImage.file);
-        
+
         uploadPromises.push(
-          axios.put(
+          axios.post(
             `${import.meta.env.VITE_API_URL}/cabang-update`,
             coverFormData,
             {
@@ -100,12 +120,13 @@ const CompanyCard = () => {
         );
       }
 
-      if (tempLogoImage) {
+      if (tempLogoImage?.file) {
         const logoFormData = new FormData();
+        logoFormData.append("_method", "PUT");
         logoFormData.append("logo", tempLogoImage.file);
-        
+
         uploadPromises.push(
-          axios.put(
+          axios.post(
             `${import.meta.env.VITE_API_URL}/cabang-update`,
             logoFormData,
             {
@@ -119,17 +140,14 @@ const CompanyCard = () => {
       }
 
       await Promise.all(uploadPromises);
-      
-      // Update preview images
+
       if (tempCoverImage) setCoverImage(tempCoverImage.preview);
       if (tempLogoImage) setLogoImage(tempLogoImage.preview);
-      
-      // Close modal and reset
+
       setShowUploadModal(false);
       setTempCoverImage(null);
       setTempLogoImage(null);
-      
-      // Refresh data
+
       fetchCabangData();
     } catch (err) {
       console.error("Gagal upload gambar", err);
@@ -148,7 +166,9 @@ const CompanyCard = () => {
   const menuItems = [{ label: "Data Cabang" }, { label: "Password" }];
 
   if (!dataCabang) {
-    return <div className="w-full h-60 bg-gray-200 animate-pulse rounded-lg"></div>
+    return (
+      <div className="w-full h-60 bg-gray-200 animate-pulse rounded-lg"></div>
+    );
   }
 
   return (
@@ -162,7 +182,7 @@ const CompanyCard = () => {
           />
           <button
             className="absolute top-4 right-4 flex items-center gap-2 border border-gray-300 bg-white bg-opacity-80 text-[#344054] px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-[#0069AB] hover:text-white"
-            onClick={() => setShowUploadModal(true)}
+            onClick={handleOpenModal}
           >
             <i className="bi bi-camera-fill"></i>
             Edit Foto
@@ -188,7 +208,7 @@ const CompanyCard = () => {
               </div>
               <div className="text-[13px] text-gray-500 flex items-center gap-2 mt-1">
                 <i className="bi bi-calendar-fill"></i>{" "}
-                {new Date(dataCabang.created_at).toLocaleDateString("en-GB", {
+                {new Date(dataCabang.created_at).toLocaleDateString("id-ID", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
@@ -233,7 +253,6 @@ const CompanyCard = () => {
         </div>
       </div>
 
-      {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
@@ -248,7 +267,7 @@ const CompanyCard = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Cover Image Upload */}
+              {/* Cover */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Foto Cover
@@ -258,7 +277,7 @@ const CompanyCard = () => {
                     <div className="relative">
                       <img
                         src={tempCoverImage.preview}
-                        alt="Cover Preview"
+                        alt="Preview Cover"
                         className="w-full h-40 object-cover rounded"
                       />
                       <button
@@ -271,7 +290,9 @@ const CompanyCard = () => {
                   ) : (
                     <div className="text-center">
                       <i className="bi bi-image text-4xl text-gray-400"></i>
-                      <p className="mt-2 text-sm text-gray-600">Klik untuk upload</p>
+                      <p className="mt-2 text-sm text-gray-600">
+                        Klik untuk upload
+                      </p>
                     </div>
                   )}
                   <input
@@ -290,7 +311,7 @@ const CompanyCard = () => {
                 </div>
               </div>
 
-              {/* Logo Image Upload */}
+              {/* Logo */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Logo
@@ -300,7 +321,7 @@ const CompanyCard = () => {
                     <div className="relative">
                       <img
                         src={tempLogoImage.preview}
-                        alt="Logo Preview"
+                        alt="Preview Logo"
                         className="w-full h-40 object-cover rounded"
                       />
                       <button
@@ -313,7 +334,9 @@ const CompanyCard = () => {
                   ) : (
                     <div className="text-center">
                       <i className="bi bi-building text-4xl text-gray-400"></i>
-                      <p className="mt-2 text-sm text-gray-600">Klik untuk upload</p>
+                      <p className="mt-2 text-sm text-gray-600">
+                        Klik untuk upload
+                      </p>
                     </div>
                   )}
                   <input
@@ -342,9 +365,11 @@ const CompanyCard = () => {
               </button>
               <button
                 onClick={handleSaveImages}
-                disabled={(!tempCoverImage && !tempLogoImage) || isUploading}
+                disabled={
+                  (!tempCoverImage?.file && !tempLogoImage?.file) || isUploading
+                }
                 className={`px-4 py-2 rounded-md ${
-                  (!tempCoverImage && !tempLogoImage) || isUploading
+                  (!tempCoverImage?.file && !tempLogoImage?.file) || isUploading
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-[#0069AB] text-white hover:bg-[#005689]"
                 }`}

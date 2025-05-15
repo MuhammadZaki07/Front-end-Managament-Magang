@@ -1,40 +1,57 @@
 import React from "react";
 import { Eye, Printer } from "lucide-react";
 
-export default function DataPenerimaan({ data, searchTerm, selectedDate, selectedJurusan }) {
+export default function DataPenerimaan({
+  data,
+  searchTerm,
+  selectedDate,
+  selectedJurusan,
+}) {
   // Filter data berdasarkan kriteria pencarian
   const filteredData = data.filter((item) => {
     // Filter berdasarkan searchTerm (dalam nama, sekolah, atau jurusan)
-    const matchesSearch = 
-      searchTerm === "" || 
+    const matchesSearch =
+      searchTerm === "" ||
       item.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.sekolah.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.jurusan.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     // Filter berdasarkan jurusan yang dipilih
-    const matchesJurusan = 
-      selectedJurusan === "" || 
-      item.jurusan === selectedJurusan;
-    
+    const matchesJurusan =
+      selectedJurusan === "" || item.jurusan === selectedJurusan;
+
     // Filter berdasarkan tanggal yang dipilih
-    const matchesDate = 
-      !selectedDate || 
-      (new Date(item.tanggalDiterima).toDateString() === selectedDate.toDateString());
-    
+    const matchesDate =
+      !selectedDate ||
+      new Date(item.tanggalDiterima).toDateString() ===
+        selectedDate.toDateString();
+
     return matchesSearch && matchesJurusan && matchesDate;
   });
 
   return (
-  <div className="overflow-x-auto">
+    <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sekolah</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jurusan</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Daftar</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Diterima</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Nama
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Sekolah
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Jurusan
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Tanggal Daftar
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Tanggal Diterima
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Aksi
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -44,22 +61,34 @@ export default function DataPenerimaan({ data, searchTerm, selectedDate, selecte
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      <img 
-                        className="h-10 w-10 rounded-full" 
-                        src={item.peserta.foto[0]?.path ? `${import.meta.env.VITE_API_URL_FILE}/storage/${item.peserta.foto[0].path}` : '/assets/img/default-avatar.png'} 
-                        alt={item.peserta.nama} 
+                      <img
+                        className="h-10 w-10 rounded-full"
+                        src={
+                          item.peserta.foto[0]?.path
+                            ? `${import.meta.env.VITE_API_URL_FILE}/storage/${
+                                item.peserta.foto[0].path
+                              }`
+                            : "/assets/img/default-avatar.png"
+                        }
+                        alt={item.peserta.nama}
                       />
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{item.peserta.nama}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {item.peserta.nama}
+                      </div>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{item.peserta.sekolah}</div>
+                  <div className="text-sm text-gray-900">
+                    {item.peserta.sekolah}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{item.peserta.jurusan}</div>
+                  <div className="text-sm text-gray-900">
+                    {item.peserta.jurusan}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
@@ -73,10 +102,15 @@ export default function DataPenerimaan({ data, searchTerm, selectedDate, selecte
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-3">
-                    <button className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1">
-                      <Eye size={20} />
-                    </button>
-                    <button className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1">
+                    <button
+                      onClick={() =>
+                        window.open(
+                          `${import.meta.env.VITE_API_URL_FILE}/storage/${item.file_path}`,
+                          "_blank"
+                        )
+                      }
+                      className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1"
+                    >
                       <Printer size={20} />
                     </button>
                   </div>
@@ -86,12 +120,14 @@ export default function DataPenerimaan({ data, searchTerm, selectedDate, selecte
           ) : (
             <tr>
               <td colSpan="6" className="px-6 py-4 text-center">
-                <div className="text-gray-500">Tidak ada data yang ditemukan</div>
+                <div className="text-gray-500">
+                  Tidak ada data yang ditemukan
+                </div>
               </td>
             </tr>
           )}
         </tbody>
       </table>
-    </div>  
+    </div>
   );
 }

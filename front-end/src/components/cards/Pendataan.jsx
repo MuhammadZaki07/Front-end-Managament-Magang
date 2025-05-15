@@ -18,25 +18,32 @@ export default function Pendataan() {
     const fetchJurnal = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/jurnal-peserta-cabang`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/jurnal-peserta-cabang`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const pesertaList = response.data.data || [];
+        console.log(pesertaList);
 
-        // Ubah struktur data jadi mirip data dummy sebelumnya
         const formatted = pesertaList.flatMap((peserta) =>
           peserta.jurnal.map((jurnal) => ({
             id: jurnal.id,
-            nama: peserta.nama || "-", // jika nama tidak ada, fallback
+            nama: peserta.nama || "-",
             sekolah: peserta.sekolah || "-",
             tanggal: jurnal.tanggal,
             deskripsi: jurnal.deskripsi || "-",
-            status: jurnal.deskripsi && jurnal.deskripsi !== "-" ? "Mengisi" : "Tidak Mengisi",
-            image: "/assets/img/post1.png", // default placeholder
-            buktiJurnal: "", // tidak ada di response API
+            status:
+              jurnal.deskripsi && jurnal.deskripsi !== "-"
+                ? "Mengisi"
+                : "Tidak Mengisi",
+            image:
+              peserta.profil?.find((p) => p.type === "profile")?.path || "",
+            buktiJurnal: jurnal.bukti?.path || "", 
           }))
         );
 
@@ -51,8 +58,10 @@ export default function Pendataan() {
   }, []);
 
   useEffect(() => {
-    const filtered = dataJurnal.filter(item => {
-      const schoolMatch = item.sekolah.toLowerCase().includes(searchSchool.toLowerCase());
+    const filtered = dataJurnal.filter((item) => {
+      const schoolMatch = item.sekolah
+        .toLowerCase()
+        .includes(searchSchool.toLowerCase());
       const statusMatch = statusFilter === "" || item.status === statusFilter;
 
       let dateMatch = true;
@@ -70,7 +79,7 @@ export default function Pendataan() {
 
   const CustomButton = React.forwardRef(({ value, onClick }, ref) => (
     <button
-      className="flex items-center gap-2 bg-white border-gray-200 text-[#344054] py-2 px-4 rounded-md shadow border border-[#667797] hover:bg-[#0069AB] hover:text-white text-sm"
+      className="flex items-center gap-2 bg-white border-gray-200 text-[#344054] py-2 px-4 rounded-md shadow border hover:bg-[#0069AB] hover:text-white text-sm"
       onClick={onClick}
       ref={ref}
       type="button"
@@ -93,8 +102,12 @@ export default function Pendataan() {
           {/* Header */}
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-xl font-semibold text-[#1D2939]">Jurnal Peserta</h2>
-              <p className="text-[#667085] text-sm mt-1">Kelola jurnal peserta magang dengan lebih fleksibel!</p>
+              <h2 className="text-xl font-semibold text-[#1D2939]">
+                Jurnal Peserta
+              </h2>
+              <p className="text-[#667085] text-sm mt-1">
+                Kelola jurnal peserta magang dengan lebih fleksibel!
+              </p>
             </div>
 
             <div className="flex items-center gap-3">
@@ -125,7 +138,11 @@ export default function Pendataan() {
 
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 border ${showFilters ? 'bg-[#0069AB] text-white' : 'border-gray-300 text-[#344054]'} px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-[#0069AB] hover:text-white`}
+                className={`flex items-center gap-2 border ${
+                  showFilters
+                    ? "bg-[#0069AB] text-white"
+                    : "border-gray-300 text-[#344054]"
+                } px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-[#0069AB] hover:text-white`}
               >
                 <Filter size={16} />
                 Filter
@@ -171,8 +188,14 @@ export default function Pendataan() {
 
       <style jsx>{`
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         .animate-fadeIn {
           animation: fadeIn 0.3s ease-out forwards;
