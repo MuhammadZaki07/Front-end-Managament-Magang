@@ -4,55 +4,63 @@ import { X } from 'lucide-react';
 export default function WebDevModal({ isOpen, onClose, data }) {
   if (!isOpen || !data) return null;
   
-  const steps = [
-    { step: 1, title: 'Tahap Pengenalan' },
-    { step: 2, title: 'Tahap Dasar' },
-    { step: 3, title: 'Tahap Pre Mini Project' },
-    { step: 4, title: 'Tahap Mini Project' },
-    { step: 5, title: 'Tahap Big Project' }
-  ];
-
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="absolute inset-0 bg-black opacity-50" onClick={onClose}></div>
-      <div className="bg-white rounded-lg w-full max-w-lg mx-4 z-50 shadow-lg">
-        <div className="p-6">
+    <div className="bg-orange-100 p-4 min-h-screen flex items-center justify-center">
+      <div className="bg-white rounded-lg w-full max-w-md shadow-lg">
+        <div className="p-6 relative">
           {/* Header with close button */}
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-2xl font-bold">Web Development</h2>
-            <button
-              onClick={onClose}
-              className="rounded-full p-1 hover:bg-gray-100"
-            >
+          <div className="flex justify-between items-center mb-1">
+            <h2 className="text-3xl font-bold">Web Development</h2>
+            <button className="rounded-full p-1 hover:bg-gray-100" onClick={onClose}>
               <X size={24} />
             </button>
           </div>
           
           {/* Date */}
-          <p className="text-gray-500 mb-8">24 Maret 2024</p>
+          <p className="text-gray-500 mb-6">24 Maret 2024</p>
           
-          {/* Timeline */}
-          <div className="relative pl-8">
-            {/* Vertical line */}
-            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+          {/* Timeline steps */}
+          <div className="divide-y divide-gray-200">
+            <div className="py-4 flex items-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium mr-4">
+                01
+              </div>
+              <span className="text-blue-600 font-medium text-lg">Tahap Pengenalan</span>
+            </div>
             
-            {/* Timeline steps */}
-            <div className="space-y-12">
-              {steps.map((step) => (
-                <div key={step.step} className="relative">
-                  {/* Circle - positioned centered on the line */}
-                  <div className="absolute -left-4 mt-1" style={{ transform: 'translateX(-50%)' }}>
-                    <div className="w-8 h-8 bg-blue-800 rounded-full flex items-center justify-center border-4 border-white"></div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="ml-8">
-                    <h3 className="text-lg font-bold">
-                      Step {step.step} : <span className="text-[#667797] font-normal">{step.title}</span>
-                    </h3>
-                  </div>
-                </div>
-              ))}
+            <div className="py-4 flex items-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium mr-4">
+                02
+              </div>
+              <span className="text-blue-600 font-medium text-lg">Tahap Dasar</span>
+            </div>
+            
+            <div className="py-4 flex items-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium mr-4">
+                02
+              </div>
+              <span className="text-blue-600 font-medium text-lg">Tahap Pre Mini Project</span>
+            </div>
+            
+            <div className="py-4 flex items-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium mr-4">
+                02
+              </div>
+              <span className="text-blue-600 font-medium text-lg">Tahap Mini Project</span>
+            </div>
+            
+            <div className="py-4 flex items-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium mr-4">
+                02
+              </div>
+              <span className="text-blue-600 font-medium text-lg">Tahap Big Project</span>
+            </div>
+            
+            <div className="py-4 flex items-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium mr-4">
+                02
+              </div>
+              <span className="text-blue-600 font-medium text-lg">Tahap Real Project</span>
             </div>
           </div>
         </div>
@@ -60,6 +68,69 @@ export default function WebDevModal({ isOpen, onClose, data }) {
     </div>
   );
 }
+
+// import { useState } from 'react';
+// import { X } from 'lucide-react';
+
+// export default function WebDevModal({ isOpen, onClose, data }) {
+//   if (!isOpen || !data) return null;
+  
+//   const steps = [
+//     { step: 1, title: 'Tahap Pengenalan' },
+//     { step: 2, title: 'Tahap Dasar' },
+//     { step: 3, title: 'Tahap Pre Mini Project' },
+//     { step: 4, title: 'Tahap Mini Project' },
+//     { step: 5, title: 'Tahap Big Project' }
+//   ];
+
+//   return (
+//     <div className="fixed inset-0 flex items-center justify-center z-50">
+//       <div className="absolute inset-0 bg-black opacity-50" onClick={onClose}></div>
+//       <div className="bg-white rounded-lg w-full max-w-lg mx-4 z-50 shadow-lg">
+//         <div className="p-6">
+//           {/* Header with close button */}
+//           <div className="flex justify-between items-center mb-2">
+//             <h2 className="text-2xl font-bold">Web Development</h2>
+//             <button
+//               onClick={onClose}
+//               className="rounded-full p-1 hover:bg-gray-100"
+//             >
+//               <X size={24} />
+//             </button>
+//           </div>
+          
+//           {/* Date */}
+//           <p className="text-gray-500 mb-8">24 Maret 2024</p>
+          
+//           {/* Timeline */}
+//           <div className="relative pl-8">
+//             {/* Vertical line */}
+//             <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+            
+//             {/* Timeline steps */}
+//             <div className="space-y-12">
+//               {steps.map((step) => (
+//                 <div key={step.step} className="relative">
+//                   {/* Circle - positioned centered on the line */}
+//                   <div className="absolute -left-4 mt-1" style={{ transform: 'translateX(-50%)' }}>
+//                     <div className="w-8 h-8 bg-blue-800 rounded-full flex items-center justify-center border-4 border-white"></div>
+//                   </div>
+                  
+//                   {/* Content */}
+//                   <div className="ml-8">
+//                     <h3 className="text-lg font-bold">
+//                       Step {step.step} : <span className="text-[#667797] font-normal">{step.title}</span>
+//                     </h3>
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 // JANGAN DI HAPUSSS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 

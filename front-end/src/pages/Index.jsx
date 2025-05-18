@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { motion } from "framer-motion";
 import Footer from "../components/Footer";
 import AboutSection from "../components/section/Landingpage/AboutSection";
 import CarierStart from "../components/section/Landingpage/CarierStart";
@@ -10,17 +12,75 @@ import StatsSection from "../components/section/Landingpage/StatsSection";
 import Testimonials from "../components/section/Landingpage/Testimonials";
 
 const Index = () => {
-  return <>
-    <HeroSection/>
-    <AboutSection/>
-    <InternshipDivisions/>
-    <StatsSection/>
-    <InternshipLanding/>
-    <Gallery/>
-    <CarierStart/>
-    <MyPartner/>
-    <Testimonials/>
-  </>;
+  // Animasi fade-up yang akan digunakan untuk setiap section
+  const fadeInUpVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 60 
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.8, 
+        ease: "easeOut"
+      }
+    }
+  };
+
+  // Wrapper component untuk animasi section
+  const AnimatedSection = ({ children, delay = 0 }) => {
+    return (
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, margin: "-50px" }}
+        variants={fadeInUpVariants}
+        transition={{ delay }}
+      >
+        {children}
+      </motion.div>
+    );
+  };
+
+  return (
+    <>
+      {/* Hero section tidak perlu animasi karena sudah visible saat pertama load */}
+      <HeroSection />
+      
+      <AnimatedSection delay={0.1}>
+        <AboutSection />
+      </AnimatedSection>
+      
+      <AnimatedSection delay={0.1}>
+        <InternshipDivisions />
+      </AnimatedSection>
+      
+      <AnimatedSection delay={0.1}>
+        <StatsSection />
+      </AnimatedSection>
+      
+      <AnimatedSection delay={0.1}>
+        <InternshipLanding />
+      </AnimatedSection>
+      
+      <AnimatedSection delay={0.1}>
+        <Gallery />
+      </AnimatedSection>
+      
+      <AnimatedSection delay={0.1}>
+        <CarierStart />
+      </AnimatedSection>
+      
+      <AnimatedSection delay={0.1}>
+        <MyPartner />
+      </AnimatedSection>
+      
+      <AnimatedSection delay={0.1}>
+        <Testimonials />
+      </AnimatedSection>
+    </>
+  );
 };
 
 export default Index;

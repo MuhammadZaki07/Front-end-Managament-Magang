@@ -56,6 +56,8 @@ import RegistrasiPeserta from "./src/pages/student/RegistrasiPeserta";
 import Piket from "./src/pages/perusahaan/piket";
 import Laporan from "./src/pages/perusahaan/Laporan";
 import SettingCabang from "./src/pages/perusahaan/SettingCabang";
+import Jamkantor from "./src/pages/perusahaan/Jam-kantor";
+import VacancyDetails from "./src/pages/VacancyDetails";
 
 export const router = createBrowserRouter([
   {
@@ -84,8 +86,12 @@ export const router = createBrowserRouter([
       },
       {
         path: "/vacancy",
-        element: <Vacancy/>
-      }
+        element: <Vacancy />,
+      },
+      {
+        path: "/vacancy/:jobId",
+        element: <VacancyDetails />,
+      },
     ],
   },
   {
@@ -117,13 +123,13 @@ export const router = createBrowserRouter([
         element: <RiwayatPresentasi />,
       },
       {
-        path : "settings",
-        element : <RegistrasiPeserta/>,
+        path: "settings",
+        element: <RegistrasiPeserta />,
       },
       {
-         path : "piket",
-        element : <PiketPeserta/>,
-      }
+        path: "piket",
+        element: <PiketPeserta />,
+      },
     ],
   },
   {
@@ -245,8 +251,8 @@ export const router = createBrowserRouter([
         element: <Surat />,
       },
       {
-        path :"cabang",
-        element : <CabangPerusahaan />
+        path: "cabang",
+        element: <CabangPerusahaan />,
       },
       {
         path: "RFID",
@@ -258,36 +264,41 @@ export const router = createBrowserRouter([
       },
       {
         path: "lowongan",
-        element : <Lowongan/>
+        element: <Lowongan />,
       },
       {
         path: "update-perusahaan/:id_perusahaan",
-        element : <SettingsPerusahaan/>
+        element: <SettingsPerusahaan />,
       },
       {
-        path : "mentor/:mentorId",
-        element : <Detailsmentor />
+        path: "mentor/:mentorId",
+        element: <Detailsmentor />,
       },
       {
-        path : "detail-siswa",
-        element : <DetailSiswa/>
+        path: "detail-siswa",
+        element: <DetailSiswa />,
       },
       {
         path: "detailmentor",
-        element : <DetailMentor/>
+        element: <DetailMentor />,
       },
       {
-        path:"piket",
-        element: <Piket/>
+        path: "piket",
+        element: <Piket />,
       },
       {
-        path : "laporan",
-        element : <Laporan/>
+        path: "jam-kantor",
+        element: <Jamkantor />,
       },
       {
-        path : "settings-cabang",
-        element : <SettingCabang/>
+        path: "laporan",
+        element: <Laporan />,
       },
+      {
+        path: "settings-cabang",
+        element: <SettingCabang />,
+      },
+
       // {
       //   path : "mitra-terdaftar",
       //   element : <MitraTerdaftar/>
@@ -295,8 +306,8 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path:"/google/success",
-    element:<GoogleSuccess/>
+    path: "/google/success",
+    element: <GoogleSuccess />,
   },
   {
     path: "*",

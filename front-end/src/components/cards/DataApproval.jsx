@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import {
   CalendarDays,
   Download,
@@ -792,178 +793,273 @@ export default function ApprovalTable() {
           </div>
         )}
 
-        {showModal && selectedItem && (
-          <div
-            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                closeModal();
+{showModal && selectedItem && (
+  <div
+    className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50"
+    onClick={(e) => {
+      if (e.target === e.currentTarget) {
+        closeModal();
+      }
+    }}
+  >
+    <div
+      className="bg-white rounded-lg max-w-6xl w-full shadow-lg pointer-events-auto max-h-[90vh] overflow-y-auto flex"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* KIRI: Konten utama pendaftar */}
+      <div className="p-5 w-2/3">
+        <h2 className="text-xl font-semibold mb-4">Detail Pendaftar</h2>
+
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Kolom foto profil */}
+          <div className="flex-shrink-0">
+            <img
+              src={
+                selectedItem.user?.foto?.find((f) => f.type === "profile")
+                  ? `${import.meta.env.VITE_API_URL_FILE}/storage/${
+                      selectedItem.user.foto.find((f) => f.type === "profile")
+                        .path
+                    }`
+                  : "/placeholder-profile.jpg"
               }
-            }}
-          >
-            <div
-              className="bg-white rounded-lg max-w-2xl w-full shadow-lg pointer-events-auto max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-5">
-                <h2 className="text-xl font-semibold mb-4">Detail Pendaftar</h2>
+              alt={selectedItem.user?.nama}
+              className="w-30 h-30 rounded-lg object-cover"
+            />
+          </div>
 
-                <div className="flex flex-col md:flex-row gap-4">
-                  {/* Kolom foto profil */}
-                  <div className="flex-shrink-0">
-                    <img
-                      src={
-                        selectedItem.user?.foto?.find(
-                          (f) => f.type === "profile"
-                        )
-                          ? `${import.meta.env.VITE_API_URL_FILE}/storage/${
-                              selectedItem.user.foto.find(
-                                (f) => f.type === "profile"
-                              ).path
-                            }`
-                          : "/placeholder-profile.jpg"
-                      }
-                      alt={selectedItem.user?.nama}
-                      className="w-30 h-30 rounded-lg object-cover"
-                    />
-                  </div>
+          {/* Kolom Informasi - dibagi 2 */}
+          <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+            {/* Kolom 1 */}
+            <div className="space-y-3">
+              <InputLabel label="Nama" value={selectedItem.user?.nama} />
+              <InputLabel
+                label="Jenis Kelamin"
+                value={
+                  selectedItem.user?.jenis_kelamin === "P"
+                    ? "Laki-Laki"
+                    : "Perempuan"
+                }
+              />
+              <InputLabel
+                label="Tempat Lahir"
+                value={selectedItem.user?.tempat_lahir}
+              />
+              <InputLabel label="Sekolah" value={selectedItem.user?.sekolah} />
+              <InputLabel
+                label="NISN/NIM"
+                value={selectedItem.user?.nomor_identitas}
+              />
 
-                  {/* Kolom Informasi - dibagi 2 */}
-                  <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
-                    {/* Kolom 1 */}
-                    <div className="space-y-3">
-                      <InputLabel
-                        label="Nama"
-                        value={selectedItem.user?.nama}
-                      />
-                      <InputLabel
-                        label="Jenis Kelamin"
-                        value={
-                          selectedItem.user?.jenis_kelamin === "P"
-                            ? "Laki-Laki"
-                            : "Perempuan"
-                        }
-                      />
-                      <InputLabel
-                        label="Tempat Lahir"
-                        value={selectedItem.user?.tempat_lahir}
-                      />
-                      <InputLabel
-                        label="Sekolah"
-                        value={selectedItem.user?.sekolah}
-                      />
-
-                      <div>
-                        <label className="block text-gray-600 text-xs">
-                          Status Pendaftaran
-                        </label>
-                        <span className="bg-orange-100 text-orange-500 px-2 py-1 rounded-lg text-xs inline-block mt-1">
-                          {selectedItem.status || "Menunggu Konfirmasi"}
-                        </span>
-                      </div>
-
-                      {/* Dokumen Berkas */}
-                      <div className="mt-4">
-                        <h3 className="text-base font-medium mb-2">
-                          Berkas Pendaftaran
-                        </h3>
-                        <div className="flex gap-5 items-center">
-                          <DocumentItem
-                            document={{
-                              name: "CV",
-                              url: selectedItem.user?.foto?.find(
-                                (f) => f.type === "cv"
-                              )
-                                ? `${import.meta.env.VITE_API_URL}/storage/${
-                                    selectedItem.user.foto.find(
-                                      (f) => f.type === "cv"
-                                    ).path
-                                  }`
-                                : null,
-                            }}
-                            onDownload={handleDownload}
-                            onPreview={handlePreview}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Kolom 2 */}
-                    <div className="space-y-3">
-                      <InputLabel
-                        label="Alamat"
-                        value={selectedItem.user?.alamat}
-                      />
-                      <InputLabel
-                        label="No. HP"
-                        value={selectedItem.user?.telepon}
-                      />
-                      <InputLabel
-                        label="Tanggal Lahir"
-                        value={selectedItem.user?.tanggal_lahir}
-                      />
-                      <InputLabel
-                        label="Jurusan"
-                        value={selectedItem.user?.jurusan}
-                      />
-                      <InputLabel
-                        label="NISN/NIM"
-                        value={selectedItem.user?.nomor_identitas}
-                      />
-
-                      <div className="mt-8">
-                        <DocumentItem
-                          document={{
-                            name: "Foto Profil",
-                            url: selectedItem.user?.foto?.find(
-                              (f) => f.type === "profile"
-                            )
-                              ? `${import.meta.env.VITE_API_URL}/storage/${
-                                  selectedItem.user.foto.find(
-                                    (f) => f.type === "profile"
-                                  ).path
-                                }`
-                              : null,
-                          }}
-                          onDownload={handleDownload}
-                          onPreview={handlePreview}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tombol Aksi */}
-                <div className="flex justify-end gap-2 mt-6">
-                  <button
-                    className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 bg-red-100 w-12 h-12 flex justify-center items-center"
-                    onClick={() =>
-                      handleIndividualAction(
-                        selectedItem.id,
-                        "rejected",
-                        "pendaftaran"
-                      )
-                    }
-                  >
-                    <XCircle size={25} />
-                  </button>
-                  <button
-                    className="p-1.5 text-green-600 hover:bg-green-50 h-12 w-12 rounded-lg flex justify-center items-center bg-green-100"
-                    onClick={() =>
-                      handleIndividualAction(
-                        selectedItem.id,
-                        "approved",
-                        "pendaftaran"
-                      )
-                    }
-                  >
-                    <CheckCircle size={25} />
-                  </button>
+              {/* Dokumen Berkas */}
+              <div className="mt-4">
+                <h3 className="text-base font-medium mb-2">
+                  Berkas Pendaftaran
+                </h3>
+                <div className="flex gap-5 items-center">
+                  <DocumentItem
+                    document={{
+                      name: "CV",
+                      url: selectedItem.user?.foto?.find((f) => f.type === "cv")
+                        ? `${import.meta.env.VITE_API_URL_FILE}/storage/${
+                            selectedItem.user.foto.find(
+                              (f) => f.type === "cv"
+                            ).path
+                          }`
+                        : null,
+                    }}
+                    onDownload={handleDownload}
+                    onPreview={handlePreview}
+                  />
                 </div>
               </div>
             </div>
+
+            {/* Kolom 2 */}
+            <div className="space-y-3">
+              <InputLabel label="Alamat" value={selectedItem.user?.alamat} />
+              <InputLabel label="No. HP" value={selectedItem.user?.telepon} />
+              <InputLabel
+                label="Tanggal Lahir"
+                value={selectedItem.user?.tanggal_lahir}
+              />
+              <InputLabel label="Jurusan" value={selectedItem.user?.jurusan} />
+              <div>
+                <label className="block text-gray-600 text-xs">
+                  Status Pendaftaran
+                </label>
+                <span className="bg-orange-100 text-orange-500 px-2 py-1 rounded-lg text-xs inline-block mt-1">
+                  {selectedItem.status || "Menunggu Konfirmasi"}
+                </span>
+              </div>
+
+              <div className="mt-15">
+                <DocumentItem
+                  document={{
+                    name: "Surat Pernyataan Diri",
+                    url: selectedItem.user?.foto?.find(
+                      (f) => f.type === "surat_pernyataan_diri"
+                    )
+                      ? `${import.meta.env.VITE_API_URL_FILE}/storage/${
+                          selectedItem.user.foto.find(
+                            (f) => f.type === "surat_pernyataan_diri"
+                          ).path
+                        }`
+                      : null,
+                  }}
+                  onDownload={handleDownload}
+                  onPreview={handlePreview}
+                />
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Tombol Aksi */}
+        <div className="flex justify-center gap-20 mt-6">
+  {/* Tombol Tolak */}
+  <button
+    className="px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 bg-red-100 text-sm font-medium"
+    onClick={() => {
+      Swal.fire({
+        title: "Apakah Anda yakin?",
+        text: "Anda akan menolak siswa ini.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#aaa",
+        confirmButtonText: "Ya, Tolak",
+        cancelButtonText: "Batal",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          handleIndividualAction(selectedItem.id, "rejected", "pendaftaran");
+        }
+      });
+    }}
+  >
+    Tolak
+  </button>
+
+  {/* Tombol Terima */}
+  <button
+    className="px-4 py-2 rounded-lg text-green-600 hover:bg-green-50 bg-green-100 text-sm font-medium"
+    onClick={() => {
+      Swal.fire({
+        title: "Apakah Anda yakin?",
+        text: "Anda akan menerima siswa ini.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#22c55e",
+        cancelButtonColor: "#aaa",
+        confirmButtonText: "Ya, Terima",
+        cancelButtonText: "Batal",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          handleIndividualAction(selectedItem.id, "approved", "pendaftaran");
+        }
+      });
+    }}
+  >
+    Terima
+  </button>
+</div>
+
+
+      </div>
+
+      {/* KANAN: Preview Dokumen */}
+<div className="w-1/3 p-4 space-y-6">
+  {/* === Preview CV === */}
+  {selectedItem.user?.foto?.find((f) => f.type === "cv") ? (
+    (() => {
+      const cv = selectedItem.user.foto.find((f) => f.type === "cv");
+      const cvUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${cv.path}`;
+      
+      return (
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-semibold text-gray-700">CV</span>
+            <button
+              onClick={() => {
+                // Membuat elemen <a> dinamis untuk memulai download file PDF
+                const link = document.createElement('a');
+                link.href = cvUrl;
+                link.download = 'cv.pdf'; // Nama file yang akan didownload
+                link.click(); // Memicu download file
+              }}
+              className="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700 transition"
+            >
+              Download
+            </button>
+          </div>
+          <div
+            className="cursor-pointer"
+            onClick={() => window.open(cvUrl, "_blank", 'noopener,noreferrer')}
+            title="Klik untuk melihat lebih jelas"
+          >
+            {/* Menampilkan preview CV dalam iframe */}
+            <iframe
+              src={`${cvUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+              className="w-full h-110 border rounded pointer-events-none"
+              title="Preview CV"
+            ></iframe>
+          </div>
+        </div>
+      );
+    })()
+  ) : (
+    <p className="text-sm text-gray-500">CV belum tersedia.</p>
+  )}
+
+  {/* === Preview Surat Pernyataan === */}
+  {selectedItem.user?.foto?.find((f) => f.type === "surat_pernyataan_diri") ? (
+    (() => {
+      const surat = selectedItem.user.foto.find((f) => f.type === "surat_pernyataan_diri");
+      const suratUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${surat.path}`;
+
+      return (
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-semibold text-gray-700">Surat Pernyataan Diri</span>
+            <button
+              onClick={() => {
+                // Membuat elemen <a> dinamis untuk memulai download file PDF
+                const link = document.createElement('a');
+                link.href = suratUrl;
+                link.download = 'surat-pernyataan.pdf'; // Nama file yang akan didownload
+                link.click(); // Memicu download file
+              }}
+              className="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700 transition"
+            >
+              Download
+            </button>
+          </div>
+          <div
+            className="cursor-pointer"
+            onClick={() => window.open(suratUrl, "_blank")}
+            title="Klik untuk melihat lebih jelas"
+          >
+            {/* Menampilkan preview Surat Pernyataan dalam iframe */}
+            <iframe
+              src={`${suratUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+              className="w-full h-40 border rounded"
+              title="Preview Surat Pernyataan"
+            ></iframe>
+          </div>
+        </div>
+      );
+    })()
+  ) : (
+    <p className="text-sm text-gray-500">Surat pernyataan belum tersedia.</p>
+  )}
+</div>
+
+
+
+
+    </div>
+  </div>
+)}
+
 
         {showModalIzin && selectedItem && (
           <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50">

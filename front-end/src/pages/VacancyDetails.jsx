@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import Banner from "../components/Banner";
-import Vacancy2 from "../components/section/Vacancy2";
+import VacancyDetails from "../components/section/VacancyDetails";
 
 const fadeUpVariant = {
   hidden: { opacity: 0, y: 40 },
@@ -28,7 +28,7 @@ const Lowongan = () => {
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
       >
-        <Vacancy2 />
+        <VacancyDetails />
       </motion.div>
     </>
   );

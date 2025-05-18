@@ -47,14 +47,12 @@ const CompanyCardWithModal = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      {/* Gambar Header */}
-      {coverImage && (
-        <img
-          src={coverImage}
-          alt="Cover"
-          className="w-full h-60 object-cover"
-        />
-      )}
+      {/* Gambar Header dengan fallback */}
+      <img
+        src={coverImage || "/assets/img/Cover.png"}
+        alt="Cover"
+        className="w-full h-60 object-cover"
+      />
 
       {/* Info Perusahaan */}
       <div className="w-full px-6 pt-3 pb-4 flex justify-between items-start">

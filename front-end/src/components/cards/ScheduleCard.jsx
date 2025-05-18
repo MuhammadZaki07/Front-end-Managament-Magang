@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { ChevronDown } from "lucide-react";
 import Loading from "../Loading";
 
 export default function ScheduleCard() {
@@ -36,7 +35,7 @@ export default function ScheduleCard() {
   });
 
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState({});
+  const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -84,18 +83,6 @@ export default function ScheduleCard() {
 
   const hasEmptyFields = (payload) => {
     return Object.values(payload).some((val) => val === "");
-  };
-
-  const postSchedule = async (day) => {
-    const payload = mapTimesToPayload(day);
-    console.log("Payload yang dikirim:", payload); // Debugging log
-
-    try {
-      const res = await axios.post(API_URL, payload, { headers });
-      console.log("Response dari server:", res.data);
-    } catch (err) {
-      console.error("Error saat mengirim POST:", err);
-    }
   };
 
   const updateSchedule = async (day, newTimes) => {
@@ -185,17 +172,57 @@ export default function ScheduleCard() {
     const value = times[day][type][field];
     const timeKey = `${field}_${type}`;
     const errorMsg = errors[day]?.[timeKey]?.[0];
+    const isDisabled = !days[day]; // Disabled when day is inactive
 
     return (
-      <div className="mb-2" key={`${day}-${type}-${field}`}>
-        <input
-          type="time"
-          className={`w-full px-2 py-1 text-sm border ${
-            errorMsg ? "border-red-500" : "border-gray-300"
-          } rounded-md focus:ring-indigo-500`}
-          value={normalizeTime(value)}
-          onChange={(e) => updateTime(day, type, field, toDot(e.target.value))}
-        />
+      <div className="relative" key={`${day}-${type}-${field}`}>
+        <select
+          className={`w-full p-2 border ${
+            errorMsg ? "border-red-500" : "border-gray-200"
+          } rounded-md appearance-none bg-white text-sm h-10 ${
+            isDisabled ? "cursor-not-allowed bg-gray-100" : ""
+          }`}
+          value={value}
+          onChange={(e) => updateTime(day, type, field, e.target.value)}
+          disabled={isDisabled}
+        >
+          {/* Opsi waktu dari jam 7 pagi hingga 10 malam */}
+          {[...Array(16)].map((_, i) => {
+            const hour = 7 + i; // mulai dari jam 7
+            return (
+              <>
+                <option value={`${hour.toString().padStart(2, "0")}:00`}>
+                  {hour.toString().padStart(2, "0")}:00
+                </option>
+                <option value={`${hour.toString().padStart(2, "0")}:15`}>
+                  {hour.toString().padStart(2, "0")}:15
+                </option>
+                <option value={`${hour.toString().padStart(2, "0")}:30`}>
+                  {hour.toString().padStart(2, "0")}:30
+                </option>
+                <option value={`${hour.toString().padStart(2, "0")}:45`}>
+                  {hour.toString().padStart(2, "0")}:45
+                </option>
+              </>
+            );
+          })}
+        </select>
+        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          <svg
+            className="w-4 h-4 text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M19 9l-7 7-7-7"
+            ></path>
+          </svg>
+        </div>
         {errorMsg && <p className="text-xs text-red-500 mt-1">{errorMsg}</p>}
       </div>
     );
@@ -269,72 +296,117 @@ export default function ScheduleCard() {
 
   if (loading) return <Loading />;
 
-  return (
-    <div className="bg-white-100 rounded-lg shadow-sm hover:shadow-md transition-shadow p-3 w-full max-w-2xl">
-      <div className="flex flex-col gap-2">
-        {Object.keys(days).map((day) => (
-          <div key={day} className="border border-gray-200 rounded-lg p-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-8 h-4 rounded-full flex items-center ${
-                    days[day] ? "bg-indigo-600" : "bg-gray-300"
-                  } relative cursor-pointer hover:opacity-80 transition-opacity`}
-                  onClick={() => toggleDay(day)}
-                >
-                  <div
-                    className={`w-3 h-3 bg-white rounded-full absolute ${
-                      days[day] ? "right-0.5" : "left-0.5"
-                    } transition-all`}
-                  ></div>
-                </div>
-                <span className="font-medium">{dayNames[day]}</span>
-              </div>
-              {days[day] && (
-                <span className="text-sm text-blue-500">Aktif</span>
-              )}
+  const DayCard = ({ day }) => {
+    return (
+      <div className="bg-white rounded-lg shadow-[2px_4px_6px_rgba(0,0,0,0.1)] overflow-hidden mb-4 w-full relative">
+        <div className="p-4 flex items-center bg-white-50">
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-12 h-6 rounded-full flex items-center ${
+                days[day] ? "bg-blue-500" : "bg-gray-300"
+              } relative cursor-pointer transition-colors`}
+              onClick={() => toggleDay(day)}
+            >
+              <div
+                className={`w-5 h-5 bg-white rounded-full absolute ${
+                  days[day] ? "right-1" : "left-1"
+                } transition-transform`}
+              ></div>
             </div>
-            {days[day] && (
-              <div className="flex flex-col gap-3 mt-3">
-                <div className="grid grid-cols-7 gap-2">
-                  <div className="col-span-2">
-                    {[
-                      "Jam Masuk",
-                      "Jam Istirahat",
-                      "Jam Kembali",
-                      "Jam Pulang",
-                    ].map((label) => (
-                      <div key={label} className="mb-3">
-                        <label className="text-xs font-medium">{label}</label>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="col-span-2">
-                    {["masuk", "istirahat", "kembali", "pulang"].map((type) => (
-                      <div key={`${day}-${type}-start`}>
-                        {renderTimeInput(day, type, "start")}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex flex-col items-center">
-                    {[...Array(4)].map((_, index) => (
-                      <div key={index} className="mb-2"></div>
-                    ))}
-                  </div>
-
-                  <div className="col-span-2">
-                    {["masuk", "istirahat", "kembali", "pulang"].map((type) => (
-                      <div key={`${day}-${type}-end`}>
-                        {renderTimeInput(day, type, "end")}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+            <h3 className="text-lg font-medium">{dayNames[day]}</h3>
           </div>
+        </div>
+
+        <div className={`p-4 ${!days[day] ? 'opacity-60' : ''}`}>
+            <div className="mb-4">
+              <div className="flex items-center mb-2">
+                <div className="w-24">
+                  <label className={`text-gray-600 ${!days[day] ? 'text-gray-400' : ''}`}>Masuk</label>
+                </div>
+                <div className="flex-1 flex items-center gap-2">
+                  <div className="w-full">{renderTimeInput(day, "masuk", "start")}</div>
+                  <span className="mx-1">-</span>
+                  <div className="w-full">{renderTimeInput(day, "masuk", "end")}</div>
+                  </div>
+
+                {/* <div className="w-8 h-8 flex items-center justify-center">
+                  <img 
+                    src="/api/placeholder/24/24" 
+                    alt="clock" 
+                    className="w-6 h-6 opacity-70"
+                  />
+                </div> */}
+                <img 
+    src="/assets/svg/clock.svg" 
+    alt="clock" 
+    className="w-23 h-23 absolute top-1 right-1"
+  />
+              </div>
+              
+              <div className="flex items-center mb-2">
+                <div className="w-24">
+                  <label className={`text-gray-600 ${!days[day] ? 'text-gray-400' : ''}`}>Istirahat</label>
+                </div>
+                <div className="flex-1 flex items-center gap-2">
+                  <div className="w-full">{renderTimeInput(day, "istirahat", "start")}</div>
+                  <span className="mx-1">-</span>
+                  <div className="w-full">{renderTimeInput(day, "istirahat", "end")}</div>
+                  </div>
+                {/* <div className="w-8 h-8 flex items-center justify-center">
+                  <img 
+                    src="/api/placeholder/24/24" 
+                    alt="clock" 
+                    className="w-6 h-6 opacity-70"
+                  />
+                </div> */}
+              </div>
+              
+              <div className="flex items-center mb-2">
+                <div className="w-24">
+                  <label className={`text-gray-600 ${!days[day] ? 'text-gray-400' : ''}`}>Kembali</label>
+                </div>
+                <div className="flex-1 flex items-center gap-2">
+                  <div className="w-full">{renderTimeInput(day, "kembali", "start")}</div>
+                  <span className="mx-1">-</span>
+                  <div className="w-full">{renderTimeInput(day, "kembali", "end")}</div>
+                  </div>
+                {/* <div className="w-8 h-8 flex items-center justify-center">
+                  <img 
+                    src="/api/placeholder/24/24" 
+                    alt="clock" 
+                    className="w-6 h-6 opacity-70"
+                  />
+                </div> */}
+              </div>
+              
+              <div className="flex items-center mb-2">
+                <div className="w-24">
+                  <label className={`text-gray-600 ${!days[day] ? 'text-gray-400' : ''}`}>Pulang</label>
+                </div>
+                <div className="flex-1 flex items-center gap-2">
+                  <div className="w-full">{renderTimeInput(day, "pulang", "start")}</div>
+                  <span className="mx-1">-</span>
+                  <div className="w-full">{renderTimeInput(day, "pulang", "end")}</div>
+                  </div>
+                {/* <div className="w-8 h-8 flex items-center justify-center">
+                  <img 
+                    src="/api/placeholder/24/24" 
+                    alt="clock" 
+                    className="w-6 h-6 opacity-70"
+                  />
+                </div> */}
+              </div>
+            </div>
+          </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="p-4 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {Object.keys(days).map((day) => (
+          <DayCard key={day} day={day} />
         ))}
       </div>
     </div>

@@ -72,6 +72,11 @@ const PerusahaanLayout = () => {
           link: "/perusahaan/piket",
         },
         {
+          icon: "bi bi-stopwatch",
+          label: "Jam Kantor",
+          link: "/perusahaan/jam-kantor",
+        },
+        {
           icon: "bi bi-sliders2-vertical",
           label: "Profile Settings",
           link: "/perusahaan/settings-cabang",

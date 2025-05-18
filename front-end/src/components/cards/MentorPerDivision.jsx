@@ -29,7 +29,7 @@ export default function MentorPerDivisionChart() {
   const currentData = yearData[year];
   const total = currentData.reduce((sum, item) => sum + item.value, 0);
 
-  const radius = 50; // <--- Mengecilkan radius lingkaran
+  const radius = 80; // <--- Mengecilkan radius lingkaran
   const circumference = 2 * Math.PI * radius;
 
   let accumulatedPercentage = 0;
@@ -50,7 +50,7 @@ export default function MentorPerDivisionChart() {
   });
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 w-full max-w-2xl mx-auto"> {/* max-w-2xl biar lebih kecil */}
+    <div className="bg-white rounded-lg shadow p-4 w-full max-w-xl mx-auto"> {/* max-w-2xl biar lebih kecil */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-l font-bold text-gray-800">Jumlah Mentor Per Divisi</h2> {/* text-2xl */}
         
@@ -64,7 +64,7 @@ export default function MentorPerDivisionChart() {
             <option value="2023">2023</option>
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-            <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 290">
               <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
             </svg>
           </div>

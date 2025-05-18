@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { List } from 'react-movable';
 
 const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSuccess }) => {
   const [newDivision, setNewDivision] = useState({ name: '', categories: [] });
@@ -22,7 +23,6 @@ const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSucces
       setNewDivision({ name: '', categories: [] });
       setSelectedFile(null);
     }
-    // Reset errors when modal opens/closes or editing state changes
     setErrors({ name: '', categories: '', file: '' });
   }, [editingDivision, showModal]);
 
@@ -45,18 +45,15 @@ const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSucces
       isValid = false;
     }
 
-    // Validate file for new divisions (not when editing without changing file)
+    // Validate file for new divisions
     if (!editingDivision && !selectedFile) {
       newErrors.file = 'Foto header harus diupload';
       isValid = false;
     } else if (selectedFile) {
-      // File size validation (max 2MB)
       if (selectedFile.size > 2 * 1024 * 1024) {
         newErrors.file = 'Ukuran file maksimal 2MB';
         isValid = false;
       }
-      
-      // File type validation
       const fileType = selectedFile.type;
       if (!['image/jpeg', 'image/png', 'image/jpg'].includes(fileType)) {
         newErrors.file = 'Format file harus JPEG, JPG, atau PNG';
@@ -73,25 +70,16 @@ const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSucces
   const handleCategoryKeyPress = (e) => {
     if (e.key === 'Enter' && categoryInput.trim()) {
       e.preventDefault();
-      
-      // Check if category already exists
       if (newDivision.categories.includes(categoryInput.trim())) {
-        setErrors({...errors, categories: 'Kategori sudah ada dalam daftar'});
+        setErrors({ ...errors, categories: 'Kategori sudah ada dalam daftar' });
         return;
       }
-      
-      // Check category length
-      if (categoryInput.trim().length > 30) {
-        setErrors({...errors, categories: 'Nama kategori maksimal 30 karakter'});
-        return;
-      }
-      
       setNewDivision((prev) => ({
         ...prev,
         categories: [...prev.categories, categoryInput.trim()],
       }));
       setCategoryInput('');
-      setErrors({...errors, categories: ''});
+      setErrors({ ...errors, categories: '' });
     }
   };
 
@@ -105,33 +93,25 @@ const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSucces
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Clear previous file errors
-      setErrors({...errors, file: ''});
-      
-      // Validate file size
+      setErrors({ ...errors, file: '' });
       if (file.size > 2 * 1024 * 1024) {
-        setErrors({...errors, file: 'Ukuran file maksimal 2MB'});
+        setErrors({ ...errors, file: 'Ukuran file maksimal 2MB' });
         return;
       }
-      
-      // Validate file type
       const fileType = file.type;
       if (!['image/jpeg', 'image/png', 'image/jpg'].includes(fileType)) {
-        setErrors({...errors, file: 'Format file harus JPEG, JPG, atau PNG'});
+        setErrors({ ...errors, file: 'Format file harus JPEG, JPG, atau PNG' });
         return;
       }
-      
       setSelectedFile(file);
     }
   };
 
   const handleNameChange = (e) => {
     const value = e.target.value;
-    setNewDivision({...newDivision, name: value});
-    
-    // Clear error when typing
+    setNewDivision({ ...newDivision, name: value });
     if (value.trim()) {
-      setErrors({...errors, name: ''});
+      setErrors({ ...errors, name: '' });
     }
   };
 
@@ -139,15 +119,13 @@ const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSucces
     if (!validateForm()) {
       return;
     }
-    
     setIsSubmitting(true);
-    
     const formData = new FormData();
     formData.append('nama', newDivision.name);
     newDivision.categories.forEach((cat, i) =>
       formData.append(`kategori_proyek[${i}]`, cat)
     );
-    formData.append("id_cabang", "2");
+    formData.append('id_cabang', '2');
     if (selectedFile) formData.append('foto_cover', selectedFile);
     if (editingDivision) formData.append('_method', 'PUT');
 
@@ -166,22 +144,28 @@ const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSucces
       setShowModal(false);
     } catch (error) {
       console.error('Error saving divisi:', error);
-      // Handle API errors
       if (error.response && error.response.data && error.response.data.message) {
         const apiError = error.response.data.message;
         if (typeof apiError === 'string') {
-          setErrors({...errors, name: apiError});
+          setErrors({ ...errors, name: apiError });
         } else if (typeof apiError === 'object') {
           const newErrors = {};
           if (apiError.nama) newErrors.name = apiError.nama[0];
           if (apiError.kategori_proyek) newErrors.categories = apiError.kategori_proyek[0];
           if (apiError.foto_cover) newErrors.file = apiError.foto_cover[0];
-          setErrors({...errors, ...newErrors});
+          setErrors({ ...errors, ...newErrors });
         }
       }
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleListChange = (newCategories) => {
+    setNewDivision((prev) => ({
+      ...prev,
+      categories: newCategories,
+    }));
   };
 
   if (!showModal) return null;
@@ -222,23 +206,59 @@ const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSucces
               name="kategori_proyek"
             />
             {errors.categories && <p className="text-red-500 text-xs mt-1">{errors.categories}</p>}
-            <div className="flex flex-wrap gap-2 mt-2">
-              {newDivision.categories.map((category, index) => (
-                <span
-                  key={index}
-                  className="bg-blue-100 text-blue-700 text-xs rounded-md px-3 py-1 flex items-center"
-                >
-                  {category}
-                  <button
-                    className="ml-2 text-blue-500 hover:text-blue-700"
-                    onClick={() => handleRemoveCategory(category)}
-                    type="button"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
+            
+            {/* Drag and Drop Categories with Automatic Numbering */}
+            {newDivision.categories.length > 0 && (
+              <div 
+                className={`
+                  mt-3 
+                  ${newDivision.categories.length > 5 ? 'max-h-60 overflow-y-auto' : ''}
+                  px-1
+                `}
+              >
+                <List
+                  values={newDivision.categories}
+                  onChange={({ oldIndex, newIndex }) => {
+                    const newCategories = [...newDivision.categories];
+                    const [removed] = newCategories.splice(oldIndex, 1);
+                    newCategories.splice(newIndex, 0, removed);
+                    handleListChange(newCategories);
+                  }}
+                  renderList={({ children, props }) => (
+                    <div {...props} className="space-y-2">
+                      {children}
+                    </div>
+                  )}
+                  renderItem={({ value, props, isDragged, index }) => (
+                    <div
+                      {...props}
+                      className={`
+                        bg-white-100 text-[#667797] text-sm rounded-md px-3 py-2 
+                        flex items-center justify-between
+                        ${isDragged ? 'shadow-lg bg-blue-200 opacity-90 transform scale-105' : 'hover:bg-blue-50'}
+                        transition-all duration-200
+                        border-2 border-gray-300
+                        cursor-move
+                      `}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center justify-center text-[#667797] text-xs font-medium">
+                          {index + 1}
+                        </span>
+                        <span className="select-none">{value}</span>
+                      </div>
+                      <button
+                        className="ml-2 text-gray-500 hover:text-gray-700 font-bold"
+                        onClick={() => handleRemoveCategory(value)}
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                />
+              </div>
+            )}
           </div>
 
           <div className="mb-6">

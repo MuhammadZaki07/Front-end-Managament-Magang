@@ -1,7 +1,7 @@
 // Dashboard.jsx
 import React from 'react';
 import StatisticsCard from './StatisticsCard';
-import ScheduleCard from './ScheduleCard';
+import JamKantor from './JamKantor';
 import SummaryCards from './SummaryCards';
 import MentorPerDivision from './MentorPerDivision';
 import Card from './Card';
@@ -9,13 +9,13 @@ import Card from './Card';
 const Dashboard = () => {
   return (
     <Card>
-    <div className="container mx-auto px-4 py-8 min-h-screen">
+    <div className="container mx-auto px-2 py-2 min-h-screen">
       {/* Membuat layout grid */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Kolom Kiri - Lebih Lebar */}
-        <div className="flex-[7] w-full flex flex-col gap-6">
+        <div className="flex-[7] w-full flex flex-col gap-2">
           <StatisticsCard />
-          <ScheduleCard />
+          <JamKantor/>
         </div>
 
         {/* Kolom Kanan - Lebih Sempit */}
