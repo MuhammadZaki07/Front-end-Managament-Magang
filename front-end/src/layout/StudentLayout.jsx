@@ -2,22 +2,22 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import axios from "axios";
-import Modal from "../components/Modal";
+import Swal from "sweetalert2"; // Import SweetAlert2
 
 const StudentLayout = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPresentasiOpen, setIsPresentasiOpen] = useState(false);
   const { role, token } = useContext(AuthContext);
-  const [status, setStatus] = useState();
+  const [profileComplete, setProfileComplete] = useState(false);
   const [approvalStatus, setApprovalStatus] = useState(false);
+  const [internshipStatus, setInternshipStatus] = useState("menunggu"); // Default status is "menunggu"
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
 
-  const checkDataStatus = async () => {
+  const checkProfileStatus = async () => {
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/complete/peserta`,
@@ -27,55 +27,119 @@ const StudentLayout = () => {
           },
         }
       );
-      setStatus(res.data.data);
+      // Handle string "true"/"false" conversion to boolean
+      setProfileComplete(res.data.data === "true" || res.data.data === true);
+      console.log("Profile complete status:", res.data.data);
     } catch (error) {
-      console.log(error);
+      console.log("Profile status check error:", error);
+      setProfileComplete(false);
     }
   };
 
   const checkApprovalStatus = async () => {
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/magang`,
+        `${import.meta.env.VITE_API_URL}/complete/magang`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
-      setApprovalStatus(res.data.data.isApproved || false);
+      // Pastikan data diproses dengan benar
+      const isApproved = res.data.data === "true" || res.data.data === true;
+      console.log("Internship status response:", res.data);
+      
+      // Set both approval boolean and internship status string
+      setApprovalStatus(isApproved);
+      // Jika disetujui, maka status internshipnya "diterima"
+      setInternshipStatus(isApproved ? "diterima" : "menunggu");
     } catch (error) {
       console.log("Approval status check error:", error);
       setApprovalStatus(false);
+      setInternshipStatus("menunggu");
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/logout`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        localStorage.removeItem("token");
-        sessionStorage.removeItem("token");
-        window.location.href = "/auth/login";
-      } else {
-        alert("Logout gagal, coba lagi.");
+    // Show SweetAlert confirmation dialog
+    const result = await Swal.fire({
+      title: 'Konfirmasi Logout',
+      text: 'Apakah Anda yakin ingin keluar dari akun?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626', // red-600
+      cancelButtonColor: '#6b7280', // gray-500
+      confirmButtonText: 'Ya, Logout',
+      cancelButtonText: 'Batal',
+      reverseButtons: true,
+      customClass: {
+        popup: 'font-sans',
+        title: 'text-lg font-semibold',
+        content: 'text-sm text-gray-600',
+        confirmButton: 'font-medium',
+        cancelButton: 'font-medium'
       }
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      setIsLoggingOut(false);
+    });
+
+    // If user confirmed logout
+    if (result.isConfirmed) {
+      // Show loading alert
+      Swal.fire({
+        title: 'Logging out...',
+        text: 'Mohon tunggu sebentar',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/logout`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          localStorage.removeItem("token");
+          sessionStorage.removeItem("token");
+          
+          // Show success message before redirect
+          await Swal.fire({
+            title: 'Logout Berhasil!',
+            text: 'Anda telah berhasil keluar dari akun',
+            icon: 'success',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK',
+            timer: 1500,
+            timerProgressBar: true
+          });
+
+          window.location.href = "/auth/login";
+        } else {
+          throw new Error('Logout failed');
+        }
+      } catch (error) {
+        console.error("Logout error:", error);
+        
+        // Show error message
+        Swal.fire({
+          title: 'Logout Gagal!',
+          text: 'Terjadi kesalahan saat logout. Silakan coba lagi.',
+          icon: 'error',
+          confirmButtonColor: '#3085d6',
+          confirmButtonText: 'OK'
+        });
+      }
     }
   };
 
@@ -92,7 +156,7 @@ const StudentLayout = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await checkDataStatus();
+      await checkProfileStatus();
       await checkApprovalStatus();
     };
     
@@ -152,51 +216,58 @@ const StudentLayout = () => {
             alt="Logo"
             className="w-48 mx-auto object-cover"
           />
-<div className="flex flex-col gap-3 mt-8">
-  {sidebarMenus.map((menu, idx) => {
-    const isActive = location.pathname.includes(`/peserta/${menu.link}`);
-    // Menu is disabled if either profile data is incomplete or participant is not approved by company
-    const isDisabled =
-      (status === "false" && menu.label !== "Dashboard") || 
-      (!approvalStatus && menu.label !== "Dashboard");
-    
-    // Show appropriate message on hover based on disable reason
-    const disableReason = status === "false" 
-      ? "Complete your profile first" 
-      : !approvalStatus 
-      ? "Waiting for company approval" 
-      : "";
+          <div className="flex flex-col gap-3 mt-8">
+            {sidebarMenus.map((menu, idx) => {
+              const isActive = location.pathname.includes(`/peserta/${menu.link}`);
+              
+              // Menu is disabled if either:
+              // 1. Profile data is incomplete (only for non-Dashboard) OR
+              // 2. Internship status is not "diterima" (except Dashboard is always accessible)
+              const isDisabled =
+                (!profileComplete && menu.label !== "Dashboard") || 
+                (internshipStatus !== "diterima" && menu.label !== "Dashboard");
+              
+              // Show appropriate message on hover based on disable reason
+              let disableReason = "";
+              if (!profileComplete) {
+                disableReason = "Lengkapi profil Anda terlebih dahulu";
+              } else if (internshipStatus === "menunggu") {
+                disableReason = "Menunggu persetujuan perusahaan";
+              } else if (internshipStatus === "ditolak") {
+                disableReason = "Pendaftaran magang Anda ditolak";
+              } else {
+                disableReason = "Belum terdaftar magang";
+              }
 
-    return (
-      <Link
-        to={isDisabled ? "#" : `/peserta/${menu.link}`}
-        key={idx}
-        onClick={(e) => {
-          if (isDisabled) {
-            e.preventDefault();
-            return;
-          }
-          setIsPresentasiOpen(false);
-        }}
-        className={`px-4 py-2 rounded-lg flex gap-3 items-center transition-all duration-500 ease-in-out ${
-          isActive
-            ? "bg-sky-800 text-white"
-            : isDisabled
-            ? "text-slate-400 opacity-50 cursor-not-allowed"
-            : "text-slate-500 hover:text-white hover:bg-sky-800"
-        }`}
-        title={isDisabled ? disableReason : ""}
-      >
-        <i className={`bi ${menu.icon} text-lg`}></i>
-        <span className="font-light text-sm flex items-center gap-2">
-          {menu.label}
-          {isDisabled && <i className="bi bi-lock text-xs" />}
-        </span>
-      </Link>
-    );
-  })}
-</div>
-
+              return (
+                <Link
+                  to={isDisabled ? "#" : `/peserta/${menu.link}`}
+                  key={idx}
+                  onClick={(e) => {
+                    if (isDisabled) {
+                      e.preventDefault();
+                      return;
+                    }
+                    setIsPresentasiOpen(false);
+                  }}
+                  className={`px-4 py-2 rounded-lg flex gap-3 items-center transition-all duration-500 ease-in-out ${
+                    isActive
+                      ? "bg-sky-800 text-white"
+                      : isDisabled
+                      ? "text-slate-400 opacity-50 cursor-not-allowed"
+                      : "text-slate-500 hover:text-white hover:bg-sky-800"
+                  }`}
+                  title={isDisabled ? disableReason : ""}
+                >
+                  <i className={`bi ${menu.icon} text-lg`}></i>
+                  <span className="font-light text-sm flex items-center gap-2">
+                    {menu.label}
+                    {isDisabled && <i className="bi bi-lock text-xs" />}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -228,19 +299,24 @@ const StudentLayout = () => {
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
                   <div className="py-2">
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    <Link
+                      to="/peserta/setting-peserta"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                      onClick={() => setIsDropdownOpen(false)}
                     >
+                      <i className="bi bi-gear mr-2 text-sm"></i>
                       Settings
-                    </a>
-                    <a
-                      href="#"
-                      onClick={() => setIsModalOpen(true)}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
+                      <i className="bi bi-box-arrow-right mr-2 text-sm"></i>
                       Logout
-                    </a>
+                    </button>
                   </div>
                 </div>
               )}
@@ -272,27 +348,6 @@ const StudentLayout = () => {
           </div>
         </div>
       </div>
-      
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Logout Confirmation"
-      >
-        <div className="flex justify-center items-center gap-4">
-          <button
-            onClick={handleLogout}
-            className="px-4 py-1.5 text-sm hover:bg-rose-400 bg-red-600 text-white rounded-lg"
-          >
-            {isLoggingOut ? "Logging out..." : "Yes, Logout"}
-          </button>
-          <button
-            onClick={() => setIsModalOpen(false)}
-            className="px-4 py-1.5 text-sm bg-gray-300 hover:bg-gray-200 text-gray-800 rounded-lg"
-          >
-            Cancel
-          </button>
-        </div>
-      </Modal>
     </div>
   );
 };

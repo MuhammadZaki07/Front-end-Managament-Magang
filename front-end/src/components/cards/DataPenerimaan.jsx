@@ -12,18 +12,18 @@ export default function DataPenerimaan({
     // Filter berdasarkan searchTerm (dalam nama, sekolah, atau jurusan)
     const matchesSearch =
       searchTerm === "" ||
-      item.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.sekolah.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.jurusan.toLowerCase().includes(searchTerm.toLowerCase());
+      item.peserta.user.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.peserta.sekolah.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.peserta.jurusan.toLowerCase().includes(searchTerm.toLowerCase());
 
     // Filter berdasarkan jurusan yang dipilih
     const matchesJurusan =
-      selectedJurusan === "" || item.jurusan === selectedJurusan;
+      selectedJurusan === "" || item.peserta.jurusan === selectedJurusan;
 
-    // Filter berdasarkan tanggal yang dipilih
+    // Filter berdasarkan tanggal yang dipilih (menyesuaikan untuk tanggal selesai magang)
     const matchesDate =
       !selectedDate ||
-      new Date(item.tanggalDiterima).toDateString() ===
+      new Date(item.peserta.magang.selesai).toDateString() ===
         selectedDate.toDateString();
 
     return matchesSearch && matchesJurusan && matchesDate;
@@ -35,6 +35,9 @@ export default function DataPenerimaan({
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              No. Surat
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Nama
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -44,10 +47,7 @@ export default function DataPenerimaan({
               Jurusan
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Tanggal Daftar
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Tanggal Diterima
+              Selesai Magang
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Aksi
@@ -56,8 +56,13 @@ export default function DataPenerimaan({
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {filteredData.length > 0 ? (
-            filteredData.map((item) => (
+            filteredData.map((item, index) => (
               <tr key={item.id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
+                    {`SURAT-${item.id}/PSB/${new Date(item.created_at).getFullYear()}`}
+                  </div>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
@@ -70,12 +75,12 @@ export default function DataPenerimaan({
                               }`
                             : "/assets/img/default-avatar.png"
                         }
-                        alt={item.peserta.nama}
+                        alt={item.peserta.user.nama}
                       />
                     </div>
                     <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900">
-                        {item.peserta.nama}
+                        {item.peserta.user.nama}
                       </div>
                     </div>
                   </div>
@@ -92,12 +97,7 @@ export default function DataPenerimaan({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {new Date(item.created_at).toLocaleDateString("id-ID")}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    {new Date(item.updated_at).toLocaleDateString("id-ID")}
+                    {new Date(item.peserta.magang.selesai).toLocaleDateString("id-ID")}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

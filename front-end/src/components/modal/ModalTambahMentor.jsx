@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorData = null }) => {
+  // Constants
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+  
+  // Form state
   const [formData, setFormData] = useState({
     email: "",
     name: "",
@@ -13,102 +18,133 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
     password: "",
     id_cabang: "1",
   });
+  
+  // UI state
   const [divisions, setDivisions] = useState([]);
   const [editingMentor, setEditingMentor] = useState(null);
-
-  // Tambahkan state untuk menyimpan nama file
   const [fileNames, setFileNames] = useState({
     mentorPhoto: "No File Chosen",
     headerPhoto: "No File Chosen",
   });
-
-  // State untuk error pesan
+  
+  // Validation state
   const [fileErrors, setFileErrors] = useState({
     mentorPhoto: "",
     headerPhoto: "",
   });
+  const [formErrors, setFormErrors] = useState({
+    name: "",
+    email: "",
+    phoneNumber: "",
+    password: "",
+    division: ""
+  });
 
-  // Batas ukuran file maksimum (dalam bytes): 2MB = 2 * 1024 * 1024 bytes
-  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
-
+  // Initialize modal data when opened
   useEffect(() => {
     if (isOpen) {
-      const fetchDivisions = async () => {
-        try {
-          const response = await axios.get(`${import.meta.env.VITE_API_URL}/divisi`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          });
-          setDivisions(response.data.data || []);
-        } catch (error) {
-          console.error("Error fetching divisions:", error);
-        }
-      };
-
       fetchDivisions();
-
+      resetForm();
+      
       if (mode === "edit" && mentorData) {
-        setFormData({
-          email: mentorData.user.email || "",
-          name: mentorData.user.nama || "",
-          mentorPhoto: null,
-          headerPhoto: null,
-          branch: mentorData.branch || "",
-          division: mentorData.divisi?.id || "",
-          phoneNumber: mentorData.user.telepon || "",
-          password: "",
-        });
-
-        // Set nama file jika ada data dari mentor yang diedit
-        const mentorPhotoName = mentorData.foto && mentorData.foto[0]?.path ? getFileNameFromPath(mentorData.foto[0].path) : "No File Chosen";
-
-        const headerPhotoName = mentorData.divisi.foto && mentorData.divisi.foto[0]?.path ? getFileNameFromPath(mentorData.divisi.foto[0].path) : "No File Chosen";
-
-        setFileNames({
-          mentorPhoto: mentorPhotoName,
-          headerPhoto: headerPhotoName,
-        });
-
-        // Reset error messages
-        setFileErrors({
-          mentorPhoto: "",
-          headerPhoto: "",
-        });
-
-        setEditingMentor(mentorData);
-      } else {
-        setFormData({
-          email: "",
-          name: "",
-          mentorPhoto: null,
-          headerPhoto: null,
-          branch: "",
-          division: "",
-          phoneNumber: "",
-          password: "",
-        });
-        setFileNames({
-          mentorPhoto: "No File Chosen",
-          headerPhoto: "No File Chosen",
-        });
-        setFileErrors({
-          mentorPhoto: "",
-          headerPhoto: "",
-        });
-        setEditingMentor(null);
+        populateEditForm(mentorData);
       }
     }
   }, [isOpen, mode, mentorData]);
 
-  // Fungsi untuk mengambil nama file dari path
+  // Fetch divisions from API
+  const fetchDivisions = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/divisi`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setDivisions(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching divisions:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Gagal memuat data divisi',
+      });
+    }
+  };
+
+  // Reset form to initial state
+  const resetForm = () => {
+    setFormData({
+      email: "",
+      name: "",
+      mentorPhoto: null,
+      headerPhoto: null,
+      branch: "",
+      division: "",
+      phoneNumber: "",
+      password: "",
+      id_cabang: "1",
+    });
+    
+    setFileNames({
+      mentorPhoto: "No File Chosen",
+      headerPhoto: "No File Chosen",
+    });
+    
+    setFileErrors({
+      mentorPhoto: "",
+      headerPhoto: "",
+    });
+    
+    setFormErrors({
+      name: "",
+      email: "",
+      phoneNumber: "",
+      password: "",
+      division: ""
+    });
+    
+    setEditingMentor(null);
+  };
+
+  // Populate form with mentor data for editing
+  const populateEditForm = (mentor) => {
+    setFormData({
+      email: mentor.user.email || "",
+      name: mentor.user.nama || "",
+      mentorPhoto: null,
+      headerPhoto: null,
+      branch: mentor.branch || "",
+      division: mentor.divisi?.id || "",
+      phoneNumber: mentor.user.telepon || "",
+      password: "",
+      id_cabang: "1",
+    });
+
+    // Set file names if available from mentor data
+    const mentorPhotoName = mentor.foto && mentor.foto[0]?.path 
+      ? getFileNameFromPath(mentor.foto[0].path) 
+      : "No File Chosen";
+
+    const headerPhotoName = mentor.divisi.foto && mentor.divisi.foto[0]?.path 
+      ? getFileNameFromPath(mentor.divisi.foto[0].path) 
+      : "No File Chosen";
+
+    setFileNames({
+      mentorPhoto: mentorPhotoName,
+      headerPhoto: headerPhotoName,
+    });
+
+    setEditingMentor(mentor);
+  };
+
+  // Extract filename from path
   const getFileNameFromPath = (path) => {
     if (!path) return "No File Chosen";
-    // Ambil nama file dari path
     const parts = path.split("/");
     return parts[parts.length - 1];
   };
 
+  // Handle text input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -116,7 +152,7 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
       [name]: value,
     }));
     
-    // Clear error message for this field when user starts typing
+    // Clear error message when user starts typing
     if (formErrors[name]) {
       setFormErrors(prev => ({
         ...prev,
@@ -125,11 +161,12 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
     }
   };
 
+  // Validate file size and type
   const validateFileSize = (file, fieldName) => {
-    // Cek apakah file ada
+    // No file provided
     if (!file) return true;
 
-    // Cek ukuran file
+    // Check file size
     if (file.size > MAX_FILE_SIZE) {
       setFileErrors((prev) => ({
         ...prev,
@@ -138,7 +175,7 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
       return false;
     }
 
-    // Validasi tipe file (hanya gambar)
+    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
     if (!allowedTypes.includes(file.type)) {
       setFileErrors((prev) => ({
@@ -148,14 +185,14 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
       return false;
     }
     
-    // Validate file dimensions if possible (using a Promise)
+    // Validate image dimensions
     return new Promise((resolve) => {
       const img = new Image();
+      
       img.onload = function() {
         const width = this.width;
         const height = this.height;
         
-        // Validate minimum dimensions (e.g., at least 100x100 pixels)
         if (width < 100 || height < 100) {
           setFileErrors((prev) => ({
             ...prev,
@@ -165,7 +202,6 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
           return;
         }
         
-        // Reset error jika valid
         setFileErrors((prev) => ({
           ...prev,
           [fieldName]: "",
@@ -181,15 +217,14 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
         resolve(false);
       };
       
-      // Create object URL for the file
       img.src = URL.createObjectURL(file);
     });
   };
 
+  // Handle file input changes
   const handleFileChange = async (e) => {
     const { name, files } = e.target;
     
-    // Reset error message whenever attempting a new upload
     setFileErrors((prev) => ({
       ...prev,
       [name]: "",
@@ -197,16 +232,12 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
     
     if (files && files.length > 0) {
       const file = files[0];
-      
-      // Format file size for display
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
       
       try {
-        // Validasi ukuran file dan format (now returns a Promise)
         const isValid = await validateFileSize(file, name);
         
         if (!isValid) {
-          // Reset input jika validasi gagal
           e.target.value = "";
           setFileNames((prev) => ({
             ...prev,
@@ -220,7 +251,6 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
           [name]: file,
         }));
 
-        // Perbarui nama file yang ditampilkan dengan ukuran file
         setFileNames((prev) => ({
           ...prev,
           [name]: `${file.name} (${fileSizeMB} MB)`,
@@ -240,16 +270,7 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
     }
   };
 
-  // State untuk form validation
-  const [formErrors, setFormErrors] = useState({
-    name: "",
-    email: "",
-    phoneNumber: "",
-    password: "",
-    division: ""
-  });
-
-  // Validate all fields
+  // Validate all form fields
   const validateForm = () => {
     const errors = {
       name: "",
@@ -260,7 +281,7 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
     };
     let isValid = true;
 
-    // Validate name (minimal 3 karakter)
+    // Validate name
     if (!formData.name) {
       errors.name = "Nama wajib diisi";
       isValid = false;
@@ -282,7 +303,7 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
       isValid = false;
     }
 
-    // Validate phone number (tepat 13 digit)
+    // Validate phone number (12 digits)
     const phoneRegex = /^\d{12}$/;
     if (!formData.phoneNumber) {
       errors.phoneNumber = "Nomor telepon wajib diisi";
@@ -313,6 +334,7 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
     return isValid;
   };
 
+  // Submit form data
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -321,7 +343,7 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
       return;
     }
 
-    // Validasi ukuran file sekali lagi sebelum submit
+    // Final validation for files
     try {
       let hasFileError = false;
       
@@ -336,15 +358,24 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
       }
       
       if (hasFileError) {
-        alert("Ada masalah dengan ukuran atau format file. Mohon periksa kembali.");
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Ada masalah dengan ukuran atau format file. Mohon periksa kembali.'
+        });
         return;
       }
     } catch (error) {
       console.error("Error validating files:", error);
-      alert("Terjadi kesalahan saat memvalidasi file. Mohon periksa kembali.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Terjadi kesalahan saat memvalidasi file. Mohon periksa kembali.'
+      });
       return;
     }
 
+    // Prepare form data
     const formPayload = new FormData();
     formPayload.append("nama", formData.name);
     formPayload.append("email", formData.email);
@@ -366,33 +397,68 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
 
     try {
       if (editingMentor) {
+        // Edit existing mentor
         formPayload.append("_method", "PUT");
 
-        await axios.post(`${import.meta.env.VITE_API_URL}/mentor/${editingMentor.id}`, formPayload, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/mentor/${editingMentor.id}`, 
+          formPayload, 
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: 'Data mentor berhasil diperbarui',
+          timer: 1500,
+          showConfirmButton: false
         });
-        onSuccess();
       } else {
-        await axios.post(`${import.meta.env.VITE_API_URL}/mentor`, formPayload, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+        // Add new mentor
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/mentor`, 
+          formPayload, 
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: 'Data mentor berhasil ditambahkan',
+          timer: 1500,
+          showConfirmButton: false
         });
       }
+      
       onClose();
       onSuccess();
       setEditingMentor(null);
     } catch (error) {
       console.error("Error submitting mentor data:", error);
-      // Tampilkan pesan error dari server jika ada
+      
+      // Display error message from server if available
       if (error.response && error.response.data && error.response.data.message) {
-        alert(`Error: ${error.response.data.message}`);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response.data.message
+        });
       } else {
-        alert("Gagal menyimpan data mentor. Silakan coba lagi.");
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Gagal menyimpan data mentor. Silakan coba lagi.'
+        });
       }
     }
   };
@@ -400,12 +466,20 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 overflow-hidden">
+    <div 
+      className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]" 
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden">
         {/* Header */}
-        <div className="border-b px-6 py-4 flex justify-between items-center">
-          <h3 className="font-bold text-lg text-blue-800">{mode === "edit" ? "Edit Mentor" : "Tambah Mentor"}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+        <div className="px-4 py-3 flex justify-between items-center">
+          <h3 className="font-bold text-lg text-black">
+            {mode === "edit" ? "Edit Mentor" : "Tambah Mentor"}
+          </h3>
+          <button 
+            onClick={onClose} 
+            className="text-gray-400 hover:text-gray-600"
+          >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -413,121 +487,172 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
         </div>
 
         {/* Form */}
-        <div className="px-6 py-4 max-h-[80vh] overflow-y-auto">
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
-            <div className="grid md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Nama <span className="text-red-500">*</span></label>
-                <input 
-                  type="text" 
-                  name="name" 
-                  value={formData.name} 
-                  onChange={handleChange} 
-                  className={`w-full px-3 py-2 border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  placeholder="Masukkan Nama (3-50 karakter)" 
-                  maxLength={50}
-                />
-                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Email <span className="text-red-500">*</span></label>
-                <input 
-                  type="email" 
-                  name="email" 
-                  value={formData.email} 
-                  onChange={handleChange} 
-                  className={`w-full px-3 py-2 border ${formErrors.email ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  placeholder="contoh@email.com" 
-                />
-                {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Nomor Telepon <span className="text-red-500">*</span></label>
+        <div className="px-6 py-2 max-h-[80vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-2">
+            {/* Name Field */}
+            <div className="mb-2">
+              <label className="text-sm font-medium text-gray-700 mb-0.5 block">
+                Masukkan Nama
+              </label>
               <input 
-                type="tel" 
-                name="phoneNumber" 
-                value={formData.phoneNumber} 
+                type="text" 
+                name="name" 
+                value={formData.name} 
                 onChange={handleChange} 
-                className={`w-full px-3 py-2 border ${formErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                placeholder="13 digit nomor telepon" 
-                maxLength={13}
+                className={`w-full px-3 py-1.5 border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none`}
+                placeholder="Masukkan Nama Disini" 
+                maxLength={50}
               />
-              {formErrors.phoneNumber && <p className="text-red-500 text-xs mt-1">{formErrors.phoneNumber}</p>}
-              <p className="text-gray-500 text-xs mt-1">Contoh: 0812345678901 (tepat 13 digit)</p>
+              {formErrors.name && <p className="text-red-500 text-xs">{formErrors.name}</p>}
             </div>
 
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 mb-1 block">
-                Password {mode === "add" ? <span className="text-red-500">*</span> : "(Kosongkan jika tidak ingin mengubah)"}
+            {/* Email Field */}
+            <div className="mb-2">
+              <label className="text-sm font-medium text-gray-700 mb-0.5 block">
+                Masukkan Email
+              </label>
+              <input 
+                type="email" 
+                name="email" 
+                value={formData.email} 
+                onChange={handleChange} 
+                className={`w-full px-3 py-1.5 border ${formErrors.email ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none`}
+                placeholder="Masukkan Email" 
+              />
+              {formErrors.email && <p className="text-red-500 text-xs">{formErrors.email}</p>}
+            </div>
+
+            {/* Password Field */}
+            <div className="mb-2">
+              <label className="text-sm font-medium text-gray-700 mb-0.5 block">
+                Password
               </label>
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border ${formErrors.password ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                placeholder="Masukkan Password (min. 6 karakter)"
+                className={`w-full px-3 py-1.5 border ${formErrors.password ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none`}
+                placeholder={mode === "edit" ? "Kosongkan jika tidak ingin mengubah" : "Masukkan Password Disini"}
                 minLength={mode === "add" ? 6 : undefined}
               />
-              {formErrors.password && <p className="text-red-500 text-xs mt-1">{formErrors.password}</p>}
+              {formErrors.password && <p className="text-red-500 text-xs">{formErrors.password}</p>}
             </div>
 
-            <FileUpload 
-              label="Foto Mentor" 
-              name="mentorPhoto" 
-              fileName={fileNames.mentorPhoto} 
-              onChange={handleFileChange} 
-              errorMessage={fileErrors.mentorPhoto} 
-            />
-
-            <FileUpload 
-              label="Foto Header" 
-              name="headerPhoto" 
-              fileName={fileNames.headerPhoto} 
-              onChange={handleFileChange} 
-              errorMessage={fileErrors.headerPhoto} 
-            />
-
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Divisi <span className="text-red-500">*</span></label>
-              <select 
-                name="division" 
-                value={formData.division} 
-                onChange={handleChange} 
-                className={`w-full px-3 py-2 border ${formErrors.division ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              >
-                <option value="" disabled>
-                  Pilih Divisi
-                </option>
-                {divisions.length > 0 ? (
-                  divisions.map((division) => (
-                    <option key={division.id} value={division.id}>
-                      {division.nama}
-                    </option>
-                  ))
-                ) : (
+            {/* Division Field */}
+            <div className="mb-2">
+              <label className="text-sm font-medium text-gray-700 mb-0.5 block">
+                Masukkan Divisi
+              </label>
+              <div className="relative">
+                <select 
+                  name="division" 
+                  value={formData.division} 
+                  onChange={handleChange} 
+                  className={`w-full px-3 py-1.5 border ${formErrors.division ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none appearance-none`}
+                >
                   <option value="" disabled>
-                    Tidak ada divisi
+                    Pilih Divisi
                   </option>
-                )}
-              </select>
-              {formErrors.division && <p className="text-red-500 text-xs mt-1">{formErrors.division}</p>}
+                  {divisions.length > 0 ? (
+                    divisions.map((division) => (
+                      <option key={division.id} value={division.id}>
+                        {division.nama}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>
+                      Tidak ada divisi
+                    </option>
+                  )}
+                </select>
+                <div className="absolute inset-y-0 right-1/4 flex items-center px-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+              {formErrors.division && <p className="text-red-500 text-xs">{formErrors.division}</p>}
             </div>
 
-            <div className="flex justify-end space-x-2 pt-2">
+            {/* Phone Number Field */}
+            <div className="mb-2">
+              <label className="text-sm font-medium text-gray-700 mb-0.5 block">
+                Masukkan Nomor HP
+              </label>
+              <input 
+                type="tel" 
+                name="phoneNumber" 
+                value={formData.phoneNumber} 
+                onChange={handleChange} 
+                className={`w-full px-3 py-1.5 border ${formErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none`}
+                placeholder="Masukkan Nomor HP" 
+                maxLength={13}
+              />
+              {formErrors.phoneNumber && <p className="text-red-500 text-xs">{formErrors.phoneNumber}</p>}
+            </div>
+
+            {/* File Upload Fields */}
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              {/* Mentor Photo Upload */}
+              <div className="w-full">
+                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                  Foto Mentor
+                </label>
+                <div className="flex w-full border rounded-lg overflow-hidden">
+                  <label className="flex-none px-3 py-1.5 bg-gray-50 text-gray-600 text-sm border-r cursor-pointer hover:bg-gray-100 transition-colors">
+                    Choose File
+                    <input 
+                      type="file" 
+                      name="mentorPhoto" 
+                      onChange={handleFileChange} 
+                      className="hidden" 
+                      accept="image/jpeg,image/png,image/gif,image/jpg" 
+                    />
+                  </label>
+                  <div className="flex-grow px-2.5 py-1.5 text-gray-500 text-sm truncate">
+                    {fileNames.mentorPhoto}
+                  </div>
+                </div>
+                {fileErrors.mentorPhoto && <p className="text-red-500 text-xs mt-0.5">{fileErrors.mentorPhoto}</p>}
+              </div>
+
+              {/* Cover Photo Upload */}
+              <div className="w-full">
+                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                  Foto Cover
+                </label>
+                <div className="flex w-full border rounded-lg overflow-hidden">
+                  <label className="flex-none px-3 py-1.5 bg-gray-50 text-gray-600 text-sm border-r cursor-pointer hover:bg-gray-100 transition-colors">
+                    Choose File
+                    <input 
+                      type="file" 
+                      name="headerPhoto" 
+                      onChange={handleFileChange} 
+                      className="hidden" 
+                      accept="image/jpeg,image/png,image/gif,image/jpg" 
+                    />
+                  </label>
+                  <div className="flex-grow px-2.5 py-1.5 text-gray-500 text-sm truncate">
+                    {fileNames.headerPhoto}
+                  </div>
+                </div>
+                {fileErrors.headerPhoto && <p className="text-red-500 text-xs mt-0.5">{fileErrors.headerPhoto}</p>}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-2 pt-1 pb-2">
               <button 
                 type="button" 
                 onClick={onClose} 
-                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                className="px-5 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
               >
                 Batal
               </button>
               <button 
                 type="submit" 
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                className="px-5 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
               >
                 Simpan
               </button>
@@ -538,21 +663,5 @@ const ModalTambahMentor = ({ isOpen, onClose, onSuccess, mode = "add", mentorDat
     </div>
   );
 };
-
-// Komponen FileUpload yang sudah diperbaiki
-const FileUpload = ({ label, name, fileName, onChange, errorMessage }) => (
-  <div className="mb-4">
-    <label className="text-sm font-medium text-gray-700 mb-1 block">{label}</label>
-    <div className="flex items-center">
-      <label className="flex-shrink-0 cursor-pointer px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
-        Choose File
-        <input type="file" name={name} onChange={onChange} className="hidden" accept="image/jpeg,image/png,image/gif,image/jpg" />
-      </label>
-      <span className="flex-grow px-3 py-3 border border-gray-300 border-l-0 rounded-r-md bg-white overflow-hidden w-full text-xs truncate">{fileName || "No File Chosen"}</span>
-    </div>
-    {errorMessage && <p className="text-red-500 text-xs mt-1">{errorMessage}</p>}
-    <p className="text-gray-500 text-xs mt-1">Ukuran maksimal: 2MB. Format yang didukung: JPG, PNG, GIF</p>
-  </div>
-);
 
 export default ModalTambahMentor;

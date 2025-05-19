@@ -120,11 +120,16 @@ const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSucces
       return;
     }
     setIsSubmitting(true);
+    
     const formData = new FormData();
     formData.append('nama', newDivision.name);
-    newDivision.categories.forEach((cat, i) =>
-      formData.append(`kategori_proyek[${i}]`, cat)
-    );
+    
+    // Kirim kategori dengan format yang benar (nama + urutan)
+    newDivision.categories.forEach((cat, i) => {
+      formData.append(`kategori_proyek[${i}][nama]`, cat);
+      formData.append(`kategori_proyek[${i}][urutan]`, i + 1); // urutan dimulai dari 1
+    });
+    
     formData.append('id_cabang', '2');
     if (selectedFile) formData.append('foto_cover', selectedFile);
     if (editingDivision) formData.append('_method', 'PUT');
@@ -229,33 +234,38 @@ const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSucces
                       {children}
                     </div>
                   )}
-                  renderItem={({ value, props, isDragged, index }) => (
-                    <div
-                      {...props}
-                      className={`
-                        bg-white-100 text-[#667797] text-sm rounded-md px-3 py-2 
-                        flex items-center justify-between
-                        ${isDragged ? 'shadow-lg bg-blue-200 opacity-90 transform scale-105' : 'hover:bg-blue-50'}
-                        transition-all duration-200
-                        border-2 border-gray-300
-                        cursor-move
-                      `}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center text-[#667797] text-xs font-medium">
-                          {index + 1}
-                        </span>
-                        <span className="select-none">{value}</span>
-                      </div>
-                      <button
-                        className="ml-2 text-gray-500 hover:text-gray-700 font-bold"
-                        onClick={() => handleRemoveCategory(value)}
-                        type="button"
+                  renderItem={({ value, props, isDragged, index }) => {
+                    // Pisahkan key dari props untuk menghindari warning
+                    const { key, ...itemProps } = props;
+                    return (
+                      <div
+                        key={key}
+                        {...itemProps}
+                        className={`
+                          bg-white-100 text-[#667797] text-sm rounded-md px-3 py-2 
+                          flex items-center justify-between
+                          ${isDragged ? 'shadow-lg bg-blue-200 opacity-90 transform scale-105' : 'hover:bg-blue-50'}
+                          transition-all duration-200
+                          border-2 border-gray-300
+                          cursor-move
+                        `}
                       >
-                        ×
-                      </button>
-                    </div>
-                  )}
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center justify-center text-[#667797] text-xs font-medium">
+                            {index + 1}
+                          </span>
+                          <span className="select-none">{value}</span>
+                        </div>
+                        <button
+                          className="ml-2 text-gray-500 hover:text-gray-700 font-bold"
+                          onClick={() => handleRemoveCategory(value)}
+                          type="button"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    );
+                  }}
                 />
               </div>
             )}

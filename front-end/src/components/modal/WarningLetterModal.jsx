@@ -11,6 +11,7 @@ const WarningLetterModal = ({ isOpen, onClose, onSucces }) => {
   const [spLevel, setSpLevel] = useState("SP 1");
   const [letterDate, setLetterDate] = useState(new Date());
   const [reason, setReason] = useState("");
+  const [nomorSurat, setNomorSurat] = useState("");
 
   useEffect(() => {
     const getDataPesertaByCabang = async () => {
@@ -44,6 +45,7 @@ const WarningLetterModal = ({ isOpen, onClose, onSucces }) => {
       id_peserta: selectedStudent,
       keterangan_surat: spLevel.replace(" ", ""),
       alasan: reason,
+      nomor_surat: nomorSurat
     };
 
     try {
@@ -73,6 +75,7 @@ const WarningLetterModal = ({ isOpen, onClose, onSucces }) => {
     setSpLevel("SP 1");
     setLetterDate(new Date());
     setReason("");
+    setNomorSurat("");
   };
 
   const CustomDateButton = React.forwardRef(({ value, onClick }, ref) => (
@@ -132,6 +135,19 @@ const WarningLetterModal = ({ isOpen, onClose, onSucces }) => {
               value={studentSchool}
               readOnly
               className="w-full border border-gray-300 rounded-md p-2 text-sm bg-gray-50"
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nomor Surat
+            </label>
+            <input
+              type="text"
+              value={nomorSurat}
+              onChange={(e) => setNomorSurat(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-2 text-sm"
+              placeholder="Masukkan nomor surat..."
             />
           </div>
 

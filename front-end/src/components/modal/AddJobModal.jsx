@@ -1,11 +1,13 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2"; // Import SweetAlert2
 
 const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) => {
   const [cabang, setCabang] = useState([]);
   const [divisi, setDivisi] = useState([]);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     tanggal_mulai: "",
@@ -54,7 +56,29 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     setTouched({});
   }, [editingData]);
 
-  const handleClose = () => setShowModal(false);
+  const handleClose = () => {
+    // Use SweetAlert2 for confirmation if form has been modified
+    const isFormModified = Object.values(formData).some(val => val !== "");
+    
+    if (isFormModified) {
+      Swal.fire({
+        title: 'Konfirmasi',
+        text: 'Perubahan yang Anda buat belum disimpan. Yakin ingin menutup?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, tutup',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setShowModal(false);
+        }
+      });
+    } else {
+      setShowModal(false);
+    }
+  };
 
   const GetCabang = async () => {
     try {
@@ -64,6 +88,13 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
       setCabang(res.data.data);
     } catch (error) {
       console.error(error);
+      // Show error alert for API failure
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal memuat data',
+        text: 'Tidak dapat memuat data cabang. Silakan coba lagi nanti.',
+        confirmButtonColor: '#3085d6'
+      });
     }
   };
 
@@ -75,6 +106,13 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
       setDivisi(res.data.data);
     } catch (error) {
       console.error(error);
+      // Show error alert for API failure
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal memuat data',
+        text: 'Tidak dapat memuat data divisi. Silakan coba lagi nanti.',
+        confirmButtonColor: '#3085d6'
+      });
     }
   };
 
@@ -144,7 +182,30 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     Object.keys(formData).forEach(k => { touchedAll[k] = true; });
     setTouched(touchedAll);
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      // Show validation error alert
+      Swal.fire({
+        icon: 'error',
+        title: 'Validasi Gagal',
+        text: 'Silakan periksa kembali form isian Anda',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
+    // Show loading state
+    setLoading(true);
+    
+    // Show loading indicator with SweetAlert2
+    Swal.fire({
+      title: 'Menyimpan Data',
+      text: 'Mohon tunggu...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
 
     try {
       const url = editingData
@@ -167,7 +228,20 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
         data: payload,
       });
 
-       setFormData({
+      // Close loading indicator
+      Swal.close();
+      
+      // Show success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: editingData 
+          ? 'Data lowongan berhasil diperbarui' 
+          : 'Lowongan baru berhasil ditambahkan',
+        confirmButtonColor: '#3085d6'
+      });
+
+      setFormData({
         tanggal_mulai: "",
         tanggal_selesai: "",
         id_cabang: "",
@@ -180,10 +254,24 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
       onSucces();
     } catch (err) {
       console.error(err);
+      
+      // Close loading indicator
+      Swal.close();
+      
+      // Show error message
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: err.response?.data?.message || "Terjadi kesalahan saat menyimpan data",
+        confirmButtonColor: '#3085d6'
+      });
+      
       setErrors(prev => ({
         ...prev,
         form: err.response?.data?.message || "Terjadi kesalahan saat menyimpan data",
       }));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -307,8 +395,21 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
           </div>
 
           <div className="flex justify-end space-x-2 mt-4">
-            <button type="button" onClick={handleClose} className="bg-red-500 text-white px-5 py-3 rounded-md text-xs">Batal</button>
-            <button type="submit" className="bg-blue-600 text-white px-5 py-3 rounded-md text-xs">Simpan</button>
+            <button 
+              type="button" 
+              onClick={handleClose} 
+              className="bg-red-500 text-white px-5 py-3 rounded-md text-xs"
+              disabled={loading}
+            >
+              Batal
+            </button>
+            <button 
+              type="submit" 
+              className="bg-blue-600 text-white px-5 py-3 rounded-md text-xs"
+              disabled={loading}
+            >
+              {loading ? 'Menyimpan...' : 'Simpan'}
+            </button>
           </div>
         </form>
       </div>

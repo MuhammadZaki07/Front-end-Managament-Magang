@@ -58,6 +58,8 @@ import Laporan from "./src/pages/perusahaan/Laporan";
 import SettingCabang from "./src/pages/perusahaan/SettingCabang";
 import Jamkantor from "./src/pages/perusahaan/Jam-kantor";
 import VacancyDetails from "./src/pages/VacancyDetails";
+import SettingPeserta from "./src/pages/student/SettingPeserta";
+import DetailProjectPage from "./src/pages/student/DetailProjectPage";
 
 export const router = createBrowserRouter([
   {
@@ -129,6 +131,14 @@ export const router = createBrowserRouter([
       {
         path: "piket",
         element: <PiketPeserta />,
+      },
+      {
+        path: "setting-peserta",
+        element: <SettingPeserta />,
+      },
+      {
+        path: "detail-project",
+        element: <DetailProjectPage />,
       },
     ],
   },

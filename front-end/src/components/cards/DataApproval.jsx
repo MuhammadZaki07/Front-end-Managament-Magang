@@ -1011,9 +1011,9 @@ export default function ApprovalTable() {
   )}
 
   {/* === Preview Surat Pernyataan === */}
-  {selectedItem.user?.foto?.find((f) => f.type === "surat_pernyataan_diri") ? (
+  {selectedItem.user?.berkas?.find((f) => f.type === "surat_pernyataan_diri") ? (
     (() => {
-      const surat = selectedItem.user.foto.find((f) => f.type === "surat_pernyataan_diri");
+      const surat = selectedItem.user.berkas.find((b) => b.type === "surat_pernyataan_diri");
       const suratUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${surat.path}`;
 
       return (

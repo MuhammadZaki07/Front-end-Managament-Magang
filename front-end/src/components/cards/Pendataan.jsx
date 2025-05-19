@@ -34,6 +34,7 @@ export default function Pendataan() {
           peserta.jurnal.map((jurnal) => ({
             id: jurnal.id,
             nama: peserta.nama || "-",
+            judul: jurnal.judul || "-", 
             sekolah: peserta.sekolah || "-",
             tanggal: jurnal.tanggal,
             deskripsi: jurnal.deskripsi || "-",

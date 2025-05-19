@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, AlertCircle } from "lucide-react";
 import axios from "axios";
+import Swal from "sweetalert2"; // Import SweetAlert2
 
 export default function AddEditModal({
   show,
@@ -71,6 +72,12 @@ export default function AddEditModal({
       if (file) {
         if (file.type.startsWith("image/")) {
           if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            Swal.fire({
+              icon: 'error',
+              title: 'File terlalu besar',
+              text: 'Ukuran file maksimal 5MB',
+              confirmButtonColor: '#3085d6',
+            });
             if (showErrors) {
               setErrors(prev => ({...prev, [name]: "Ukuran file maksimal 5MB"}));
             }
@@ -85,6 +92,12 @@ export default function AddEditModal({
             });
           }
         } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Format file tidak sesuai',
+            text: 'File harus berupa gambar (jpg, jpeg, png, dll)',
+            confirmButtonColor: '#3085d6',
+          });
           if (showErrors) {
             setErrors(prev => ({...prev, [name]: "File harus berupa gambar (jpg, jpeg, png, dll)"}));
           }
@@ -119,15 +132,64 @@ export default function AddEditModal({
   };
 
   const removeJurusan = (jurusanToRemove) => {
-    const updatedJurusan = formData.jurusan.filter(jurusan => jurusan !== jurusanToRemove);
-    setFormData((prev) => ({
-      ...prev,
-      jurusan: updatedJurusan
-    }));
+    Swal.fire({
+      title: 'Hapus jurusan?',
+      text: `Apakah Anda yakin ingin menghapus jurusan "${jurusanToRemove}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const updatedJurusan = formData.jurusan.filter(jurusan => jurusan !== jurusanToRemove);
+        setFormData((prev) => ({
+          ...prev,
+          jurusan: updatedJurusan
+        }));
+        
+        // Check if jurusan is now empty and show error if showErrors is true
+        if (showErrors && updatedJurusan.length === 0) {
+          setErrors(prev => ({...prev, jurusan: "Minimal satu jurusan harus ditambahkan"}));
+        }
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Terhapus!',
+          text: `Jurusan "${jurusanToRemove}" telah dihapus.`,
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    });
+  };
+
+  const handleClose = () => {
+    if (loading) return;
     
-    // Check if jurusan is now empty and show error if showErrors is true
-    if (showErrors && updatedJurusan.length === 0) {
-      setErrors(prev => ({...prev, jurusan: "Minimal satu jurusan harus ditambahkan"}));
+    // Check if form has been modified and not empty
+    const isFormFilled = formData.nama || formData.alamat || formData.telepon || 
+                       formData.jurusan.length > 0 || formData.jenis_institusi || 
+                       formData.foto_header || formData.logo;
+    
+    if (isFormFilled) {
+      Swal.fire({
+        title: 'Keluar dari form?',
+        text: 'Perubahan yang Anda buat mungkin tidak akan disimpan!',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, keluar!',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          onClose();
+        }
+      });
+    } else {
+      onClose();
     }
   };
 
@@ -140,6 +202,14 @@ export default function AddEditModal({
     setErrors(validationErrors);
     
     if (Object.keys(validationErrors).length > 0) {
+      // Show SweetAlert for validation errors
+      Swal.fire({
+        icon: 'error',
+        title: 'Validasi gagal',
+        text: 'Mohon periksa kembali form yang Anda isi',
+        confirmButtonColor: '#3085d6',
+      });
+      
       // Scroll to first error
       setTimeout(() => {
         const firstErrorField = document.querySelector('.error-message');
@@ -150,67 +220,151 @@ export default function AddEditModal({
       return;
     }
     
-    setLoading(true);
-
-    const formPayload = new FormData();
-    formPayload.append("nama", formData.nama);
-    formPayload.append("alamat", formData.alamat);
-    formPayload.append("telepon", formData.telepon);
-    formPayload.append("jenis_institusi", formData.jenis_institusi);
-    // formPayload.append("website", formData.website || "");
-
-    if (formData.foto_header) {
-      formPayload.append("foto_header", formData.foto_header);
-    }
-
-    if (formData.logo) {
-      formPayload.append("logo", formData.logo);
-    }
-
-    formData.jurusan.forEach((j, idx) => {
-      formPayload.append(`jurusan[${idx}]`, j);
-    });
-
-    const headers = {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-      "Content-Type": "multipart/form-data",
-    };
-
-    try {
-      const url = editingPartner
-        ? `${import.meta.env.VITE_API_URL}/mitra/${
-            editingPartner.id
-          }?_method=PUT`
-        : `${import.meta.env.VITE_API_URL}/mitra`;
-      await axios.post(url, formPayload, { headers });
-
-      onClose();
-      onSave();
-    } catch (err) {
-      console.error(
-        "Gagal menyimpan mitra:",
-        err.response?.data || err.message
-      );
-      
-      // Handle validation errors from server
-      if (err.response?.data?.errors) {
-        const serverErrors = err.response.data.errors;
-        const formattedErrors = {};
+    // Confirm before saving
+    Swal.fire({
+      title: editingPartner ? 'Update data mitra?' : 'Simpan data mitra?',
+      text: editingPartner ? 'Apakah Anda yakin ingin memperbarui data mitra ini?' : 'Apakah Anda yakin ingin menyimpan data mitra baru?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Ya, simpan!',
+      cancelButtonText: 'Batal'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setLoading(true);
         
-        // Convert server errors to our format
-        Object.keys(serverErrors).forEach(key => {
-          formattedErrors[key] = Array.isArray(serverErrors[key]) 
-            ? serverErrors[key][0] 
-            : serverErrors[key];
+        // Show loading state with SweetAlert
+        Swal.fire({
+          title: 'Menyimpan data...',
+          html: 'Mohon tunggu sebentar',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
         });
-        
-        setErrors(prev => ({...prev, ...formattedErrors}));
-      } else {
-        // General error
-        alert("Terjadi kesalahan saat menyimpan data. Silakan coba lagi.");
+
+        const formPayload = new FormData();
+        formPayload.append("nama", formData.nama);
+        formPayload.append("alamat", formData.alamat);
+        formPayload.append("telepon", formData.telepon);
+        formPayload.append("jenis_institusi", formData.jenis_institusi);
+        // formPayload.append("website", formData.website || "");
+
+        if (formData.foto_header) {
+          formPayload.append("foto_header", formData.foto_header);
+        }
+
+        if (formData.logo) {
+          formPayload.append("logo", formData.logo);
+        }
+
+        formData.jurusan.forEach((j, idx) => {
+          formPayload.append(`jurusan[${idx}]`, j);
+        });
+
+        const headers = {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        };
+
+        try {
+          const url = editingPartner
+            ? `${import.meta.env.VITE_API_URL}/mitra/${
+                editingPartner.id
+              }?_method=PUT`
+            : `${import.meta.env.VITE_API_URL}/mitra`;
+          await axios.post(url, formPayload, { headers });
+
+          Swal.fire({
+            icon: 'success',
+            title: editingPartner ? 'Berhasil diperbarui!' : 'Berhasil disimpan!',
+            text: editingPartner ? 'Data mitra telah berhasil diperbarui' : 'Data mitra baru telah berhasil disimpan',
+            timer: 2000,
+            showConfirmButton: false
+          }).then(() => {
+            onClose();
+            onSave();
+          });
+        } catch (err) {
+          console.error(
+            "Gagal menyimpan mitra:",
+            err.response?.data || err.message
+          );
+          
+          // Handle validation errors from server
+          if (err.response?.data?.errors) {
+            const serverErrors = err.response.data.errors;
+            const formattedErrors = {};
+            
+            // Convert server errors to our format
+            Object.keys(serverErrors).forEach(key => {
+              formattedErrors[key] = Array.isArray(serverErrors[key]) 
+                ? serverErrors[key][0] 
+                : serverErrors[key];
+            });
+            
+            setErrors(prev => ({...prev, ...formattedErrors}));
+            
+            // Show SweetAlert for server validation errors
+            Swal.fire({
+              icon: 'error',
+              title: 'Validasi gagal',
+              text: 'Terdapat kesalahan pada data yang dikirim ke server',
+              confirmButtonColor: '#3085d6',
+            });
+          } else {
+            // General error
+            Swal.fire({
+              icon: 'error',
+              title: 'Terjadi kesalahan',
+              text: 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.',
+              confirmButtonColor: '#3085d6',
+            });
+          }
+        } finally {
+          setLoading(false);
+        }
       }
-    } finally {
-      setLoading(false);
+    });
+  };
+
+  const addNewJurusan = () => {
+    if (newJurusan.trim() !== "") {
+      if (!formData.jurusan.includes(newJurusan.trim())) {
+        setFormData((prev) => ({
+          ...prev,
+          jurusan: [...prev.jurusan, newJurusan.trim()],
+        }));
+        
+        // Clear any jurusan error if showErrors is true
+        if (showErrors && errors.jurusan) {
+          setErrors(prev => {
+            const newErrors = {...prev};
+            delete newErrors.jurusan;
+            return newErrors;
+          });
+        }
+        
+        // Show success notification
+        Swal.fire({
+          icon: 'success',
+          title: 'Jurusan ditambahkan',
+          text: `Jurusan "${newJurusan.trim()}" telah ditambahkan`,
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } else {
+        // Show error if jurusan already exists
+        Swal.fire({
+          icon: 'error',
+          title: 'Jurusan sudah ada',
+          text: `Jurusan "${newJurusan.trim()}" sudah ada dalam daftar`,
+          confirmButtonColor: '#3085d6',
+        });
+      }
+      setNewJurusan("");
     }
   };
 
@@ -219,7 +373,7 @@ export default function AddEditModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="bg-white rounded-lg w-full max-w-xl"
@@ -230,7 +384,7 @@ export default function AddEditModal({
             {editingPartner ? "Edit Mitra" : "Tambah Mitra"}
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-500 hover:text-gray-700"
           >
             <X size={14} />
@@ -336,35 +490,31 @@ export default function AddEditModal({
                 </div>
               ))}
             </div>
-            <input
-              type="text"
-              placeholder="Tambahkan jurusan baru, tekan Enter"
-              className={`w-full py-2.5 px-3 border ${
-                showErrors && errors.jurusan ? "border-red-500" : "border-gray-300"
-              } rounded-md text-xs`}
-              value={newJurusan}
-              onChange={(e) => setNewJurusan(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter" && newJurusan.trim() !== "") {
-                  e.preventDefault();
-                  if (!formData.jurusan.includes(newJurusan.trim())) {
-                    setFormData((prev) => ({
-                      ...prev,
-                      jurusan: [...prev.jurusan, newJurusan.trim()],
-                    }));
-                    // Clear any jurusan error if showErrors is true
-                    if (showErrors && errors.jurusan) {
-                      setErrors(prev => {
-                        const newErrors = {...prev};
-                        delete newErrors.jurusan;
-                        return newErrors;
-                      });
-                    }
+            <div className="flex">
+              <input
+                type="text"
+                placeholder="Tambahkan jurusan baru"
+                className={`w-full py-2.5 px-3 border ${
+                  showErrors && errors.jurusan ? "border-red-500" : "border-gray-300"
+                } rounded-l-md text-xs`}
+                value={newJurusan}
+                onChange={(e) => setNewJurusan(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter" && newJurusan.trim() !== "") {
+                    e.preventDefault();
+                    addNewJurusan();
                   }
-                  setNewJurusan("");
-                }
-              }}
-            />
+                }}
+              />
+              <button
+                type="button"
+                onClick={addNewJurusan}
+                className="bg-blue-600 text-white px-3 py-2.5 rounded-r-md text-xs"
+                disabled={!newJurusan.trim()}
+              >
+                Tambah
+              </button>
+            </div>
             {showErrors && errors.jurusan && (
               <p className="text-red-500 text-xs mt-1 flex items-center error-message">
                 <AlertCircle size={12} className="mr-1" /> {errors.jurusan}
@@ -466,7 +616,7 @@ export default function AddEditModal({
           <div className="flex justify-end space-x-2 pt-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 border border-gray-300 rounded-md text-sm text-blue-600 hover:bg-gray-50 transition"
               disabled={loading}
             >

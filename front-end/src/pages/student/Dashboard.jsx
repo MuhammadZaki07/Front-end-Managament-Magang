@@ -37,7 +37,7 @@ const Dashboard = () => {
   const checkMagangStatus = async () => {
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/magang`,
+        `${import.meta.env.VITE_API_URL}/complete/magang`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -131,7 +131,7 @@ const Dashboard = () => {
       </div>
     );
     
-  // Menampilkan halaman menunggu persetujuan jika status magang "pending"
+  // Menampilkan halaman menunggu persetujuan jika status magang "false"
   if (magangStatus === "false") {
     return (
       <div className="w-full">
@@ -144,7 +144,8 @@ const Dashboard = () => {
       </div>
     );
   }
-    
+  
+  // Kode ini hanya akan dijalankan jika magangStatus !== "false"
   return (
     <div className="w-full">
       {status === "false" ? (

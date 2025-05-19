@@ -7,6 +7,7 @@ import axios from "axios";
 import ModalDivisi from "../modal/ModalDivisi";
 import LoadingCards from "../cards/LoadingCards";
 import DataNotAvaliable from "../DataNotAvaliable";
+import Swal from "sweetalert2";
 
 export default function DivisiBranchCard() {
   const [branches, setBranches] = useState([]);
@@ -26,15 +27,43 @@ export default function DivisiBranchCard() {
 
   const getDataAllDevsion = async () => {
     try {
+      // Show loading for initial load
+      if (branches.length === 0) {
+        Swal.fire({
+          title: 'Memuat data...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+      }
+
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/divisi`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
+      
       setBranches(res.data.data);
       setLoading(false);
+      
+      // Close loading if it was shown
+      if (branches.length === 0) {
+        Swal.close();
+      }
     } catch (error) {
       console.log(error);
+      setLoading(false);
+      
+      // Show error alert
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Memuat Data',
+        text: 'Terjadi kesalahan saat memuat data divisi. Silakan coba lagi.',
+        confirmButtonText: 'OK'
+      });
     }
   };
 
@@ -47,26 +76,64 @@ export default function DivisiBranchCard() {
   };
 
   const handleDeleteClick = async (id) => {
-    const isConfirmed = window.confirm(
-      "Apakah Anda yakin ingin menghapus divisi ini?"
-    );
-    if (!isConfirmed) {
+    // Show confirmation dialog with SweetAlert2
+    const result = await Swal.fire({
+      title: 'Konfirmasi Hapus',
+      text: 'Apakah Anda yakin ingin menghapus divisi ini?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    });
+
+    if (!result.isConfirmed) {
       return;
     }
 
-    try {
-      if (isConfirmed) {
-        await axios.delete(`${import.meta.env.VITE_API_URL}/divisi/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+    // Show loading during delete process
+    Swal.fire({
+      title: 'Menghapus...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
       }
+    });
+
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/divisi/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      // Show success message
+      await Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Divisi berhasil dihapus.',
+        showConfirmButton: false,
+        timer: 2000
+      });
+
+      // Refresh data
+      getDataAllDevsion();
     } catch (error) {
       console.error(
         "Gagal menghapus divisi:",
         error.response ? error.response.data : error.message
       );
+
+      // Show error message
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menghapus',
+        text: error.response?.data?.message || 'Terjadi kesalahan saat menghapus divisi.',
+        confirmButtonText: 'OK'
+      });
     }
   };
 
@@ -78,6 +145,25 @@ export default function DivisiBranchCard() {
   const handleDetailDevision = (branch) => {
     setSelectedItem(branch);
     setIsDetaildivisiOpen(true);
+  };
+
+  // Handle modal success callback
+  const handleModalSuccess = (message = 'Data berhasil disimpan') => {
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: message,
+      showConfirmButton: false,
+      timer: 2000
+    }).then(() => {
+      getDataAllDevsion();
+    });
+  };
+
+  // Handle opening add/edit modal
+  const handleOpenModal = (division = null) => {
+    setSelectedDivision(division);
+    setShowModal(true);
   };
 
   // Format date to "DD Month YYYY" in Indonesian
@@ -96,15 +182,15 @@ export default function DivisiBranchCard() {
           <h1 className="text-xl font-bold">Divisi Terdaftar</h1>
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => setShowModal(true)}
-              className="bg-white text-gray-700 border border-gray-300 rounded-md px-2 py-1 text-xs flex items-center"
+              onClick={() => handleOpenModal()}
+              className="bg-white text-gray-700 border border-gray-300 rounded-md px-2 py-1 text-xs flex items-center hover:bg-gray-50 transition-colors"
             >
               <i className="bi bi-plus mr-1"></i>
               <span className="mr-1">Tambah Divisi</span>
             </button>
             <div className="flex items-center">
               <span className="mr-1 text-xs">Sort by:</span>
-              <select className="border border-gray-300 rounded-md px-2 py-1 text-xs">
+              <select className="border border-gray-300 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option>Terbaru</option>
                 <option>Terlama</option>
               </select>
@@ -125,7 +211,7 @@ export default function DivisiBranchCard() {
               return (
                 <div
                   key={branch.id}
-                  className="bg-white border border-[#CED2D9] rounded-lg overflow-hidden pt-2 px-2 pb-2 mb-4"
+                  className="bg-white border border-[#CED2D9] rounded-lg overflow-hidden pt-2 px-2 pb-2 mb-4 hover:shadow-md transition-shadow"
                 >
                   <div className="rounded-md overflow-hidden mb-3">
                     <img
@@ -150,39 +236,17 @@ export default function DivisiBranchCard() {
                     </div>
                   </div>
 
-                  {/* {branch.kategori && branch.kategori.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {branch.kategori.map((category, index) => (
-                        <span
-                          key={index}
-                          className="bg-blue-100 text-blue-700 text-xs rounded-md px-2 py-0.5"
-                        >
-                          {category.nama}
-                        </span>
-                      ))}
-                    </div>
-                  )} */}
-
                   <div className="flex justify-center mt-3 border-t border-t-slate-300">
                     <div className="rounded p-2 w-full flex justify-between items-center space-x-2">
-                      {/* <button
-                        onClick={() => handlePlace(branch)}
-                        className="text-[#0069AB] border border-[#0069AB] rounded px-3 py-1 text-xs hover:bg-orange-50"
-                      >
-                        Tempatkan
-                      </button> */}
                       <button
-                        onClick={() => {
-                          setShowModal(true);
-                          setSelectedDivision(branch);
-                        }}
-                        className="text-orange-500 border border-orange-500 rounded px-3 py-1 text-xs hover:bg-orange-50"
+                        onClick={() => handleOpenModal(branch)}
+                        className="text-orange-500 border border-orange-500 rounded px-3 py-1 text-xs hover:bg-orange-50 transition-colors"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDeleteClick(branch.id)}
-                        className="text-red-500 border border-red-500 rounded px-3 py-1 text-xs hover:bg-red-100"
+                        className="text-red-500 border border-red-500 rounded px-3 py-1 text-xs hover:bg-red-100 transition-colors"
                       >
                         Hapus
                       </button>
@@ -201,7 +265,7 @@ export default function DivisiBranchCard() {
                 <button
                   key={index}
                   onClick={() => handlePageClick(index)}
-                  className={`px-3 py-1 rounded ${
+                  className={`px-3 py-1 rounded transition-colors ${
                     currentPage === index
                       ? "bg-blue-600 text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -222,7 +286,7 @@ export default function DivisiBranchCard() {
         setShowModal={setShowModal}
         editingDivision={selectedDivision}
         onSuccess={() => {
-          getDataAllDevsion();
+          handleModalSuccess(selectedDivision ? 'Divisi berhasil diperbarui' : 'Divisi berhasil ditambahkan');
         }}
       />
 

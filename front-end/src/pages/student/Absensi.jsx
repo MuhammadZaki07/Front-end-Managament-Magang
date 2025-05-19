@@ -5,8 +5,9 @@ import CardAbsensi from "../../components/cards/CardAbsensi";
 import TableAbsensi from "../../components/cards/TableAbsensi";
 import IzinModal from "../../components/ui/IzinModal";
 import axios from "axios";
+import Swal from "sweetalert2"; // Import SweetAlert2
 
-// New success modal component
+// Optional: Keep the custom success modal or use SweetAlert for both success and error
 const SuccessModal = ({ isOpen, onClose, message }) => {
   if (!isOpen) return null;
 
@@ -56,6 +57,7 @@ const Absensi = () => {
   const [isIzinModalOpen, setIsIzinModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [tableKey, setTableKey] = useState(0); // Key to force table refresh
   
@@ -86,6 +88,28 @@ const Absensi = () => {
     },
   ];
 
+  // Function to show error with SweetAlert
+  const showErrorAlert = (message) => {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: message,
+      confirmButtonColor: '#3085d6',
+      confirmButtonText: 'OK'
+    });
+  };
+
+  // Optional: Convert success notification to SweetAlert as well
+  const showSuccessAlert = (message) => {
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: message,
+      confirmButtonColor: '#3085d6',
+      confirmButtonText: 'OK'
+    });
+  };
+
   const handleAbsen = async () => {
     try {
       setLoading(true);
@@ -105,13 +129,15 @@ const Absensi = () => {
       if (response.status >= 200 && response.status < 300) {
         // Set success message based on response or use default
         const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        setSuccessMessage(
-          response.data?.message || 
-          `Absensi berhasil dicatat pada pukul ${currentTime}`
-        );
+        const successMsg = response.data?.message || 
+          `Absensi berhasil dicatat pada pukul ${currentTime}`;
         
-        // Show success modal
+        // Option 1: Use the custom modal component (original behavior)
+        setSuccessMessage(successMsg);
         setIsSuccessModalOpen(true);
+        
+        // Option 2: Use SweetAlert (uncomment to use)
+        // showSuccessAlert(successMsg);
         
         // Refresh the attendance table
         setTableKey(prevKey => prevKey + 1);
@@ -144,9 +170,80 @@ const Absensi = () => {
         errorMsg = "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.";
       }
       
-      alert(errorMsg);
+      // Replace alert with SweetAlert
+      showErrorAlert(errorMsg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      setPdfLoading(true);
+      const token = localStorage.getItem("token");
+      
+      // Make API call to download PDF
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/kehadiran/export-pdf`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: 'blob', // Important for downloading files
+        }
+      );
+      
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate filename with current date
+      const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      const filename = `absensi-${currentDate}.pdf`;
+      link.setAttribute('download', filename);
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      // Clean up the URL
+      window.URL.revokeObjectURL(url);
+      
+      // Show success message
+      showSuccessAlert('Data absensi berhasil diunduh dalam format PDF!');
+      
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      
+      // Show error message based on response
+      let errorMsg = "Terjadi kesalahan saat mengunduh PDF.";
+      
+      if (error.response) {
+        switch (error.response.status) {
+          case 401:
+            errorMsg = "Sesi login telah berakhir. Silakan login kembali.";
+            break;
+          case 403:
+            errorMsg = "Anda tidak memiliki izin untuk mengunduh data absensi.";
+            break;
+          case 404:
+            errorMsg = "Data absensi tidak ditemukan.";
+            break;
+          case 500:
+            errorMsg = "Terjadi kesalahan server saat membuat PDF.";
+            break;
+          default:
+            errorMsg = error.response.data?.message || errorMsg;
+        }
+      } else if (error.request) {
+        errorMsg = "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.";
+      }
+      
+      showErrorAlert(errorMsg);
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -171,18 +268,24 @@ const Absensi = () => {
         <div className="flex justify-end gap-2">
           <Button 
             onClick={handleAbsen}
-            disabled={loading}
+            disabled={loading || pdfLoading}
           >
             {loading ? "Absen sedang diproses..." : "Absen"}
           </Button>
           <Button
             bgColor="bg-orange-400"
             onClick={() => setIsIzinModalOpen(true)}
-            disabled={loading}
+            disabled={loading || pdfLoading}
           >
             Izin
           </Button>
-          <Button bgColor="bg-emerald-400">PDF</Button>
+          <Button 
+            bgColor="bg-emerald-400"
+            onClick={handleDownloadPDF}
+            disabled={loading || pdfLoading}
+          >
+            {pdfLoading ? "Mengunduh PDF..." : "PDF"}
+          </Button>
         </div>
         
         {/* Pass the key to force re-render when attendance is submitted */}
@@ -195,7 +298,7 @@ const Absensi = () => {
         onClose={() => setIsIzinModalOpen(false)}
       />
       
-      {/* Success Modal */}
+      {/* Success Modal - keep this if you want to use the custom modal */}
       <SuccessModal 
         isOpen={isSuccessModalOpen}
         onClose={handleSuccessModalClose}

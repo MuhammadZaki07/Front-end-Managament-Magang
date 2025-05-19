@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import Card from "../../components/cards/Card";
 import ReactPaginate from "react-paginate";
 import ModalTambahAdminCabang from "../../components/modal/ModalTambahAdminCabang";
-import ModalDeleteAdminCabang from "../modal/ModalDeleteAdminCabang";
 import ModalDetailAdminCabang from "../../components/modal/ModalDetailAdminCabang";
-import Loading from "../../components/Loading"; // Keep this one
+import Loading from "../../components/Loading";
 import axios from "axios";
 import DataNotAvaliable from "../DataNotAvaliable";
+import Swal from "sweetalert2";
 
 export default function CompanyBranchCard() {
   const [branches, setBranches] = useState([]);
@@ -14,8 +14,6 @@ export default function CompanyBranchCard() {
   const itemsPerPage = 12;
   const [modalState, setModalState] = useState({
     showModal: false,
-    showDeleteModal: false,
-    branchToDelete: null,
     showDetailModal: false,
     branchToDetail: null,
     branchToEdit: null,
@@ -62,31 +60,66 @@ export default function CompanyBranchCard() {
   };
 
   const handleDeleteClick = (branch) => {
-    setModalState({
-      ...modalState,
-      showDeleteModal: true,
-      branchToDelete: branch,
+    Swal.fire({
+      title: 'Hapus Admin?',
+      text: `Apakah Anda yakin ingin menghapus admin ${branch.user?.nama || 'ini'}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        handleDeleteBranch(branch);
+      }
     });
   };
 
-  const handleDeleteBranch = async () => {
+  const handleDeleteBranch = async (branch) => {
     try {
-      await axios.delete(`/api/admin/${modalState.branchToDelete.id}`, {
+      // Show loading
+      Swal.fire({
+        title: 'Menghapus...',
+        text: 'Mohon tunggu sebentar',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      await axios.delete(`${import.meta.env.VITE_API_URL}/admin/${branch.id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      setBranches(
-        branches.filter((branch) => branch.id !== modalState.branchToDelete.id)
-      );
-      setModalState({
-        ...modalState,
-        showDeleteModal: false,
-        branchToDelete: null,
+
+      setBranches(branches.filter((b) => b.id !== branch.id));
+      
+      // Success notification
+      Swal.fire({
+        title: 'Berhasil!',
+        text: 'Admin berhasil dihapus',
+        icon: 'success',
+        confirmButtonColor: '#10b981',
+        timer: 2000,
+        showConfirmButton: false
       });
+
       fetchAdmins();
     } catch (error) {
       console.error("Error deleting admin:", error);
+      
+      // Error notification
+      Swal.fire({
+        title: 'Gagal!',
+        text: 'Terjadi kesalahan saat menghapus admin',
+        icon: 'error',
+        confirmButtonColor: '#dc2626'
+      });
     }
   };
 
@@ -94,12 +127,23 @@ export default function CompanyBranchCard() {
     setModalState({ ...modalState, showModal: true, branchToEdit: branch });
   };
 
-  const handleCloseDeleteModal = () => {
-    setModalState({
-      ...modalState,
-      showDeleteModal: false,
-      branchToDelete: null,
+  const handleModalSuccess = () => {
+    fetchAdmins();
+    setModalState({ ...modalState, showModal: false, branchToEdit: null });
+    
+    // Success notification for save/edit
+    Swal.fire({
+      title: 'Berhasil!',
+      text: modalState.branchToEdit ? 'Data admin berhasil diperbarui' : 'Admin baru berhasil ditambahkan',
+      icon: 'success',
+      confirmButtonColor: '#10b981',
+      timer: 2000,
+      showConfirmButton: false
     });
+  };
+
+  const handleModalClose = () => {
+    setModalState({ ...modalState, showModal: false, branchToEdit: null });
   };
 
   if (loading) return <Loading />;
@@ -179,20 +223,20 @@ export default function CompanyBranchCard() {
                   <div className="flex justify-center mt-5">
                     <div className="border border-[#D5DBE7] rounded p-2 w-full flex justify-between items-center space-x-2">
                       <button
-                        onClick={() => handleViewDetail(branch)} // Show modal on click
-                        className="text-blue-500 border border-blue-500 rounded px-3 py-1 text-xs hover:bg-blue-50"
+                        onClick={() => handleViewDetail(branch)}
+                        className="text-blue-500 border border-blue-500 rounded px-3 py-1 text-xs hover:bg-blue-50 transition-colors"
                       >
                         Lihat Detail
                       </button>
                       <button
-                        onClick={() => handleEditClick(branch)} // Edit button click
-                        className="text-orange-500 border border-orange-500 rounded px-3 py-1 text-xs hover:bg-orange-50"
+                        onClick={() => handleEditClick(branch)}
+                        className="text-orange-500 border border-orange-500 rounded px-3 py-1 text-xs hover:bg-orange-50 transition-colors"
                       >
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteClick(branch)} // Delete button click
-                        className="text-red-500 border border-red-500 rounded px-3 py-1 text-xs hover:bg-red-50"
+                        onClick={() => handleDeleteClick(branch)}
+                        className="text-red-500 border border-red-500 rounded px-3 py-1 text-xs hover:bg-red-50 transition-colors"
                       >
                         Hapus
                       </button>
@@ -203,6 +247,7 @@ export default function CompanyBranchCard() {
             );
           })}
         </div>
+        
         {displayedBranches.length > 0 ? (
           <div className="flex items-center justify-between mt-6">
             <div className="flex-1">
@@ -231,16 +276,11 @@ export default function CompanyBranchCard() {
 
       <ModalTambahAdminCabang
         isOpen={modalState.showModal}
-        onSucces={() => fetchAdmins()}
-        onClose={() => setModalState({ showModal: false, branchToEdit: null })}
+        onSucces={handleModalSuccess}
+        onClose={handleModalClose}
         branchToEdit={modalState.branchToEdit}
       />
 
-      <ModalDeleteAdminCabang
-        isOpen={modalState.showDeleteModal}
-        onClose={handleCloseDeleteModal}
-        onConfirm={handleDeleteBranch}
-      />
       <ModalDetailAdminCabang
         isOpen={modalState.showDetailModal}
         onClose={() => setModalState({ ...modalState, showDetailModal: false })}

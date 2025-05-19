@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Modal from "../Modal";
 import Card from "../cards/Card";
 import axios from "axios";
+import Swal from "sweetalert2"; // Import SweetAlert2
 
 const IzinModal = ({ isOpen, onClose }) => {
   const [mulai, setMulai] = useState("");
@@ -36,12 +37,26 @@ const IzinModal = ({ isOpen, onClose }) => {
       );      
 
       if (response.data.status === "success") {
-        alert("Izin berhasil diajukan!");
+        // Menggunakan SweetAlert untuk notifikasi sukses
+        Swal.fire({
+          title: 'Berhasil!',
+          text: 'Izin berhasil diajukan!',
+          icon: 'success',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#10B981'
+        });
         onClose();
       }
     } catch (error) {
       console.error("Error during izin submission:", error);
-      alert("Terjadi kesalahan saat mengajukan izin.");
+      // Menggunakan SweetAlert untuk notifikasi error
+      Swal.fire({
+        title: 'Gagal!',
+        text: 'Terjadi kesalahan saat mengajukan izin.',
+        icon: 'error',
+        confirmButtonText: 'Coba Lagi',
+        confirmButtonColor: '#EF4444'
+      });
     } finally {
       setLoading(false);
     }
@@ -50,41 +65,43 @@ const IzinModal = ({ isOpen, onClose }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Form Izin" size="large">
       <form onSubmit={(e) => e.preventDefault()}>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="mb-4">
-            <label className="block text-sm font-medium">Mulai Izin</label>
-            <input
-              type="date"
-              value={mulai}
-              onChange={(e) => setMulai(e.target.value)}
-              className="w-full bg-white rounded-lg border text-sm border-slate-300/[0.8] py-2 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 peer px-4 mt-2"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium">Selesai Izin</label>
-            <input
-              type="date"
-              value={selesai}
-              onChange={(e) => setSelesai(e.target.value)}
-              className="w-full bg-white rounded-lg border text-sm border-slate-300/[0.8] py-2 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 peer px-4 mt-2"
-            />
-          </div>
+        {/* Mengubah layout mulai dan selesai menjadi vertikal (atas-bawah) */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium">Mulai Izin</label>
+          <input
+            type="date"
+            value={mulai}
+            onChange={(e) => setMulai(e.target.value)}
+            className="w-full bg-white rounded-lg border text-sm border-slate-300/[0.8] py-2 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 peer px-4 mt-2"
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium">Selesai Izin</label>
+          <input
+            type="date"
+            value={selesai}
+            onChange={(e) => setSelesai(e.target.value)}
+            className="w-full bg-white rounded-lg border text-sm border-slate-300/[0.8] py-2 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 peer px-4 mt-2"
+          />
         </div>
 
         <div className="mb-4">
           <label className="block text-sm font-medium">Bukti Izin (Gambar)</label>
-          <input
-            type="file"
-            onChange={handleFileChange}
-            className="w-full bg-white rounded-lg border text-sm border-slate-300/[0.8] py-2 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 peer px-4 mt-2"
-          />
-          {file && (
-            <div className="mt-4">
-              <Card className="p-2 bg-indigo-50">
-                <img src={URL.createObjectURL(file)} alt="Preview" className="w-full h-42 object-cover rounded-lg" />
-              </Card>
+          <div className="flex rounded-lg border border-slate-300/[0.8] mt-2 overflow-hidden">
+            <label className="flex items-center justify-center px-4 py-2 bg-gray-50 text-gray-700 text-sm border-r border-slate-300/[0.8] cursor-pointer hover:bg-gray-100">
+              Choose File
+              <input
+                type="file"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+            <div className="flex items-center px-4 py-2 text-sm text-gray-500 flex-grow">
+              {file ? file.name : "No File Chosen"}
             </div>
-          )}
+          </div>
+
         </div>
 
         <div className="mb-2">
@@ -129,14 +146,16 @@ const IzinModal = ({ isOpen, onClose }) => {
           <button
             onClick={onClose}
             className="px-4 py-2 bg-red-200 font-light text-red-500 rounded-full hover:bg-red-700"
+            disabled={loading}
           >
             Batal
           </button>
           <button
             onClick={handleSubmit}
             className="px-4 py-2 bg-green-200 font-light text-green-500 rounded-full hover:bg-green-600"
+            disabled={loading}
           >
-            Simpan
+            {loading ? "Menyimpan..." : "Simpan"}
           </button>
         </div>
       </form>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => {
   const isEditMode = Boolean(branchToEdit);
@@ -173,6 +174,17 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
     if (!isValid) {
       return;
     }
+
+    // Show loading alert
+    Swal.fire({
+      title: 'Menyimpan...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
   
     const formPayload = new FormData();
     formPayload.append("nama", formData.nama);
@@ -205,10 +217,22 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
       const response = await axios.post(url, formPayload, { headers });
   
       if (response.status === 200 || response.status === 201) {
-        onClose();
-        onSucces();
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: `Data admin berhasil ${isEditMode ? 'diperbarui' : 'ditambahkan'}`,
+          showConfirmButton: false,
+          timer: 2000
+        }).then(() => {
+          onClose();
+          onSucces();
+        });
       } else {
-        setErrors((prev) => ({ ...prev, form: "Gagal menyimpan data admin." }));
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal!',
+          text: 'Gagal menyimpan data admin.',
+        });
       }
     } catch (error) {
       console.error("Terjadi kesalahan saat menyimpan admin:", error);
@@ -219,7 +243,11 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
         errorMessage = error.response.data.message;
       }
       
-      setErrors((prev) => ({ ...prev, form: errorMessage }));
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: errorMessage,
+      });
     }
   };  
 
@@ -228,176 +256,173 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="fixed inset-0 bg-black opacity-50" onClick={onClose}></div>
-      <div className="bg-white rounded-lg w-full max-w-xl max-h-[90vh] overflow-y-auto relative z-10">
-        <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-xl font-bold">
+      <div className="bg-white rounded-lg w-full max-w-md mx-4 relative z-10 shadow-lg">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800">
             {isEditMode ? "Edit Admin" : "Tambah Admin"}
           </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {errors.form && (
-          <div className="mx-6 mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-md border border-red-200">
-            {errors.form}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="px-6 py-4" encType="multipart/form-data">
-          <div className="grid grid-cols-2 gap-5">
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm mb-1">
-                Masukkan Nama <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="nama"
-                value={formData.nama}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Masukkan Nama Disini"
-                className={`w-full px-3 py-2 border ${
-                  errors.nama && touched.nama ? "border-red-500" : "border-gray-300"
-                } rounded-md`}
-              />
-              {errors.nama && touched.nama && (
-                <p className="text-red-500 text-xs mt-1">{errors.nama}</p>
-              )}
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm mb-1">
-                Masukkan Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Masukkan Email"
-                className={`w-full px-3 py-2 border ${
-                  errors.email && touched.email ? "border-red-500" : "border-gray-300"
-                } rounded-md`}
-              />
-              {errors.email && touched.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-              )}
-            </div>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4" encType="multipart/form-data">
+          {/* Nama */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Masukkan Nama
+            </label>
+            <input
+              type="text"
+              name="nama"
+              value={formData.nama}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="Masukkan Nama Disini"
+              className={`w-full px-3 py-2 border ${
+                errors.nama && touched.nama ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+            />
+            {errors.nama && touched.nama && (
+              <p className="text-red-500 text-xs mt-1">{errors.nama}</p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-5">
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm mb-1">
-                Foto Admin <span className="text-gray-500 text-xs">(Maks. 2MB)</span>
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Masukkan Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="Masukkan Email"
+              className={`w-full px-3 py-2 border ${
+                errors.email && touched.email ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+            />
+            {errors.email && touched.email && (
+              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Password {isEditMode && <span className="text-xs text-gray-500">(Kosongkan jika tidak diubah)</span>}
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="Masukkan Password Disini"
+              className={`w-full px-3 py-2 border ${
+                errors.password && touched.password ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+            />
+            {errors.password && touched.password && (
+              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+            )}
+          </div>
+
+          {/* Foto Admin */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Foto Admin
+            </label>
+            <div className="flex">
+              <label className={`flex items-center justify-center px-4 py-2 bg-white border ${
+                errors.adminPhoto ? "border-red-500" : "border-gray-300"
+              } rounded-l-md text-sm text-gray-700 cursor-pointer hover:bg-gray-50`}>
+                <span>Choose File</span>
+                <input
+                  type="file"
+                  onChange={(e) => handleFileChange(e, "adminPhoto")}
+                  className="hidden"
+                  accept="image/*"
+                />
               </label>
-              <div className="flex">
-                <label className={`flex items-center justify-center px-4 py-2 bg-white border ${
-                  errors.adminPhoto ? "border-red-500" : "border-gray-300"
-                } rounded-l-md text-xs text-gray-700 cursor-pointer`}>
-                  <span>Choose File</span>
-                  <input
-                    type="file"
-                    onChange={(e) => handleFileChange(e, "adminPhoto")}
-                    className="hidden"
-                    accept="image/*"
-                  />
-                </label>
-                <div className={`flex-1 px-4 py-2 border border-l-0 ${
-                  errors.adminPhoto ? "border-red-500" : "border-gray-300"
-                } rounded-r-md bg-gray-50 text-gray-500 text-xs overflow-hidden`}>
-                  {adminPhotoName}
-                </div>
+              <div className={`flex-1 px-3 py-2 border border-l-0 ${
+                errors.adminPhoto ? "border-red-500" : "border-gray-300"
+              } rounded-r-md bg-gray-50 text-gray-500 text-sm overflow-hidden text-ellipsis whitespace-nowrap`}>
+                {adminPhotoName}
               </div>
-              {errors.adminPhoto && (
-                <p className="text-red-500 text-xs mt-1">{errors.adminPhoto}</p>
-              )}
             </div>
+            {errors.adminPhoto && (
+              <p className="text-red-500 text-xs mt-1">{errors.adminPhoto}</p>
+            )}
+          </div>
 
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm mb-1">
-                Foto Header <span className="text-gray-500 text-xs">(Maks. 2MB)</span>
+          {/* Foto Cover */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Foto Cover
+            </label>
+            <div className="flex">
+              <label className={`flex items-center justify-center px-4 py-2 bg-white border ${
+                errors.headerPhoto ? "border-red-500" : "border-gray-300"
+              } rounded-l-md text-sm text-gray-700 cursor-pointer hover:bg-gray-50`}>
+                <span>Choose File</span>
+                <input
+                  type="file"
+                  onChange={(e) => handleFileChange(e, "headerPhoto")}
+                  className="hidden"
+                  accept="image/*"
+                />
               </label>
-              <div className="flex">
-                <label className={`flex items-center justify-center px-4 py-2 bg-white border ${
-                  errors.headerPhoto ? "border-red-500" : "border-gray-300"
-                } rounded-l-md text-xs text-gray-700 cursor-pointer`}>
-                  <span>Choose File</span>
-                  <input
-                    type="file"
-                    onChange={(e) => handleFileChange(e, "headerPhoto")}
-                    className="hidden"
-                    accept="image/*"
-                  />
-                </label>
-                <div className={`flex-1 px-4 py-2 border border-l-0 ${
-                  errors.headerPhoto ? "border-red-500" : "border-gray-300"
-                } rounded-r-md bg-gray-50 text-gray-500 text-xs overflow-hidden`}>
-                  {headerPhotoName}
-                </div>
+              <div className={`flex-1 px-3 py-2 border border-l-0 ${
+                errors.headerPhoto ? "border-red-500" : "border-gray-300"
+              } rounded-r-md bg-gray-50 text-gray-500 text-sm overflow-hidden text-ellipsis whitespace-nowrap`}>
+                {headerPhotoName}
               </div>
-              {errors.headerPhoto && (
-                <p className="text-red-500 text-xs mt-1">{errors.headerPhoto}</p>
-              )}
             </div>
+            {errors.headerPhoto && (
+              <p className="text-red-500 text-xs mt-1">{errors.headerPhoto}</p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-5">
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm mb-1">
-                Password {!isEditMode && <span className="text-red-500">*</span>}
-                {isEditMode && <span className="text-gray-500 text-xs">(Kosongkan jika tidak diubah)</span>}
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Masukkan Password Disini"
-                className={`w-full px-3 py-2 border ${
-                  errors.password && touched.password ? "border-red-500" : "border-gray-300"
-                } rounded-md`}
-              />
-              {errors.password && touched.password && (
-                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-              )}
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm mb-1">
-                Masukkan Nomor HP <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Masukkan Nomor HP"
-                className={`w-full px-3 py-2 border ${
-                  errors.phoneNumber && touched.phoneNumber ? "border-red-500" : "border-gray-300"
-                } rounded-md`}
-              />
-              {errors.phoneNumber && touched.phoneNumber && (
-                <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
-              )}
-            </div>
+          {/* Nomor HP */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Masukkan Nomor HP
+            </label>
+            <input
+              type="text"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="Masukkan Nomor HP"
+              className={`w-full px-3 py-2 border ${
+                errors.phoneNumber && touched.phoneNumber ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
+            />
+            {errors.phoneNumber && touched.phoneNumber && (
+              <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
+            )}
           </div>
 
-          <div className="sticky bottom-0 bg-white py-3 flex justify-end space-x-3 border-t border-gray-200">
+          {/* Buttons */}
+          <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 bg-red-400 text-white rounded-md hover:bg-red-500"
+              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
             >
               Batal
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
             >
               Simpan
             </button>

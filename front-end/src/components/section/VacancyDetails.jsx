@@ -58,8 +58,8 @@ export default function JobVacancyDetail() {
       Pembukaan: job.tanggal_mulai,
       Penutupan: job.tanggal_selesai,
     },
-    requirements: job.syarat?.split("\n") || [],
-    benefits: job.fasilitas?.split("\n") || [],
+    requirement: job.syarat?.split("\n") || [],
+    jobdesc: job.fasilitas?.split("\n") || [],
     total_pendaftar: job.total_pendaftar || 0,
     cover: getImagePath(job, "profil_cover"),
   });
@@ -444,7 +444,7 @@ export default function JobVacancyDetail() {
                   Persyaratan :
                 </h3>
                 <ol className="list-decimal pl-12 text-gray-700 space-y-2">
-                  {job.requirements.map((req, index) => (
+                  {job.requirement.map((req, index) => (
                     <li key={index}>{req}</li>
                   ))}
                 </ol>
@@ -452,11 +452,11 @@ export default function JobVacancyDetail() {
 
               <div className="mb-6">
                 <h3 className="font-medium text-gray-800 mb-3 pl-5">
-                  Benefit :
+                  Jobdesk :
                 </h3>
                 <ol className="list-decimal pl-12 text-gray-700 space-y-2">
-                  {job.benefits.map((benefit, index) => (
-                    <li key={index}>{benefit}</li>
+                  {job.jobdesc.map((jobdesc, index) => (
+                    <li key={index}>{jobdesc}</li>
                   ))}
                 </ol>
               </div>

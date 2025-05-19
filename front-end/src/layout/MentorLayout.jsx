@@ -1,10 +1,17 @@
-import { Link, Outlet } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useState, useEffect,useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
 
 const MentorLayout = () => {
+  const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
   const [isPresentasiOpen, setIsPresentasiOpen] = useState(false);
+
+  // Assuming you get role and token from somewhere (localStorage, context, props, etc.)
+  const { role, token } = useContext(AuthContext);
+
+  
 
   const sidebarMenus = [
     { icon: "bi-grid", label: "Dashboard", link: "/mentor/dashboard" },
@@ -32,6 +39,18 @@ const MentorLayout = () => {
   ];
 
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];
+  
+  useEffect(() => {
+    if ((role && role !== "mentor") || !token) {
+      const redirectTo = localStorage.getItem("location");
+      if (redirectTo) {
+        navigate(redirectTo);
+        localStorage.removeItem("location");
+      } else {
+        navigate("/");
+      }
+    }
+  }, [role]);
 
   useEffect(() => {
     const interval = setInterval(() => {
