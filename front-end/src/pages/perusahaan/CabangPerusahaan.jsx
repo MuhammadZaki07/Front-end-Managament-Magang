@@ -12,20 +12,6 @@ export default function CompanyBranchCard() {
   
   const [branches, setBranches] = useState([
     { id: 1, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 2, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 3, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 4, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 5, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 6, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 7, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 8, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 9, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 10, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 11, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 12, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 13, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 14, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-    { id: 15, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
   ]);
 
   const [currentPage, setCurrentPage] = useState(0);

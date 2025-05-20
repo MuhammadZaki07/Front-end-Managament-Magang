@@ -29,6 +29,18 @@ export default function Lowongan() {
     }
   };
 
+  const { totalLowonganBerlangsung, totalLowonganSelesai } = lowongan.reduce(
+    (acc, job) => {
+      if (job.status == true) {
+        acc.totalLowonganBerlangsung += 1;
+      } else if (job.status == false) {
+        acc.totalLowonganSelesai += 1;
+      }
+      return acc;
+    },
+    { totalLowonganBerlangsung: 0, totalLowonganSelesai: 0 }
+  );
+
   useEffect(() => {
     GetData();
   }, []);
@@ -38,7 +50,7 @@ export default function Lowongan() {
     {
       id: 1,
       title: "Total Lowongan",
-      count: 20,
+      count: lowongan.length,
       color: "orange",
       iconType: "people",
       chartData: [10, 12, 15, 14, 16, 17, 18, 20],
@@ -46,7 +58,7 @@ export default function Lowongan() {
     {
       id: 2,
       title: "Total Lowongan Berlangsung",
-      count: 105,
+      count: totalLowonganBerlangsung,
       color: "yellow",
       iconType: "chart",
       chartData: [5, 7, 10, 12, 13, 15, 14, 15],
@@ -54,7 +66,7 @@ export default function Lowongan() {
     {
       id: 3,
       title: "Total Lowongan Selesai",
-      count: 5,
+      count: totalLowonganSelesai,
       color: "blue",
       iconType: "document",
       chartData: [2, 3, 3, 4, 4, 5, 5, 5],
@@ -183,7 +195,7 @@ export default function Lowongan() {
                               : "bg-emerald-100 text-emerald-500"
                           }`}
                         >
-                          {job.status === 0 ? "Selsai" : "Berlangsung"}
+                          {job.status === 0 ? "Selesai" : "Berlangsung"}
                         </span>
                         <ChevronRight
                           onClick={() => handleChevronClick(job.id)}
