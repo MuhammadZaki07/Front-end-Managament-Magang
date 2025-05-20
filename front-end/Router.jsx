@@ -44,7 +44,7 @@ import PiketPeserta from "./src/pages/student/piket";
 import Vacancy from "./src/pages/Vacancy";
 import Presentasi from "./src/pages/student/Presentasi";
 import DetailPresentasi from "./src/pages/student/DetailPresentasi";
-import RiwayatPresentasi from "./src/pages/student/RiwayatPresentasi";
+import RiwayatPresentasi2 from "./src/pages/student/RiwayatPresentasi2";
 import SelectAuth from "./src/pages/Auth/SelectAuth";
 import GoogleSuccess from "./src/pages/Auth/GoogleSuccess";
 import ForgotPassword from "./src/pages/Auth/ForgotPasword";
@@ -60,6 +60,8 @@ import Jamkantor from "./src/pages/perusahaan/Jam-kantor";
 import VacancyDetails from "./src/pages/VacancyDetails";
 import SettingPeserta from "./src/pages/student/SettingPeserta";
 import DetailProjectPage from "./src/pages/student/DetailProjectPage";
+import Presentasi2 from "./src/pages/student/Presentasi2";
+import TrackRecordSiswa from "./src/pages/mentor/DetailPresentasi";
 
 export const router = createBrowserRouter([
   {
@@ -117,12 +119,16 @@ export const router = createBrowserRouter([
         element: <Presentasi />,
       },
       {
+        path: "presentasi2",
+        element: <Presentasi2 />,
+      },
+      {
         path: "detail-presentasi",
         element: <DetailPresentasi />,
       },
       {
         path: "riwayat-presentasi",
-        element: <RiwayatPresentasi />,
+        element: <RiwayatPresentasi2 />,
       },
       {
         path: "settings",
@@ -161,6 +167,10 @@ export const router = createBrowserRouter([
       {
         path: "online",
         element: <OnlinePresentasi />,
+      },
+      {
+        path: "track-record/:id",
+        element: <TrackRecordSiswa />,
       },
     ],
   },

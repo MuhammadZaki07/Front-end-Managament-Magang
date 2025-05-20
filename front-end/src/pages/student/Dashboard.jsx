@@ -9,6 +9,8 @@ import RevisionCard from "../../components/cards/RevisionCard";
 import ProjectStats from "../../components/charts/ProjectStats";
 import { Link, useLocation } from "react-router-dom";
 import PresentationCard from "../../components/cards/PresentationCard";
+import RiwayatProject from "../../components/cards/RiwayatProject";
+import ProjectBerjalan from "../../components/cards/ProjectBerjalan";
 import axios from "axios";
 
 const Dashboard = () => {
@@ -93,6 +95,12 @@ const Dashboard = () => {
     { title: "Revisi Controller", desc: "Due in 9 days" },
     { title: "Revisi Bahasa", desc: "Due in 9 days" },
   ];
+  const dataMagangBerlangsung = {
+  companyName: "PT. HUMMA TEKNOLOGI INDONESIA",
+  position: "Web Developer",
+  logo: "/assets/img/Cover.png",
+};
+
 
   const presentations = [
     {
@@ -176,36 +184,24 @@ const Dashboard = () => {
               <StaticJurnal />
             </Card>
             <Card>
-              <div className="flex justify-between items-center mb-4">
-                <Title className="ml-3">Riwayat Presentasi</Title>
-                <Link to={`#`} className="text-blue-500 text-sm mr-3">
-                  See All
-                </Link>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {presentations.map((item, index) => (
-                  <PresentationCard key={index} item={item} />
-                ))}
-              </div>
+              <RiwayatProject/>
             </Card>
           </div>
           <div className="flex-[3] flex-col gap-5">
-            <div className="bg-white w-full rounded-lg py-3 text-blue-400 text-sm text-center">
-              Anda Sedang magang di Perusahaan Informatika Divisi Frontend
-              Developer
-            </div>
+            <div className="flex items-center p-3 bg-white rounded-lg shadow-sm">
+  <div className="flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full mr-4 overflow-hidden">
+    <img src={dataMagangBerlangsung.logo} alt="Company Logo" className="w-full h-full object-cover" />
+  </div>
+  <div>
+    <h2 className="text-[#0069AB] font-bold text-lg">MAGANG BERLANGSUNG</h2>
+    <h3 className="text-black font-semibold text-sm">{dataMagangBerlangsung.companyName}</h3>
+    <p className="text-black text-sm">{dataMagangBerlangsung.position}</p>
+  </div>
+</div>
+
             <Calendar />
             <Card className="mt-3">
-              <Title className="ml-1">Revisi</Title>
-              <div className="flex flex-col">
-                {dataRevision.map((item, i) => (
-                  <RevisionCard
-                    key={i + 1}
-                    desc={item.desc}
-                    title={item.title}
-                  />
-                ))}
-              </div>
+              <ProjectBerjalan/>
             </Card>
             <Card className="px-0 py-2 mb-3">
               <div className="border-b border-slate-400/[0.5] py-3">

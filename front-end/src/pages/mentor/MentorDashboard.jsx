@@ -8,6 +8,7 @@ import EventsSection from "../../components/cards/EventSection";
 import TahapCard from "../../components/cards/TahapCards";
 import Card from "../../components/cards/Card";
 import Title from "../../components/Title";
+import StudentsList from "../../components/cards/StudentList";
 
 const MentorDashboard = () => {
   return (
@@ -16,7 +17,7 @@ const MentorDashboard = () => {
       <div className="w-full mb-5">
         <GreetingsBox />
       </div>
-      <div className="w-full mb-5">
+      <div className="w-full">
         <TahapCard />
       </div>
       
@@ -28,16 +29,13 @@ const MentorDashboard = () => {
         </div>
         
         {/* Kalender + Events Section di Kanan */}
-        <div className="flex-[3] flex flex-col gap-5 h-full">
-          <Card className="px-4 py-4 flex-1 h-full">
+        <div className="flex-[3] flex flex-col gap-5 h-full mt-5">
+          <Card className="px-1 py-1 flex-1 h-full">
             <EventsSection />
           </Card>
           
-          <Card className="px-0 py-2 mb-3 flex-1 h-full">
-            <div className="border-b border-slate-400/[0.5] py-3">
-              <Title className="ml-5 text-xl font-semibold">Most Activity</Title>
-            </div>
-            <ActivityChart />
+          <Card className="px-2 py-2 mb-3 flex-1 h-full">
+            <StudentsList />
           </Card>
         </div>
       </div>

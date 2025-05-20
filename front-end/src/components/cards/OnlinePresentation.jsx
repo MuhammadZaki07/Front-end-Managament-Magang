@@ -4,64 +4,53 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import './calendar-custom.css'
+import TambahJadwalPresentasi from '../../components/modal/TambahJadwalPresentasi'
+import DetailsPresentasi from '../../components/modal/DetailsPresentasi'
 
 const Calendar = () => {
   const [view, setView] = useState('month')
   const [currentDate, setCurrentDate] = useState(new Date())
   const calendarRef = useRef(null)
   
-  // Modal state and animation
-  const [showModal, setShowModal] = useState(false)
-  const [animateModal, setAnimateModal] = useState(false)
-  const [selectedStatus, setSelectedStatus] = useState('')
-  const [formData, setFormData] = useState({
-    title: '',
-    quota: '',
-    startTime: '',
-    endTime: '',
-    zoomLink: '',
-    location: ''
-  })
-  
-  // Detail modal state
+  // Modal state
+  const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
-  const [animateDetailModal, setAnimateDetailModal] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState(null)
   
   // Sample participants data
   const sampleParticipants = [
     [
-      { id: 1, name: 'Budi Santoso', email: 'budi.s@example.com', status: 'hadir' },
-      { id: 2, name: 'Dewi Lestari', email: 'dewi.l@example.com', status: 'hadir' },
-      { id: 3, name: 'Eko Prasetyo', email: 'eko.p@example.com', status: 'tidak hadir' }
+      { id: 1, name: 'Budi Santoso', photo: '/assets/img/Profil.png', projectStage: 'Tahap 1', status: 'hadir' },
+      { id: 2, name: 'Dewi Lestari', photo: '/assets/img/Profil.png', projectStage: 'Tahap 1', status: 'hadir' },
+      { id: 3, name: 'Eko Prasetyo', photo: '/assets/img/Profil.png', projectStage: 'Tahap 1', status: 'tidak hadir' }
     ],
     [
-      { id: 4, name: 'Farida Wijaya', email: 'farida.w@example.com', status: 'hadir' },
-      { id: 5, name: 'Gunawan Hidayat', email: 'gunawan.h@example.com', status: 'hadir' },
-      { id: 6, name: 'Heni Mulyani', email: 'heni.m@example.com', status: 'tidak hadir' },
-      { id: 7, name: 'Indra Kusuma', email: 'indra.k@example.com', status: 'hadir' }
+      { id: 4, name: 'Farida Wijaya', photo: '/assets/img/Profil.png', projectStage: 'Tahap 2', status: 'hadir' },
+      { id: 5, name: 'Gunawan Hidayat', photo: '/assets/img/Profil.png', projectStage: 'Tahap 2', status: 'hadir' },
+      { id: 6, name: 'Heni Mulyani', photo: '/assets/img/Profil.png', projectStage: 'Tahap 2', status: 'tidak hadir' },
+      { id: 7, name: 'Indra Kusuma', photo: '/assets/img/Profil.png', projectStage: 'Tahap 2', status: 'hadir' }
     ],
     [
-      { id: 8, name: 'Joko Widodo', email: 'joko.w@example.com', status: 'hadir' },
-      { id: 9, name: 'Kartika Sari', email: 'kartika.s@example.com', status: 'hadir' }
+      { id: 8, name: 'Joko Widodo', photo: '/assets/img/Profil.png', projectStage: 'Tahap 3', status: 'hadir' },
+      { id: 9, name: 'Kartika Sari', photo: '/assets/img/Profil.png', projectStage: 'Tahap 3', status: 'hadir' }
     ],
     [
-      { id: 10, name: 'Lisa Permata', email: 'lisa.p@example.com', status: 'hadir' },
-      { id: 11, name: 'Maman Suryaman', email: 'maman.s@example.com', status: 'tidak hadir' },
-      { id: 12, name: 'Novi Susanti', email: 'novi.s@example.com', status: 'hadir' },
-      { id: 13, name: 'Oki Setiawan', email: 'oki.s@example.com', status: 'hadir' },
-      { id: 14, name: 'Putri Rahayu', email: 'putri.r@example.com', status: 'hadir' }
+      { id: 10, name: 'Lisa Permata', photo: '/assets/img/Profil.png', projectStage: 'Tahap 4', status: 'hadir' },
+      { id: 11, name: 'Maman Suryaman', photo: '/assets/img/Profil.png', projectStage: 'Tahap 4', status: 'tidak hadir' },
+      { id: 12, name: 'Novi Susanti', photo: '/assets/img/Profil.png', projectStage: 'Tahap 4', status: 'hadir' },
+      { id: 13, name: 'Oki Setiawan', photo: '/assets/img/Profil.png', projectStage: 'Tahap 4', status: 'hadir' },
+      { id: 14, name: 'Putri Rahayu', photo: '/assets/img/Profil.png', projectStage: 'Tahap 4', status: 'hadir' }
     ],
     [
-      { id: 15, name: 'Ratu Maharani', email: 'ratu.m@example.com', status: 'hadir' },
-      { id: 16, name: 'Surya Darma', email: 'surya.d@example.com', status: 'tidak hadir' }
+      { id: 15, name: 'Ratu Maharani', photo: '/assets/img/Profil.png', projectStage: 'Tahap 5', status: 'hadir' },
+      { id: 16, name: 'Surya Darma', photo: '/assets/img/Profil.png', projectStage: 'Tahap 5', status: 'tidak hadir' }
     ],
     [
-      { id: 17, name: 'Tono Sucipto', email: 'tono.s@example.com', status: 'hadir' },
-      { id: 18, name: 'Umi Kaltsum', email: 'umi.k@example.com', status: 'hadir' },
-      { id: 19, name: 'Vina Panduwinata', email: 'vina.p@example.com', status: 'tidak hadir' }
+      { id: 17, name: 'Tono Sucipto', photo: '/assets/img/Profil.png', projectStage: 'Tahap 6', status: 'hadir' },
+      { id: 18, name: 'Umi Kaltsum', photo: '/assets/img/Profil.png', projectStage: 'Tahap 6', status: 'hadir' },
+      { id: 19, name: 'Vina Panduwinata', photo: '/assets/img/Profil.png', projectStage: 'Tahap 6', status: 'tidak hadir' }
     ]
-  ]
+  ];
   
   // Sample events with colors based on status
   const [events, setEvents] = useState([
@@ -234,57 +223,15 @@ const Calendar = () => {
   const handleEventClick = (clickInfo) => {
     setSelectedEvent(clickInfo.event)
     setShowDetailModal(true)
-    // Use setTimeout to allow the modal to render before animating
-    setTimeout(() => {
-      setAnimateDetailModal(true)
-    }, 10)
   }
 
-  // Modal handlers
+  // Handle add new event
   const handleAddEvent = () => {
-    setShowModal(true)
-    // Use setTimeout to allow the modal to render before animating
-    setTimeout(() => {
-      setAnimateModal(true)
-    }, 10)
+    setShowAddModal(true)
   }
   
-  const closeModal = () => {
-    setAnimateModal(false)
-    setTimeout(() => {
-      setShowModal(false)
-      // Reset form data
-      setFormData({
-        title: '',
-        quota: '',
-        startTime: '',
-        endTime: '',
-        zoomLink: '',
-        location: ''
-      })
-      setSelectedStatus('')
-    }, 300) // Match the duration of the transition
-  }
-  
-  const closeDetailModal = () => {
-    setAnimateDetailModal(false)
-    setTimeout(() => {
-      setShowDetailModal(false)
-      setSelectedEvent(null)
-    }, 300) // Match the duration of the transition
-  }
-  
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-  
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    
+  // Handle add event form submission
+  const handleAddEventSubmit = (eventData) => {
     // Get current date from calendar
     const calendarApi = calendarRef.current.getApi()
     const currentDate = calendarApi.getDate()
@@ -295,7 +242,7 @@ const Calendar = () => {
     // Set the background and text colors based on the selected status
     let backgroundColor, textColor, borderColor
     
-    if (selectedStatus === 'online') {
+    if (eventData.status === 'online') {
       backgroundColor = '#FEF9C3' // Yellow for online
       textColor = '#CA8A04'
       borderColor = '#FEF9C3'
@@ -307,18 +254,18 @@ const Calendar = () => {
     
     // Create the new event
     const newEvent = {
-      title: formData.title,
+      title: eventData.title,
       start: formattedDate,
       backgroundColor,
       textColor,
       borderColor,
       extendedProps: {
-        status: selectedStatus,
-        quota: formData.quota,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        zoomLink: formData.zoomLink,
-        location: formData.location,
+        status: eventData.status,
+        quota: eventData.quota,
+        startTime: eventData.startTime,
+        endTime: eventData.endTime,
+        zoomLink: eventData.zoomLink,
+        location: eventData.location,
         participants: [] // Start with empty participants list
       }
     }
@@ -329,16 +276,31 @@ const Calendar = () => {
     console.log('New event added:', newEvent)
     
     // Close the modal
-    closeModal()
+    setShowAddModal(false)
   }
 
-  // Format date for display
-  const formatDate = (dateStr) => {
-    if (!dateStr) return ''
-    const date = new Date(dateStr)
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
-    return new Intl.DateTimeFormat('id-ID', options).format(date)
-  }
+  // Toggle attendance status for participants
+  const toggleAttendanceStatus = (eventId, participantId, newStatus) => {
+    setEvents(prevEvents => {
+      return prevEvents.map(event => {
+        if (event === eventId) {
+          return {
+            ...event,
+            extendedProps: {
+              ...event.extendedProps,
+              participants: event.extendedProps.participants.map(participant => {
+                if (participant.id === participantId) {
+                  return { ...participant, status: newStatus };
+                }
+                return participant;
+              })
+            }
+          };
+        }
+        return event;
+      });
+    });
+  };
 
   return (
     <div className="calendar-wrapper">
@@ -413,281 +375,21 @@ const Calendar = () => {
         />
       </div>
       
-      {/* Modal for adding event - Fixed the duplicate modal wrapper */}
-      {showModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50">
-          <div
-            className={`bg-white w-full max-w-3xl rounded-2xl p-6 transition-all duration-300 transform ${
-              animateModal ? "scale-100 opacity-100" : "scale-95 opacity-0"
-            }`}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Tambah Jadwal Presentasi</h3>
-              <button 
-                onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form className="space-y-4 text-sm" onSubmit={handleSubmit}>
-              <div>
-                <label className="block font-medium">
-                  Judul Presentasi <span className="text-red-500">(Required)</span>
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  placeholder="Judul Presentasi"
-                  className="w-full border border-[#D5DBE7] rounded-lg p-2 mt-1"
-                  maxLength={100}
-                  required
-                />
-                <p className="text-right text-xs text-gray-500 mt-1">
-                  {formData.title.length} / 100
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-medium">Kuota</label>
-                  <input
-                    type="number"
-                    name="quota"
-                    value={formData.quota}
-                    onChange={handleInputChange}
-                    className="w-full border border-[#D5DBE7] rounded-lg p-2"
-                    placeholder="Masukkan Kuota"
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium">Status Presentasi</label>
-                  <select 
-                    className="w-full border border-[#D5DBE7] rounded-lg p-2"
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    value={selectedStatus}
-                  >
-                    <option value="">Pilih status presentasi</option>
-                    <option value="online">Online</option>
-                    <option value="offline">Offline</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-medium">Jam Presentasi</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="time"
-                      name="startTime"
-                      value={formData.startTime}
-                      onChange={handleInputChange}
-                      className="w-full border border-[#D5DBE7] rounded-lg p-2"
-                    />
-                    <span className="self-center">-</span>
-                    <input
-                      type="time"
-                      name="endTime"
-                      value={formData.endTime}
-                      onChange={handleInputChange}
-                      className="w-full border border-[#D5DBE7] rounded-lg p-2"
-                    />
-                  </div>
-                </div>
-                
-                {/* Conditional rendering based on selected status */}
-                {selectedStatus === "online" && (
-                  <div>
-                    <label className="block font-medium">Link Zoom</label>
-                    <input
-                      type="text"
-                      name="zoomLink"
-                      value={formData.zoomLink}
-                      onChange={handleInputChange}
-                      className="w-full border border-[#D5DBE7] rounded-lg p-2"
-                      placeholder="Masukkan Link Zoom"
-                    />
-                  </div>
-                )}
-                
-                {selectedStatus === "offline" && (
-                  <div>
-                    <label className="block font-medium">Lokasi</label>
-                    <input
-                      type="text"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleInputChange}
-                      className="w-full border border-[#D5DBE7] rounded-lg p-2"
-                      placeholder="Masukkan Lokasi"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end gap-2 mt-6">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 text-sm rounded-full border border-blue-500 text-blue-500 hover:bg-blue-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm rounded-full bg-blue-500 text-white hover:bg-blue-600"
-                >
-                  Continue
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Add Event Modal */}
+      <TambahJadwalPresentasi 
+        show={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddEventSubmit}
+      />
       
-      {/* Modal for event details */}
-      {showDetailModal && selectedEvent && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50">
-          <div
-            className={`bg-white w-full max-w-4xl rounded-2xl p-5 transition-all duration-300 transform ${
-              animateDetailModal ? "scale-100 opacity-100" : "scale-95 opacity-0"
-            }`}
-          >
-            <div className="flex justify-between items-center mb-7">
-              <h3 className="text-lg font-semibold">Detail Jadwal Presentasi</h3>
-              <button 
-                onClick={closeDetailModal}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="space-y-6">
-              {/* Basic info */}
-              <div className="flex flex-col md:flex-row justify-evenly items-start md:items-center">
-                <div className="space-y-4 w-full md:w-1/2 mb-4 md:mb-0">
-                  <div>
-                    <h4 className="font-medium text-gray-600">Judul Presentasi</h4>
-                    <p className="text-lg">{selectedEvent.title}</p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-medium text-gray-600">Tanggal</h4>
-                      <p>{formatDate(selectedEvent.startStr)}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-600">Status</h4>
-                      <div className="flex items-center">
-                        <span 
-                          className={`inline-block w-3 h-3 rounded-full mr-2 ${
-                            selectedEvent.extendedProps.status === 'online' 
-                              ? 'bg-yellow-400' 
-                              : 'bg-blue-500'
-                          }`}
-                        ></span>
-                        <span className="capitalize">{selectedEvent.extendedProps.status}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-medium text-gray-600">Waktu</h4>
-                      <p>{selectedEvent.extendedProps.startTime} - {selectedEvent.extendedProps.endTime}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-600">Kuota</h4>
-                      <p>{selectedEvent.extendedProps.quota} peserta</p>
-                    </div>
-                  </div>
-                  
-                  {selectedEvent.extendedProps.status === 'online' && (
-                    <div>
-                      <h4 className="font-medium text-gray-600">Link Zoom</h4>
-                      <a 
-                        href={selectedEvent.extendedProps.zoomLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline"
-                      >
-                        {selectedEvent.extendedProps.zoomLink}
-                      </a>
-                    </div>
-                  )}
-                  
-                  {selectedEvent.extendedProps.status === 'offline' && (
-                    <div>
-                      <h4 className="font-medium text-gray-600">Lokasi</h4>
-                      <p>{selectedEvent.extendedProps.location}</p>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Participants list */}
-                <div className="w-full md:w-1/2">
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-medium text-gray-600">Daftar Peserta</h4>
-                    <div className="text-sm">
-                      <span className="font-medium">{selectedEvent.extendedProps.participants ? selectedEvent.extendedProps.participants.length : 0}</span>
-                      <span className="text-gray-500"> / {selectedEvent.extendedProps.quota}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="border border-gray-200 rounded-lg max-h-80 w-full overflow-y-auto">
-                    {selectedEvent.extendedProps.participants && selectedEvent.extendedProps.participants.length > 0 ? (
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50 sticky top-0">
-                          <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {selectedEvent.extendedProps.participants.map((participant) => (
-                            <tr key={participant.id}>
-                              <td className="px-4 py-2 whitespace-nowrap">{participant.name}</td>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{participant.email}</td>
-                              <td className="px-4 py-2 whitespace-nowrap">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                  participant.status === 'hadir' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                  {participant.status === 'hadir' ? 'Hadir' : 'Tidak Hadir'}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <div className="p-4 text-center text-gray-500">
-                        Belum ada peserta yang terdaftar
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                type="button"
-                onClick={closeDetailModal}
-                className="px-4 py-2 text-sm rounded-full bg-blue-500 text-white hover:bg-blue-600"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Event Detail Modal */}
+      {selectedEvent && (
+        <DetailsPresentasi
+          show={showDetailModal}
+          onClose={() => setShowDetailModal(false)}
+          event={selectedEvent}
+          onToggleAttendance={toggleAttendanceStatus}
+        />
       )}
     </div>
   )
