@@ -34,12 +34,13 @@ export default function ApprovalTable() {
         return "diterima";
       case "rejected":
         return "ditolak";
-      case "blocked":
-        return "diblokir";
       default:
         return frontendStatus;
     }
   };
+
+  console.log(dataIzin);
+  
 
   const FileIcon = () => (
     <svg
@@ -149,12 +150,14 @@ export default function ApprovalTable() {
   const handleIndividualAction = async (itemId, frontendActionStatus, type) => {
     const apiActionStatus = mapFrontendStatusToApi(frontendActionStatus);
     let url = "";
-    const payload = { status: apiActionStatus };
+    let payload = "";
 
     if (type === "pendaftaran") {
       url = `${API_BASE_URL}/magang/${itemId}`;
+      payload = { status: apiActionStatus };
     } else if (type === "izin") {
       url = `${API_BASE_URL}/izin/${itemId}`;
+      payload = { status_izin: apiActionStatus };
     } else {
       console.error("Tipe aksi individual tidak diketahui");
       return;
@@ -196,11 +199,12 @@ export default function ApprovalTable() {
         setDataIzin((prevData) =>
           prevData.map((item) =>
             item.id === itemId
-              ? { ...item, approvalStatus: frontendActionStatus }
+              ? { ...item, status: frontendActionStatus }
               : item
           )
         );
       }
+      
 
      fetchDataPendaftaran()
      fetchDataIzin()
@@ -336,22 +340,16 @@ export default function ApprovalTable() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "approved": // Frontend status
+      case "diterima": // Frontend status
         return (
           <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
             Disetujui
           </span>
         );
-      case "rejected": // Frontend status
+      case "ditolak": // Frontend status
         return (
           <span className="px-2 py-1 rounded-full bg-red-100 text-red-800 text-xs font-medium">
             Ditolak
-          </span>
-        );
-      case "blocked": // Frontend status
-        return (
-          <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-medium">
-            Diblokir
           </span>
         );
       default: // Biasanya "pending" atau status awal dari API
@@ -1091,28 +1089,28 @@ export default function ApprovalTable() {
                 <div className="mt-4 space-y-4">
                   <div>
                     <label className="block text-gray-500 text-sm">Nama</label>
-                    <div>{selectedItem.nama}</div>
+                    <div>{selectedItem.peserta.nama}</div>
                   </div>
 
                   <div>
                     <label className="block text-gray-500 text-sm">
                       Tanggal
                     </label>
-                    <div>{selectedItem.tanggalIzin}</div>
+                    <div>{selectedItem.mulai} - {selectedItem.selesai}</div>
                   </div>
 
                   <div>
                     <label className="block text-gray-500 text-sm">
                       Sekolah
                     </label>
-                    <div>{selectedItem.sekolah}</div>
+                    <div>{selectedItem.peserta.sekolah}</div>
                   </div>
 
                   <div>
                     <label className="block text-gray-500 text-sm">
                       Kegiatan
                     </label>
-                    <div>{selectedItem.kegiatan || "Ini Contoh"}</div>
+                    <div>{selectedItem.deskripsi}</div>
                   </div>
 
                   <div>
@@ -1121,37 +1119,76 @@ export default function ApprovalTable() {
                     </label>
                     <div className="mt-2 flex justify-center">
                       {/* Menampilkan gambar bukti kegiatan */}
-                      {selectedItem.buktiKegiatan ? (
+                      
                         <a
-                          href={selectedItem.buktiKegiatan}
+                          href={selectedItem.bukti.path}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
                           <img
-                            src={selectedItem.buktiKegiatan}
+                            src={
+                              selectedItem.bukti.path
+                                ? `http://127.0.0.1:8000/storage/${
+                                    selectedItem.bukti.path
+                                  }`
+                                : "/assets/img/default-avatar.png"
+                            }
                             alt="Bukti Kegiatan"
                             className="max-w-[200px] h-auto rounded-lg"
                           />
                         </a>
-                      ) : (
-                        <div className="mb-2 text-4xl text-gray-600">
-                          <i className="bi bi-file-earmark-arrow-up"></i>
-                        </div>
-                      )}
+                    
+
                     </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end gap-2 mt-6">
-                  <button
-                    className="px-4 py-2 rounded-lg bg-gray-200 text-gray-500"
-                    onClick={closeModal}
-                  >
-                    Tolak
-                  </button>
-                  <button className="px-4 py-2 rounded-lg bg-blue-600 text-white">
-                    Terima
-                  </button>
+                 {/* Tombol Tolak */}
+                <button
+                  className="px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 bg-red-100 text-sm font-medium"
+                  onClick={() => {
+                    Swal.fire({
+                      title: "Apakah Anda yakin?",
+                      text: "Anda akan menolak izin/sakit siswa ini.",
+                      icon: "warning",
+                      showCancelButton: true,
+                      confirmButtonColor: "#d33",
+                      cancelButtonColor: "#aaa",
+                      confirmButtonText: "Ya, Tolak",
+                      cancelButtonText: "Batal",
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        handleIndividualAction(selectedItem.id, "rejected", "izin");
+                      }
+                    });
+                  }}
+                >
+                  Tolak
+                </button>
+
+                {/* Tombol Terima */}
+                <button
+                  className="px-4 py-2 rounded-lg text-green-600 hover:bg-green-50 bg-green-100 text-sm font-medium"
+                  onClick={() => {
+                    Swal.fire({
+                      title: "Apakah Anda yakin?",
+                      text: "Anda akan menerima izin/sakit siswa ini.",
+                      icon: "question",
+                      showCancelButton: true,
+                      confirmButtonColor: "#22c55e",
+                      cancelButtonColor: "#aaa",
+                      confirmButtonText: "Ya, Terima",
+                      cancelButtonText: "Batal",
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        handleIndividualAction(selectedItem.id, "approved", "izin");
+                      }
+                    });
+                  }}
+                >
+                  Terima
+                </button>
                 </div>
               </div>
             </div>
