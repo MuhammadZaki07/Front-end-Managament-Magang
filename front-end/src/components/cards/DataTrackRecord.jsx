@@ -1,21 +1,26 @@
-import { Eye, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 import { CSVLink } from "react-csv";
+// Jika menggunakan React Router, uncomment baris di bawah ini:
+// import { useNavigate } from "react-router-dom";
 
 export default function TrackRecordTable() {
+  // Jika menggunakan React Router, uncomment baris di bawah ini:
+  // const navigate = useNavigate();
+  
   const trackRecordData = [
-    { id: 1, name: "Gojo Satoru", date: "2025-04-01", project: "Mini Project 1", status: "Completed", image: "/assets/img/post1.png" },
-    { id: 2, name: "Nobara Kugisaki", date: "2025-04-02", project: "Mini Project 2", status: "In Progress", image: "/assets/img/post2.png" },
-    { id: 3, name: "Megumi Fushiguro", date: "2025-04-03", project: "Mini Project 3", status: "In Progress", image: "/assets/img/post1.png" },
-    { id: 4, name: "Maki Zenin", date: "2025-04-04", project: "Mini Project 4", status: "Completed", image: "/assets/img/post2.png" },
-    { id: 5, name: "Toge Inumaki", date: "2025-04-05", project: "Mini Project 5", status: "In Progress", image: "/assets/img/post1.png" },
-    { id: 6, name: "Panda", date: "2025-04-06", project: "Mini Project 6", status: "Completed", image: "/assets/img/post2.png" },
-    { id: 7, name: "Yuji Itadori", date: "2025-04-07", project: "Mini Project 7", status: "In Progress", image: "/assets/img/post1.png" },
-    { id: 8, name: "Kento Nanami", date: "2025-04-08", project: "Mini Project 8", status: "Completed", image: "/assets/img/post2.png" },
-    { id: 9, name: "Suguru Geto", date: "2025-04-09", project: "Mini Project 9", status: "In Progress", image: "/assets/img/post1.png" },
-    { id: 10, name: "Yuta Okkotsu", date: "2025-04-10", project: "Mini Project 10", status: "Completed", image: "/assets/img/post2.png" },
-    { id: 11, name: "Shoko Ieiri", date: "2025-04-11", project: "Mini Project 11", status: "In Progress", image: "/assets/img/post1.png" },
-    { id: 12, name: "Choso", date: "2025-04-12", project: "Mini Project 12", status: "Completed", image: "/assets/img/post2.png" },
+    { id: 1, name: "Gojo Satoru", date: "2025-04-01", project: "Mini Project 1", status: "Completed", image: "/api/placeholder/40/40" },
+    { id: 2, name: "Nobara Kugisaki", date: "2025-04-02", project: "Mini Project 2", status: "In Progress", image: "/api/placeholder/40/40" },
+    { id: 3, name: "Megumi Fushiguro", date: "2025-04-03", project: "Mini Project 3", status: "In Progress", image: "/api/placeholder/40/40" },
+    { id: 4, name: "Maki Zenin", date: "2025-04-04", project: "Mini Project 4", status: "Completed", image: "/api/placeholder/40/40" },
+    { id: 5, name: "Toge Inumaki", date: "2025-04-05", project: "Mini Project 5", status: "In Progress", image: "/api/placeholder/40/40" },
+    { id: 6, name: "Panda", date: "2025-04-06", project: "Mini Project 6", status: "Completed", image: "/api/placeholder/40/40" },
+    { id: 7, name: "Yuji Itadori", date: "2025-04-07", project: "Mini Project 7", status: "In Progress", image: "/api/placeholder/40/40" },
+    { id: 8, name: "Kento Nanami", date: "2025-04-08", project: "Mini Project 8", status: "Completed", image: "/api/placeholder/40/40" },
+    { id: 9, name: "Suguru Geto", date: "2025-04-09", project: "Mini Project 9", status: "In Progress", image: "/api/placeholder/40/40" },
+    { id: 10, name: "Yuta Okkotsu", date: "2025-04-10", project: "Mini Project 10", status: "Completed", image: "/api/placeholder/40/40" },
+    { id: 11, name: "Shoko Ieiri", date: "2025-04-11", project: "Mini Project 11", status: "In Progress", image: "/api/placeholder/40/40" },
+    { id: 12, name: "Choso", date: "2025-04-12", project: "Mini Project 12", status: "Completed", image: "/api/placeholder/40/40" },
   ];
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,6 +58,19 @@ export default function TrackRecordTable() {
     { label: "Project", key: "project" },
     { label: "Status", key: "status" },
   ];
+
+  // Fungsi untuk mengarahkan ke halaman detail presentasi
+  const viewDetail = (id) => {
+    // Cara 1: Menggunakan window.location (JavaScript biasa)
+    window.location.href = `/mentor/track-record/${id}`;
+    
+    // Cara 2: Jika menggunakan React Router, uncomment baris di bawah ini dan comment baris di atas
+    // navigate(`/detail-presentasi/${id}`);
+    
+    // Cara 3: Jika menggunakan single page application tanpa router khusus
+    // console.log(`View detail for record with ID: ${id}`);
+    // setSelectedRecordId(id); // Jika menggunakan state untuk menampilkan detail dalam modal atau panel
+  };
 
   return (
     <div className="space-y-4">
@@ -152,8 +170,11 @@ export default function TrackRecordTable() {
                 )}
               </div>
               <div className="w-1/5 flex justify-center">
-                <button className="p-2 rounded-md hover:bg-purple-100 transition-all">
-                  <Eye className="h-5 w-5 text-purple-600" />
+                <button 
+                  onClick={() => viewDetail(record.id)}
+                  className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-all text-xs font-medium"
+                >
+                  Lihat Detail
                 </button>
               </div>
             </div>
