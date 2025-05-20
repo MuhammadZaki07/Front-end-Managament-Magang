@@ -179,11 +179,15 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
   };
 
   useEffect(() => {
+    // This will run once when the component mounts
     checkIsVerived();
-    if (verived){
-      getAllCabang();
-    }
   }, []);
+  
+  useEffect(() => {
+    if (verived){
+    getAllCabang();
+    }
+  }, [verived]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
