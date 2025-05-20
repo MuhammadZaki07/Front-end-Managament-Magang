@@ -5,12 +5,12 @@ import Modal from "../Modal";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../contexts/AuthContext";
 import ModalTambahCabang from "../modal/ModalTambahCabang";
+import Swal from "sweetalert2"; // Import SweetAlert2
 
 const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCabangDropdownOpen, setIsCabangDropdownOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -61,30 +61,73 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
   };
 
   const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+    // Using SweetAlert2 for logout confirmation
+    Swal.fire({
+      title: 'Logout Confirmation',
+      text: 'Are you sure you want to logout?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#e11d48', // Red color for confirm button (tailwind rose-600)
+      cancelButtonColor: '#d1d5db', // Gray color for cancel button (tailwind gray-300)
+      confirmButtonText: 'Yes, Logout',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setIsLoggingOut(true);
+        try {
+          // Show loading state with SweetAlert2
+          Swal.fire({
+            title: 'Logging out...',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+          
+          const response = await axios.post(
+            "http://127.0.0.1:8000/api/logout",
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
 
-      if (response.status === 200) {
-        localStorage.removeItem("token");
-        sessionStorage.removeItem("token");
-        window.location.href = "/auth/login";
-      } else {
-        alert("Logout gagal, coba lagi.");
+          if (response.status === 200) {
+            localStorage.removeItem("token");
+            sessionStorage.removeItem("token");
+            
+            // Show success message before redirecting
+            Swal.fire({
+              title: 'Logout Success!',
+              text: 'You have been logged out successfully',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              window.location.href = "/auth/login";
+            });
+          } else {
+            Swal.fire({
+              title: 'Logout Failed',
+              text: 'Please try again',
+              icon: 'error'
+            });
+          }
+        } catch (error) {
+          console.error("Logout error:", error);
+          Swal.fire({
+            title: 'Logout Failed',
+            text: 'An error occurred during logout',
+            icon: 'error'
+          });
+        } finally {
+          setIsLoggingOut(false);
+        }
       }
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      setIsLoggingOut(false);
-    }
+    });
   };
 
   const handlePremiumClick = () => {
@@ -479,7 +522,7 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
                 <a
                   href="#"
                   className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={handleLogout}
                 >
                   Logout
                 </a>
@@ -488,28 +531,6 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
           )}
         </div>
       </div>
-
-      {/* Logout Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Logout Confirmation"
-      >
-        <div className="flex justify-center items-center gap-4">
-          <button
-            onClick={handleLogout}
-            className="px-4 py-1.5 text-sm hover:bg-rose-400 bg-red-600 text-white rounded-lg"
-          >
-            {isLoggingOut ? "Logging out..." : "Yes, Logout"}
-          </button>
-          <button
-            onClick={() => setIsModalOpen(false)}
-            className="px-4 py-1.5 text-sm bg-gray-300 hover:bg-gray-200 text-gray-800 rounded-lg"
-          >
-            Cancel
-          </button>
-        </div>
-      </Modal>
 
       {/* Premium Modal */}
       <Modal
