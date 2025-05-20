@@ -180,7 +180,9 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
 
   useEffect(() => {
     checkIsVerived();
-    getAllCabang();
+    if (verived){
+      getAllCabang();
+    }
   }, []);
 
   useEffect(() => {
