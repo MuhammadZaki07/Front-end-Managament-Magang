@@ -21,7 +21,6 @@ const TableAbsensi = () => {
           },
         }
       );
-      // console.log(response.data);
       
       // Mengakses data dari struktur response
       const result = response.data.data;
@@ -40,8 +39,8 @@ const TableAbsensi = () => {
           jam_istirahat: item.jam_istirahat || "-",
           jam_kembali: item.jam_kembali || "-",
           jam_pulang: item.jam_pulang || "-",
-          status: item.status_kehadiran === 1 ? "hadir" : "telat",
-          status_kehadiran: item.status_kehadiran === 1 ? "hadir" : "telat"
+          status: item.status_kehadiran === 0 ? "hadir" : "terlambat",
+          status_kehadiran: item.status_kehadiran === 0 ? "hadir" : "terlambat"
         }));
       }
       
