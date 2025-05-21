@@ -13,6 +13,29 @@ export default function DetailMentor() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const refreshStudentsList = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/mentor/${mentorId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      
+      if (response.data?.data?.peserta) {
+        setStudents(response.data.data.peserta);
+      }
+    } catch (error) {
+      console.error("Gagal memuat ulang data siswa:", error);
+      setError("Gagal memperbarui data siswa");
+    }
+  };
+
+  console.log(students);
+  
+
   useEffect(() => {
     const fetchMentorDetails = async () => {
       if (!mentorId) {
@@ -35,33 +58,11 @@ export default function DetailMentor() {
         
         if (mentorResponse.data?.data) {
           setMentor(mentorResponse.data.data);
+          setStudents(mentorResponse.data.data.peserta || []); // Inisialisasi students
         } else {
           console.error("Data mentor kosong dari API");
           setError("Data mentor tidak ditemukan");
         }
-        
-        try {
-          // Fetch mentor's students 
-          const studentsResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/mentor/${mentorId}/students`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-          
-          if (studentsResponse.data?.data) {
-            setStudents(studentsResponse.data.data);
-          } else {
-            // Jika tidak ada data siswa, gunakan data kosong
-            setStudents([]);
-          }
-        } catch (studentError) {
-          console.error("Error mengambil data siswa:", studentError);
-          setStudents([]);
-        }
-        
       } catch (error) {
         console.error("Error mengambil detail mentor:", error);
         setError("Gagal memuat data mentor");
@@ -78,31 +79,11 @@ export default function DetailMentor() {
     }
   }, [mentorId]);
 
-  // Function to refresh students list after successful addition
-  const refreshStudentsList = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/mentor/${mentorId}/students`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      
-      if (response.data?.data) {
-        setStudents(response.data.data);
-      }
-    } catch (error) {
-      console.error("Error refreshing students list:", error);
-    }
-  };
-
   // Filter students based on search term
   const filteredStudents = students.filter(student => 
-    student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.school?.toLowerCase().includes(searchTerm.toLowerCase())
+    student.sekolah?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) return <Loading />;
@@ -217,13 +198,21 @@ export default function DetailMentor() {
                         <td className="py-3 px-4">
                           <div className="flex items-center">
                             <div className="w-8 h-8 bg-gray-200 rounded-full overflow-hidden mr-3">
-                              <img src="/api/placeholder/32/32" alt="Student" className="w-full h-full object-cover" />
+                              {student?.foto?.path? (
+                                <img 
+                                  src={`${import.meta.env.VITE_API_URL_FILE}/storage/${student.foto.path}`}
+                                  alt="Student avatar" 
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <img src="/api/placeholder/100/100" alt="Mentor avatar" className="w-full h-full object-cover" />
+                              )}
                             </div>
-                            <span className="font-medium">{student.name || "N/A"}</span>
+                            <span className="font-medium">{student.nama || "N/A"}</span>
                           </div>
                         </td>
                         <td className="py-3 px-4 text-gray-600">{student.email || "N/A"}</td>
-                        <td className="py-3 px-4 text-gray-600">{student.school || "N/A"}</td>
+                        <td className="py-3 px-4 text-gray-600">{student.sekolah || "N/A"}</td>
                       </tr>
                     ))
                   ) : (
@@ -240,6 +229,7 @@ export default function DetailMentor() {
         </div>
       </div>
 
+      
       {/* Add Student Modal */}
       <AddStudentModal 
         isOpen={isModalOpen}

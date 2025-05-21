@@ -2,29 +2,29 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Select from 'react-select';
 
-export default function AddStudentModal({ isOpen, onClose, mentorId, id_divisi, onSuccess }) {
+export default function AddStudentModal({ isOpen, onClose, mentorId, divisionId, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [students, setStudents] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
-
+  
   useEffect(() => {
     // Reset form when modal is opened
     if (isOpen) {
       setSelectedStudents([]);
       fetchAvailableStudents();
     }
-  }, [isOpen, id_divisi]);
+  }, [isOpen, divisionId]);
 
   const fetchAvailableStudents = async () => {
-    if (!id_divisi) return;
+    if (!divisionId) return;
     
     setLoading(true);
     setError(null);
     
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/peserta-by-divisi/${id_divisi}`,
+        `${import.meta.env.VITE_API_URL}/peserta-by-divisi/${divisionId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -36,9 +36,7 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, id_divisi, 
         // Transform the data for react-select
         const studentOptions = response.data.data.map(student => ({
           value: student.id,
-          label: student.name || student.nama,
-          email: student.email,
-          school: student.school || student.sekolah
+          label: student.nama,
         }));
         
         setStudents(studentOptions);
@@ -66,12 +64,13 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, id_divisi, 
     
     try {
       // Prepare student IDs for submission
+
       const studentIds = selectedStudents.map(student => student.value);
       
       // Post selected students to the mentor
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/mentor/${mentorId}/add-students`,
-        { student_ids: studentIds },
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/set-mentor/${mentorId}`,
+        { pesertas: studentIds },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -79,8 +78,8 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, id_divisi, 
           },
         }
       );
-      
-      if (response.data?.success) {
+
+      if (response.data?.status) {
         onSuccess();
         onClose();
       } else {
@@ -131,7 +130,6 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, id_divisi, 
                 formatOptionLabel={option => (
                   <div className="flex flex-col">
                     <div>{option.label}</div>
-                    <div className="text-xs text-gray-500">{option.email} • {option.school}</div>
                   </div>
                 )}
                 noOptionsMessage={() => "Tidak ada siswa tersedia"}
