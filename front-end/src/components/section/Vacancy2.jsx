@@ -15,20 +15,21 @@ export default function JobListingPage() {
   const jobsPerPage = 8;
   const navigate = useNavigate();
   
+  
   // Fungsi untuk mengformat data lowongan dari API
   const mapJobData = (job) => ({
     id: job.id,
     title: job.divisi?.nama || "-",
     divisiId: job.divisi?.id || null,
     divisiNama: job.divisi?.nama || "-",
-    company: job.perusahaan?.perusahaan?.nama || "PT. HIMIKA TEKNOLOGI INDONESIA",
-    location: job.perusahaan?.perusahaan?.alamat || "Pekanbaru",
+    company: job.perusahaan?.nama || "PT. HIMIKA TEKNOLOGI INDONESIA",
+    location: job.perusahaan?.alamat || "Pekanbaru",
     posted: formatDate(job.tanggal_mulai),
     closing: formatDate(job.tanggal_selesai),
     badge: "Magang",
     applicants: job.total_pendaftar || 0,
-    image: job.perusahaan?.perusahaan?.foto?.find(f => f.type === "profil_cover")?.path
-      ? `${import.meta.env.VITE_API_URL_FILE}/storage/${job.perusahaan?.perusahaan?.foto?.find(f => f.type === "profil_cover")?.path}`
+    image: job.perusahaan?.foto?.find(f => f.type === "profil_cover")?.path
+      ? `${import.meta.env.VITE_API_URL_FILE}/storage/${job.perusahaan?.foto?.find(f => f.type === "profil_cover")?.path}`
       : "/assets/img/Cover.png",
     duration: job.durasi ? `${job.durasi} Bulan` : "6 Bulan"
   });

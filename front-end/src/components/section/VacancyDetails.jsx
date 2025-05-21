@@ -33,7 +33,7 @@ export default function JobVacancyDetail() {
   const DEFAULT_IMAGE = "/assets/img/Cover.png";
 
   const getImagePath = (job, type) => {
-    const path = job?.perusahaan?.perusahaan?.foto?.find((f) => f.type === type)?.path ||
+    const path = job?.perusahaan?.foto?.find((f) => f.type === type)?.path ||
                 job?.cabang?.foto?.find((f) => f.type === type)?.path ||
                 "";
     
@@ -45,12 +45,12 @@ export default function JobVacancyDetail() {
     id: job.id,
     position: job.divisi?.nama || "-",
     company: {
-      name: job.perusahaan?.perusahaan?.nama || "-",
-      location: job.perusahaan?.perusahaan?.alamat || "-",
+      name: job.perusahaan?.nama || "-",
+      location: job.perusahaan?.alamat || "-",
       logo: getImagePath(job, "logo"),
-      email: job.perusahaan?.perusahaan?.email || "-",
-      website: job.perusahaan?.perusahaan?.website || "-",
-      description: job.perusahaan?.perusahaan?.deskripsi || "-",
+      email: job.perusahaan?.email || "-",
+      website: job.perusahaan?.website || "-",
+      description: job.perusahaan?.deskripsi || "-",
     },
     documents: job.dokumen_dibutuhkan || [],
     importantDates: {
@@ -58,8 +58,8 @@ export default function JobVacancyDetail() {
       Pembukaan: job.tanggal_mulai,
       Penutupan: job.tanggal_selesai,
     },
-    requirement: job.syarat?.split("\n") || [],
-    jobdesc: job.fasilitas?.split("\n") || [],
+    requirement: job.requirement?.split("\n") || [],
+    jobdesc: job.jobdesc?.split("\n") || [],
     total_pendaftar: job.total_pendaftar || 0,
     cover: getImagePath(job, "profil_cover"),
   });

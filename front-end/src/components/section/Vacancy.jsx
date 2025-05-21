@@ -34,7 +34,7 @@ export default function JobVacancyLayout() {
 
   const getImagePath = (job, type) => {
     return (
-      job?.perusahaan?.perusahaan?.foto?.find((f) => f.type === type)?.path ||
+      job?.perusahaan?.foto?.find((f) => f.type === type)?.path ||
       job?.cabang?.foto?.find((f) => f.type === type)?.path ||
       ""
     );
@@ -44,15 +44,15 @@ export default function JobVacancyLayout() {
     id: job.id,
     position: job.divisi?.nama || "-",
     company: {
-      name: job.perusahaan?.perusahaan?.nama || "-",
-      location: job.perusahaan?.perusahaan?.alamat || "-",
+      name: job.perusahaan?.nama || "-",
+      location: job.perusahaan?.alamat || "-",
       logo: `${import.meta.env.VITE_API_URL_FILE}/storage/${getImagePath(
         job,
         "logo"
       )}`,
-      email: job.perusahaan?.perusahaan?.email || "-",
-      website: job.perusahaan?.perusahaan?.website || "-",
-      description: job.perusahaan?.perusahaan?.deskripsi || "-",
+      email: job.perusahaan?.email || "-",
+      website: job.perusahaan?.website || "-",
+      description: job.perusahaan?.deskripsi || "-",
     },
     documents: job.dokumen_dibutuhkan || [],
     importantDates: {

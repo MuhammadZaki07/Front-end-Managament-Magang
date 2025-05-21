@@ -18,6 +18,8 @@ const CompanyCard = () => {
   const [animating, setAnimating] = useState(false);
   const [activeMenu, setActiveMenu] = useState("Data Cabang");
 
+  console.log(dataCabang);
+  
   const fetchCabangData = async () => {
     try {
       const res = await axios.get(
