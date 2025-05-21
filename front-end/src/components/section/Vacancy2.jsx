@@ -8,6 +8,10 @@ export default function JobListingPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [jobVacancies, setJobVacancies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [divisions, setDivisions] = useState([]);
+  const [selectedDivisions, setSelectedDivisions] = useState([]);
+  const [filteredJobs, setFilteredJobs] = useState([]);
+  const [showMoreDivisions, setShowMoreDivisions] = useState(false);
   const jobsPerPage = 8;
   const navigate = useNavigate();
   
@@ -15,6 +19,8 @@ export default function JobListingPage() {
   const mapJobData = (job) => ({
     id: job.id,
     title: job.divisi?.nama || "-",
+    divisiId: job.divisi?.id || null,
+    divisiNama: job.divisi?.nama || "-",
     company: job.perusahaan?.perusahaan?.nama || "PT. HIMIKA TEKNOLOGI INDONESIA",
     location: job.perusahaan?.perusahaan?.alamat || "Pekanbaru",
     posted: formatDate(job.tanggal_mulai),
@@ -40,7 +46,7 @@ export default function JobListingPage() {
     return `${day} ${month} ${year}`;
   };
 
-  // Mengambil data lowongan dari API
+  // Mengambil data lowongan dari API dan mengekstrak data divisi
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -51,6 +57,23 @@ export default function JobListingPage() {
         
         const jobs = (data?.data || []).map(mapJobData);
         setJobVacancies(jobs);
+        setFilteredJobs(jobs);
+        
+        // Ekstrak divisi unik dari data lowongan
+        const uniqueDivisions = [];
+        const divisionIds = new Set();
+        
+        jobs.forEach(job => {
+          if (job.divisiId && !divisionIds.has(job.divisiId)) {
+            divisionIds.add(job.divisiId);
+            uniqueDivisions.push({
+              id: job.divisiId,
+              nama: job.divisiNama
+            });
+          }
+        });
+        
+        setDivisions(uniqueDivisions);
       } catch (error) {
         console.error("Gagal memuat data lowongan:", error);
       } finally {
@@ -61,11 +84,41 @@ export default function JobListingPage() {
     fetchJobs();
   }, []);
 
+  // Effect untuk memfilter lowongan berdasarkan divisi yang dipilih
+  useEffect(() => {
+    if (selectedDivisions.length === 0) {
+      setFilteredJobs(jobVacancies);
+    } else {
+      const filtered = jobVacancies.filter(job => 
+        selectedDivisions.includes(job.divisiId)
+      );
+      setFilteredJobs(filtered);
+    }
+    setCurrentPage(1); // Reset ke halaman pertama saat filter berubah
+  }, [selectedDivisions, jobVacancies]);
+
+  // Fungsi untuk mengubah filter divisi
+  const handleDivisionChange = (divisionId) => {
+    setSelectedDivisions(prev => {
+      if (prev.includes(divisionId)) {
+        return prev.filter(id => id !== divisionId);
+      } else {
+        return [...prev, divisionId];
+      }
+    });
+  };
+
+  // Fungsi untuk menerapkan filter
+  const applyFilter = () => {
+    // Filter sudah diterapkan melalui useEffect
+    // Jika dibutuhkan logika tambahan bisa ditambahkan di sini
+  };
+
   // Logic untuk pagination
-  const totalPages = Math.ceil(jobVacancies.length / jobsPerPage);
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-  const currentJobs = jobVacancies.slice(indexOfFirstJob, indexOfLastJob);
+  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
 
   // Fungsi untuk mengganti halaman
   const goToPage = (pageNumber) => {
@@ -103,60 +156,63 @@ export default function JobListingPage() {
             <div className="mb-6">
               <h3 className="font-medium mb-3 text-gray-700">Divisi</h3>
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                  <input type="checkbox" className="h-4 w-4 rounded text-blue-600" />
-                  <span className="text-sm">UI/UX Design</span>
-                </label>
-                <label className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                  <input type="checkbox" className="h-4 w-4 rounded text-blue-600" />
-                  <span className="text-sm">Frontend Developer</span>
-                </label>
-                <label className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                  <input type="checkbox" className="h-4 w-4 rounded text-blue-600" />
-                  <span className="text-sm">Backend Developer</span>
-                </label>
-                <label className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                  <input type="checkbox" className="h-4 w-4 rounded text-blue-600" />
-                  <span className="text-sm">Data Analyst</span>
-                </label>
-                <label className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                  <input type="checkbox" className="h-4 w-4 rounded text-blue-600" />
-                  <span className="text-sm">Finance</span>
-                </label>
+                {loading ? (
+                  <div className="py-2 px-1">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse mb-2"></div>
+                  </div>
+                ) : divisions.length > 0 ? (
+                  <>
+                    {/* Tampilkan 5 divisi pertama */}
+                    {divisions.slice(0, 5).map((division) => (
+                      <label key={division.id} className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
+                        <input 
+                          type="checkbox" 
+                          className="h-4 w-4 rounded text-blue-600" 
+                          checked={selectedDivisions.includes(division.id)}
+                          onChange={() => handleDivisionChange(division.id)}
+                        />
+                        <span className="text-sm">{division.nama}</span>
+                      </label>
+                    ))}
+                    
+                    {/* Menampilkan dropdown "Lainnya" jika ada lebih dari 5 divisi */}
+                    {divisions.length > 5 && (
+                      <div className="mt-1">
+                        <button 
+                          onClick={() => setShowMoreDivisions(!showMoreDivisions)}
+                          className="flex items-center text-gray-700 hover:text-gray-900 text-sm font-medium"
+                        >
+                          Lainnya
+                          <ChevronDown size={16} className={`ml-1 transition-transform ${showMoreDivisions ? 'rotate-180' : ''}`} />
+                        </button>
+                        
+                        {showMoreDivisions && (
+                          <div className="mt-2 pl-2 border-l-2 border-gray-200">
+                            {divisions.slice(5).map((division) => (
+                              <label key={division.id} className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
+                                <input 
+                                  type="checkbox" 
+                                  className="h-4 w-4 rounded text-blue-600" 
+                                  checked={selectedDivisions.includes(division.id)}
+                                  onChange={() => handleDivisionChange(division.id)}
+                                />
+                                <span className="text-sm">{division.nama}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-500">Tidak ada divisi tersedia</p>
+                )}
               </div>
             </div>
-            
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-700">Lokasi</h3>
-                <button className="text-gray-500 hover:text-gray-700">
-                  <ChevronDown size={16} />
-                </button>
-              </div>
-              
-              <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                  <input type="checkbox" className="h-4 w-4 rounded text-blue-600" />
-                  <span className="text-sm">Jakarta</span>
-                </label>
-                <label className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                  <input type="checkbox" className="h-4 w-4 rounded text-blue-600" />
-                  <span className="text-sm">Bandung</span>
-                </label>
-                <label className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                  <input type="checkbox" className="h-4 w-4 rounded text-blue-600" />
-                  <span className="text-sm">Surabaya</span>
-                </label>
-                <label className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                  <input type="checkbox" className="h-4 w-4 rounded text-blue-600" />
-                  <span className="text-sm">Pekanbaru</span>
-                </label>
-              </div>
-            </div>
-            
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium text-sm transition-colors">
-              Terapkan Filter
-            </button>
+        
+            {/* Hapus tombol Terapkan Filter */}
           </div>
           
           {/* Job Listings */}
