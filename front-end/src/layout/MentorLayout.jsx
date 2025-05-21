@@ -1,10 +1,14 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect,useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
+import axios from "axios";
+import Swal from "sweetalert2"; // Import SweetAlert2
+
 
 const MentorLayout = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
   const [isRinging, setIsRinging] = useState(false);
   const [isPresentasiOpen, setIsPresentasiOpen] = useState(false);
 
@@ -12,7 +16,85 @@ const MentorLayout = () => {
   const { role, token } = useContext(AuthContext);
 
   
+  const handleLogout = async () => {
+    // Show SweetAlert confirmation dialog
+    const result = await Swal.fire({
+      title: 'Konfirmasi Logout',
+      text: 'Apakah Anda yakin ingin keluar dari akun?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626', // red-600
+      cancelButtonColor: '#6b7280', // gray-500
+      confirmButtonText: 'Ya, Logout',
+      cancelButtonText: 'Batal',
+      reverseButtons: true,
+      customClass: {
+        popup: 'font-sans',
+        title: 'text-lg font-semibold',
+        content: 'text-sm text-gray-600',
+        confirmButton: 'font-medium',
+        cancelButton: 'font-medium'
+      }
+    });
 
+    // If user confirmed logout
+    if (result.isConfirmed) {
+      // Show loading alert
+      Swal.fire({
+        title: 'Logging out...',
+        text: 'Mohon tunggu sebentar',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/logout`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          localStorage.removeItem("token");
+          sessionStorage.removeItem("token");
+          
+          // Show success message before redirect
+          await Swal.fire({
+            title: 'Logout Berhasil!',
+            text: 'Anda telah berhasil keluar dari akun',
+            icon: 'success',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK',
+            timer: 1500,
+            timerProgressBar: true
+          });
+
+          window.location.href = "/auth/login";
+        } else {
+          throw new Error('Logout failed');
+        }
+      } catch (error) {
+        console.error("Logout error:", error);
+        
+        // Show error message
+        Swal.fire({
+          title: 'Logout Gagal!',
+          text: 'Terjadi kesalahan saat logout. Silakan coba lagi.',
+          icon: 'error',
+          confirmButtonColor: '#3085d6',
+          confirmButtonText: 'OK'
+        });
+      }
+    }
+  };
   const sidebarMenus = [
     { icon: "bi-grid", label: "Dashboard", link: "/mentor/dashboard" },
     {
@@ -140,18 +222,24 @@ const MentorLayout = () => {
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
                   <div className="py-2">
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    <Link
+                      to="/mentor/setting-mentor"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                      onClick={() => setIsDropdownOpen(false)}
                     >
-                      Menu 1
-                    </a>
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      <i className="bi bi-gear mr-2 text-sm"></i>
+                      Settings
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
-                      Menu 2
-                    </a>
+                      <i className="bi bi-box-arrow-right mr-2 text-sm"></i>
+                      Logout
+                    </button>
                   </div>
                 </div>
               )}

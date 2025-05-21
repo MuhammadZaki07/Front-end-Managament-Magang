@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2"; // Make sure to import SweetAlert
 
 const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
   const [showModal, setShowModal] = useState(false);
-
+  
   // Handle ESC key
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -10,21 +11,46 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
         onClose();
       }
     };
-
+    
     if (isOpen) {
       setShowModal(true);
       window.addEventListener("keydown", handleKeyDown);
     } else {
       setShowModal(false);
     }
-
+    
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
-
+  
   if (!isOpen) return null;
-
+  
+  // Define header background color based on status
+  const headerBgColor = data?.status === "Selesai" ? "bg-white-100" : "bg-white-100";
+  
+  const handleApplyClick = () => {
+    // Close the current modal first
+    onClose();
+    
+    // Show SweetAlert success message
+    Swal.fire({
+      title: 'Presentasi berhasil dipilih',
+      text: 'lihat detail presentasi',
+      icon: 'success',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Lihat',
+      cancelButtonText: 'Tutup'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Navigate to riwayat-presentasi page when "Lihat" is clicked
+        window.location.href = '/peserta/riwayat-presentasi';
+      }
+    });
+  };
+  
   return (
     <div
       className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]"
@@ -32,72 +58,69 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`bg-white w-[550px] rounded-xl overflow-hidden shadow-lg relative transform transition-all duration-300 ${
+        className={`bg-white w-full max-w-lg rounded-xl overflow-hidden shadow-lg relative transform transition-all duration-300 ${
           showModal ? "translate-y-0 opacity-100" : "-translate-y-10 opacity-0"
         }`}
       >
         {/* HEADER */}
-        <div className="relative bg-blue-200">
-          <img
-            src="/assets/img/banner/BannerModalApplyPresentation.png"
-            alt="Banner"
-            className="object-cover mx-auto"
-          />
-          {/* Avatar di bawah banner */}
-          <div className="absolute left-20 -bottom-14 transform -translate-x-1/2 z-10">
-            <img
-              src="/assets/img/user-img.png"
-              className="w-28 h-28 rounded-full object-cover shadow-md"
-              alt="Avatar"
+        <div className={`relative ${headerBgColor}`}>
+          {/* Title with high z-index to ensure visibility */}
+          <div className="h-32 flex items-left justify-left relative z-20 mt-10 ml-5">
+            <h2 className="text-3xl font-bold text-black">{data?.title || "Presentasi Offline"}</h2>
+          </div>
+          
+          {/* Background image at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 z-10">
+            <img 
+              src={data?.status === "Selesai" ? "/assets/svg/Selesai (2).svg" : "/assets/svg/BackgroundPresentasi.svg"} 
+              alt="Presentation background" 
+              className="w-full h-auto"
             />
           </div>
         </div>
-
+        
         {/* CONTENT */}
-        <div className="pt-20 px-8 pb-6">
-          <h2 className="text-2xl font-semibold text-left mb-2">
-            {data?.title}
-          </h2>
-          <p className="text-gray-500">Persiapkan dirimu untuk mengikuti presentasi!</p>
-
-          <div className="space-y-4 py-10">
-            <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-500">
-                Hari dan Tanggal
-              </span>
-              <span className="text-sm">{data?.date}</span>
+        <div className="px-8 pb-6 pt-6">
+          <div className="flex items-center mb-4">
+            <div className={`${
+              data?.status === "Selesai" 
+                ? "bg-[#83FFB1] text-black" 
+                : "bg-[#FFE0CB] text-black"
+              } px-4 py-1 rounded-full mr-auto text-sm`}>
+              {data?.status || "Dijadwalkan"}
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm font-medium text-gray-500">
-                Waktu dan Durasi
-              </span>
-              <span className="text-sm">{data?.time}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-gray-500 mb-1">
-                Project
-              </label>
-              <select className="bg-white rounded-lg border text-sm border-slate-300/[0.8] py-2 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 peer">
-                <option value="">-- Pilih Project --</option>
-                <option value="project-1">Project 1</option>
-                <option value="project-2">Project 2</option>
-                <option value="project-3">Project 3</option>
-              </select>
+            <div className="flex items-center text-gray-600">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              </svg>
+              <span className="text-base font-medium">{data?.applicants || 0} orang</span>
             </div>
           </div>
-
-          {/* ACTION */}
-          <div className="flex justify-end mt-6">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 mr-2 text-sm text-gray-600 hover:text-red-500"
-            >
-              Batal
-            </button>
-            <button className="px-5 py-2 bg-sky-800 text-white text-sm rounded-lg hover:bg-sky-700 transition">
-              Apply
-            </button>
+          
+          <div className="border-t border-gray-200 my-4"></div>
+          
+          <div className="flex flex-wrap mb-6">
+            <div className="w-1/2 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+              </svg>
+              <span>{data?.date || "Tanggal belum tersedia"}</span>
+            </div>
+            <div className="w-1/2 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              </svg>
+              <span>{data?.time || "Waktu belum tersedia"}</span>
+            </div>
           </div>
+          
+          {/* Apply Button - now triggers SweetAlert */}
+          <button 
+            onClick={handleApplyClick}
+            className="w-full py-3 border border-[#0069AB] text-[#0069AB] hover:bg-[#0069AB] hover:text-white transition-colors duration-200 rounded-lg"
+          >
+            Apply Presentation
+          </button>
         </div>
       </div>
     </div>
