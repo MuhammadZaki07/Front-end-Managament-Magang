@@ -279,7 +279,7 @@ export default function DivisiBranchCard() {
         )}
       </div>
 
-      <Penempatan />
+      {/* <Penempatan /> */}
 
       <ModalDivisi
         showModal={showModal}
@@ -290,11 +290,11 @@ export default function DivisiBranchCard() {
         }}
       />
 
-      <TempatkanModal
+      {/* <TempatkanModal
         isOpen={isTempatkanModalOpen}
         onClose={() => setIsTempatkanModalOpen(false)}
         data={selectedItem}
-      />
+      /> */}
 
       <Detaildivisi
         isOpen={isDetaildivisiOpen}
