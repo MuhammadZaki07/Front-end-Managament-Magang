@@ -262,7 +262,7 @@ export default function InternshipModal({ isOpen, onClose, jobData }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[9999]">
+    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999]">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Pemberkasan Magang</h2>
