@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import Card from "./Card";
 import ReactPaginate from "react-paginate";
 import ModalTambahMentor from "../../components/modal/ModalTambahMentor";
 import ModalDelete from "../../components/modal/ModalDeleteAdminCabang";
-import ModalDetailMentor from "../../components/modal/ModalDetailMentor";
 import Loading from "../../components/cards/Loading";
 import DataNotAvaliable from "../DataNotAvaliable";
 
 export default function MentorBranchCard() {
-  const [selectedMentor, setSelectedMentor] = useState(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMentor, setEditingMentor] = useState(null);
   const [divisions, setDivisions] = useState([]);
@@ -88,9 +87,13 @@ export default function MentorBranchCard() {
     setCurrentPage(event.selected);
   };
 
-  const handleViewDetail = (mentor) => {
-    setSelectedMentor(mentor);
-    setIsDetailModalOpen(true);
+  // Simplified handleViewDetail function
+  const handleViewDetail = (mentorId) => {
+    if (!mentorId) {
+      console.error("ID Mentor tidak valid");
+      return;
+    }
+    navigate(`/perusahaan/mentor/${mentorId}`);
   };
 
   const handleOpenDeleteModal = (branchId) => {
@@ -122,11 +125,10 @@ export default function MentorBranchCard() {
       );
       fetchMentors();
       handleCloseDeleteModal();
-      fetchMentors();
     } catch (error) {
       console.error("Error deleting mentor:", error);
-    }finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -165,8 +167,8 @@ export default function MentorBranchCard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {displayedBranches.map((branch) => {
-            const cover = branch.foto.find((f) => f.type === "cover");
-            const profile = branch.foto.find((f) => f.type === "profile");
+            const cover = branch.foto?.find((f) => f.type === "cover");
+            const profile = branch.foto?.find((f) => f.type === "profile");
             const user = branch.user || {};
 
             return (
@@ -176,18 +178,14 @@ export default function MentorBranchCard() {
               >
                 <div className="relative">
                   <img
-                    src={`${import.meta.env.VITE_API_URL_FILE}/storage/${
-                      cover?.path
-                    }`}
+                    src={cover ? `${import.meta.env.VITE_API_URL_FILE}/storage/${cover.path}` : "/api/placeholder/400/128"}
                     alt="Background"
                     className="w-full h-32 object-cover"
                   />
                   <div className="absolute -bottom-4 left-0 right-0 flex justify-center">
                     <div className="rounded-full overflow-hidden border-2 border-white bg-white w-16 h-16">
                       <img
-                        src={`${import.meta.env.VITE_API_URL_FILE}/storage/${
-                          profile?.path
-                        }`}
+                        src={profile ? `${import.meta.env.VITE_API_URL_FILE}/storage/${profile.path}` : "/api/placeholder/64/64"}
                         alt="Logo"
                         className="w-full h-full object-cover"
                       />
@@ -209,8 +207,9 @@ export default function MentorBranchCard() {
                   </p>
                   <div className="flex justify-center mt-2">
                     <div className="border border-[#D5DBE7] rounded p-2 w-full flex justify-between items-center space-x-2">
+                      {/* Simplified button with direct navigation */}
                       <button
-                        onClick={() => handleViewDetail(profile?.path)}
+                        onClick={() => handleViewDetail(branch.id)}
                         className="text-blue-500 border border-blue-500 rounded px-3 py-1 text-xs hover:bg-blue-50"
                       >
                         Lihat Detail
@@ -257,7 +256,7 @@ export default function MentorBranchCard() {
             </div>
           </div>
         ) : (
-          <DataNotAvaliable/>
+          <DataNotAvaliable />
         )}
 
         <ModalTambahMentor
@@ -277,12 +276,6 @@ export default function MentorBranchCard() {
           isOpen={modalState.showDeleteModal}
           onClose={handleCloseDeleteModal}
           onConfirm={handleDeleteBranch}
-        />
-
-        <ModalDetailMentor
-          isOpen={isDetailModalOpen}
-          onClose={() => setIsDetailModalOpen(false)}
-          mentor={selectedMentor}
         />
       </div>
     </Card>
