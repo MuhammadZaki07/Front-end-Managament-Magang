@@ -24,7 +24,7 @@ const Dashboard = () => {
     const checkComplateRegistered = async () => {
       try {
         const response = await axios.get(
-          `http://127.0.0.1:8000/api/perusahaan/detail`,
+          `${import.meta.env.VITE_API_URL}/perusahaan/detail`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
