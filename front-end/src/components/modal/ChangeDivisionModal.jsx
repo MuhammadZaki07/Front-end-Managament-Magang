@@ -75,12 +75,10 @@ const ChangeDivisionModal = ({ isOpen, onClose, student, onSuccess }) => {
     setError(null);
 
     try {
-      // Updated API endpoint to use divisi/peserta/idpeserta
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/divisi/peserta/${student.id}`,
+        `${import.meta.env.VITE_API_URL}/set-mentor/${selectedMentor}`,
         {
-          divisi_id: selectedDivision,
-          mentor_id: selectedMentor,
+          pesertas: [student.id],  // kirim array peserta, walau 1 peserta saja
         },
         {
           headers: {
