@@ -161,10 +161,10 @@ export const router = createBrowserRouter([
         path: "siswa",
         element: <DataSiswa />,
       },
-      {
-        path: "track",
-        element: <TrackRecord />,
-      },
+      // {
+      //   path: "track",
+      //   element: <TrackRecord />,
+      // },
       {
         path: "online",
         element: <OnlinePresentasi />,
