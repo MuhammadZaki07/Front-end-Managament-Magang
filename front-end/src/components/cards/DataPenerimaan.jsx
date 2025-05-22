@@ -1,5 +1,5 @@
 import React from "react";
-import { Eye, Printer } from "lucide-react";
+import { Eye,Download } from "lucide-react";
 
 export default function DataPenerimaan({
   data,
@@ -35,9 +35,6 @@ export default function DataPenerimaan({
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              No. Surat
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Nama
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -45,6 +42,9 @@ export default function DataPenerimaan({
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Jurusan
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              No. Surat
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Selesai Magang
@@ -58,11 +58,7 @@ export default function DataPenerimaan({
           {filteredData.length > 0 ? (
             filteredData.map((item, index) => (
               <tr key={item.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    {`SURAT-${item.id}/PSB/${new Date(item.created_at).getFullYear()}`}
-                  </div>
-                </td>
+                
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
@@ -79,29 +75,41 @@ export default function DataPenerimaan({
                       />
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-xs font-medium text-gray-900">
                         {item.peserta.user.nama}
                       </div>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
+                  <div className="text-xs text-gray-900">
                     {item.peserta.sekolah}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    {item.peserta.jurusan}
+                  <div className="text-xs text-gray-900">
+                        {item.peserta.jurusan.slice(0, 30)}{item.peserta.jurusan.length > 30 && "..."}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    {new Date(item.peserta.magang.selesai).toLocaleDateString("id-ID")}
+                  <div className="text-xs text-gray-900">
+                    {item.no_surat}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm  text-gray-900">
+                    {new Date(item.peserta.magang.selesai).toLocaleDateString("id-ID", {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-3">
+                    <button className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1">
+                      <Eye size={20} />
+                    </button>
                     <button
                       onClick={() =>
                         window.open(
@@ -111,7 +119,7 @@ export default function DataPenerimaan({
                       }
                       className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1"
                     >
-                      <Printer size={20} />
+                      <Download size={20} />
                     </button>
                   </div>
                 </td>

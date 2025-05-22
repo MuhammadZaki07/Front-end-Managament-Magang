@@ -14,7 +14,7 @@ export default function TablePendaftaran({
       ? `${import.meta.env.VITE_API_URL_FILE}/storage/${profile.path}`
       : "/default-avatar.png";
   };
-
+  
   // Fungsi bantu untuk status warna
   const getStatusColor = (status) => {
     switch (status) {
@@ -52,7 +52,7 @@ export default function TablePendaftaran({
       : true;
 
     const isMatchDivisi = selectedDivisi
-      ? item.divisi?.nama === selectedDivisi
+      ? item.divisi === selectedDivisi
       : true;
 
     const isMatchStatus = selectedStatus

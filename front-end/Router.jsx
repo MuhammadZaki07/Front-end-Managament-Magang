@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import GuestLayout from "./src/layout/GuestLayout";
 import Index from "./src/pages/Index";
 import NotFound from "./src/pages/Error/NotFound";
@@ -62,6 +62,7 @@ import SettingPeserta from "./src/pages/student/SettingPeserta";
 import DetailProjectPage from "./src/pages/student/DetailProjectPage";
 import Presentasi2 from "./src/pages/student/Presentasi2";
 import TrackRecordSiswa from "./src/pages/mentor/DetailPresentasi";
+import CabangLayout from "./src/layout/CabangLayout";
 
 export const router = createBrowserRouter([
   {
@@ -223,108 +224,115 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: "/perusahaan",
-    element: <PerusahaanLayout />,
-    children: [
-      {
-        path: "dashboard",
-        element: <DashboardPerusahaan />,
-      },
-      {
-        path: "beranda",
-        element: <BerandaPerusahaan />,
-      },
-      {
-        path: "admin",
-        element: <Admin />,
-      },
-      {
-        path: "mentor",
-        element: <Mentor />,
-      },
-      {
-        path: "peserta",
-        element: <Peserta />,
-      },
-      {
-        path: "divisi",
-        element: <Divisi />,
-      },
-      {
-        path: "mitra",
-        element: <Mitra />,
-      },
-      {
-        path: "approval",
-        element: <ApprovalPerusahaan />,
-      },
-      {
-        path: "pendataan",
-        element: <Pendataan />,
-      },
-      {
-        path: "absensi",
-        element: <DataAbsensi />,
-      },
-      {
-        path: "surat",
-        element: <Surat />,
-      },
-      {
-        path: "cabang",
-        element: <CabangPerusahaan />,
-      },
-      {
-        path: "RFID",
-        element: <RFID />,
-      },
-      {
-        path: "settings",
-        element: <CompanyRegistrationForm />,
-      },
-      {
-        path: "lowongan",
-        element: <Lowongan />,
-      },
-      {
-        path: "update-perusahaan/:id_perusahaan",
-        element: <SettingsPerusahaan />,
-      },
-      {
-        path: "mentor/:mentorId",
-        element: <Detailsmentor />,
-      },
-      {
-        path: "detail-siswa",
-        element: <DetailSiswa />,
-      },
-      {
-        path: "detailmentor",
-        element: <DetailMentor />,
-      },
-      {
-        path: "piket",
-        element: <Piket />,
-      },
-      {
-        path: "jam-kantor",
-        element: <Jamkantor />,
-      },
-      {
-        path: "laporan",
-        element: <Laporan />,
-      },
-      {
-        path: "settings-cabang",
-        element: <SettingCabang />,
-      },
-
-      // {
-      //   path : "mitra-terdaftar",
-      //   element : <MitraTerdaftar/>
-      // }
-    ],
-  },
+  path: "/perusahaan",
+  element: <PerusahaanLayout />,
+  children: [
+    {
+      path: "cabang",
+      element: <CabangPerusahaan />,
+    },
+    {
+      path: "lowongan",
+      element: <Lowongan />,
+    },
+    {
+      path: "mitra",
+      element: <Mitra />,
+    },
+    {
+      path: "dashboard",
+      element: <DashboardPerusahaan />,
+    },
+    {
+      path: "cabang/:namaCabang",
+      element: <CabangLayout />, 
+      children: [
+        {
+          index: true,
+          element: <Navigate to="beranda" replace />
+        },
+        {
+          path: "beranda",
+          element: <BerandaPerusahaan />,
+        },
+        {
+          path: "admin",
+          element: <Admin />,
+        },
+        {
+          path: "mentor",
+          element: <Mentor />,
+        },
+        {
+          path: "peserta",
+          element: <Peserta />,
+        },
+        {
+          path: "divisi",
+          element: <Divisi />,
+        },
+        
+        {
+          path: "approval",
+          element: <ApprovalPerusahaan />,
+        },
+        {
+          path: "pendataan",
+          element: <Pendataan />,
+        },
+        {
+          path: "absensi",
+          element: <DataAbsensi />,
+        },
+        {
+          path: "surat",
+          element: <Surat />,
+        },
+        {
+          path: "RFID",
+          element: <RFID />,
+        },
+        {
+          path: "settings",
+          element: <CompanyRegistrationForm />,
+        },
+        
+        {
+          path: "update-perusahaan/:id_perusahaan",
+          element: <SettingsPerusahaan />,
+        },
+        {
+          path: "mentor/:mentorId",
+          element: <Detailsmentor />,
+        },
+        {
+          path: "detail-siswa",
+          element: <DetailSiswa />,
+        },
+        {
+          path: "detailmentor",
+          element: <DetailMentor />,
+        },
+        {
+          path: "piket",
+          element: <Piket />,
+        },
+        {
+          path: "jam-kantor",
+          element: <Jamkantor />,
+        },
+        {
+          path: "laporan",
+          element: <Laporan />,
+        },
+        {
+          path: "settings-cabang",
+          element: <SettingCabang />,
+        },
+      ]
+    }
+  ]
+},
   {
     path: "/google/success",
     element: <GoogleSuccess />,

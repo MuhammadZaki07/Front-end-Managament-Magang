@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import NavAdmin from "../components/ui/NavAdmin";
@@ -9,12 +9,14 @@ const PerusahaanLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { namaCabang } = useParams();
 
-  const sidebarMenus = [
+  const isCabangRoute = !!namaCabang;
+  const sidebarMenus = isCabangRoute ? [
     {
       icon: "bi-grid",
       label: "Dashboard",
-      link: "/perusahaan/beranda",
+      link: `/perusahaan/cabang/${namaCabang}/beranda`,
     },
     {
       icon: "bi-building",
@@ -24,66 +26,66 @@ const PerusahaanLayout = () => {
         {
           icon: "bi-person",
           label: "Admin",
-          link: "/perusahaan/admin",
+          link: `admin`,
         },
         {
           icon: "bi-mortarboard",
           label: "Mentor",
-          link: "/perusahaan/mentor",
+          link: `mentor`,
         },
         {
           icon: "bi-people",
           label: "Peserta Magang",
-          link: "/perusahaan/peserta",
+          link: `peserta`,
         },
         {
           icon: "bi-pc-display",
           label: "Divisi",
-          link: "/perusahaan/divisi",
+          link: `divisi`,
         },
         {
           icon: "bi-check-square",
           label: "Approval",
-          link: "/perusahaan/approval",
+          link: `approval`,
         },
         {
           icon: "bi-card-list",
           label: "Pendataan",
-          link: "/perusahaan/pendataan",
+          link: `pendataan`,
         },
         {
           icon: "bi-card-list",
           label: "Absensi",
-          link: "/perusahaan/absensi",
+          link: `absensi`,
         },
         {
           icon: "bi-envelope",
           label: "Surat",
-          link: "/perusahaan/surat",
+          link: `surat`,
         },
         {
           icon: "bi-upc-scan",
           label: "RFID",
-          link: "/perusahaan/RFID",
+          link: `RFID`,
         },
         {
           icon: "bi-card-checklist",
           label: "Piket",
-          link: "/perusahaan/piket",
+          link: `piket`,
         },
         {
           icon: "bi bi-stopwatch",
           label: "Jam Kantor",
-          link: "/perusahaan/jam-kantor",
+          link: `jam-kantor`,
         },
         {
           icon: "bi bi-sliders2-vertical",
           label: "Profile Settings",
-          link: "/perusahaan/settings-cabang",
+          link: `settings-cabang`,
         },
       ],
     },
-  ];
+  ]: [];
 
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];
 
@@ -106,163 +108,115 @@ const PerusahaanLayout = () => {
 
   return (
     <div className="w-full flex">
-      {/* Sidebar dengan kondisi lebar berbeda saat collapsed */}
-      <div
-        className={`bg-white border-r border-r-slate-300 ${
+      {/* Sidebar hanya muncul jika ada namaCabang */}
+      {isCabangRoute && (
+        <div className={`bg-white border-r border-r-slate-300 ${
           sidebarCollapsed ? "w-[60px]" : "w-[238px]"
-        } h-screen fixed py-4 px-2 z-[50] overflow-y-auto flex flex-col justify-between transition-all duration-300`}
-      >
-        <div>
-          <Link to={`/`} className="flex justify-center">
-            {sidebarCollapsed ? (
-              <img
-                src="/assets/icons/logohumma.svg"
-                alt="Logo Icon"
-                className="w-10 mx-auto object-cover"
-              />
-            ) : (
-              <img
-                src="/assets/img/Logo.png"
-                alt="Logo"
-                className="w-48 mx-auto object-cover"
-              />
-            )}
-          </Link>
-          <div className="flex flex-col gap-3 mt-8">
-            {sidebarMenus.map((menu, idx) => (
-              <div key={idx} className="flex flex-col">
-                {menu.hasSubmenu ? (
-                  <>
-                    <button
-                      onClick={() =>
-                        setOpenMenu(openMenu === menu.label ? null : menu.label)
-                      }
-                      className={`${
-                        sidebarCollapsed
-                          ? "flex justify-center items-center"
-                          : ""
-                      } px-4 py-2 rounded-lg flex gap-3 text-xs items-center justify-between text-slate-500 transition-all duration-300 ${
-                        openMenu === menu.label
-                          ? "bg-sky-800 text-white"
-                          : "hover:text-sky-500 hover:bg-sky-50"
-                      }`}
-                    >
-                      <div
-                        className={`flex gap-3 items-center ${
-                          sidebarCollapsed
-                            ? "flex justify-center items-center"
-                            : ""
+        } h-screen fixed py-4 px-2 z-[50] overflow-y-auto flex flex-col justify-between transition-all duration-300`}>
+          
+          <div>
+            <Link to={`beranda`} className="flex justify-center">
+              {sidebarCollapsed ? (
+                <img src="/assets/icons/logohumma.svg" alt="Logo" className="w-10 mx-auto" />
+              ) : (
+                <img src="/assets/img/Logo.png" alt="Logo" className="w-48 mx-auto" />
+              )}
+            </Link>
+            
+            <div className="flex flex-col gap-3 mt-8">
+              {sidebarMenus.map((menu, idx) => (
+                <div key={idx} className="flex flex-col">
+                  {menu.hasSubmenu ? (
+                    <>
+                      <button
+                        onClick={() => setOpenMenu(openMenu === menu.label ? null : menu.label)}
+                        className={`${sidebarCollapsed ? "justify-center" : ""} px-4 py-2 rounded-lg flex gap-3 items-center justify-between ${
+                          openMenu === menu.label ? "bg-sky-800 text-white" : "hover:text-sky-500 hover:bg-sky-50"
                         }`}
                       >
-                        <i className={`bi ${menu.icon} text-lg`}></i>
+                        <div className={`flex gap-3 items-center ${sidebarCollapsed ? "justify-center" : ""}`}>
+                          <i className={`bi ${menu.icon} text-lg`}></i>
+                          {!sidebarCollapsed && <span className="text-sm">{menu.label}</span>}
+                        </div>
                         {!sidebarCollapsed && (
-                          <span className="font-light text-sm">
-                            {menu.label}
-                          </span>
+                          <i className={`bi bi-chevron-${openMenu === menu.label ? "up" : "down"} text-xs`}></i>
                         )}
-                      </div>
-                      {!sidebarCollapsed && (
-                        <i
-                          className={`bi bi-chevron-${
-                            openMenu === menu.label ? "up" : "down"
-                          } text-xs`}
-                        ></i>
+                      </button>
+                      
+                      {openMenu === menu.label && !sidebarCollapsed && (
+                        <div className="ml-4 mt-1 flex flex-col gap-2">
+                          {menu.submenu.map((sub, subIdx) => (
+                            <Link
+                              key={subIdx}
+                              to={`/perusahaan/cabang/${namaCabang}/${sub.link}`}
+                              className={`flex items-center gap-3 text-sm px-3 py-1 rounded ${
+                                location.pathname.includes(sub.link) 
+                                  ? "bg-sky-50 text-sky-500" 
+                                  : "hover:text-sky-500 hover:bg-sky-50"
+                              }`}
+                            >
+                              <i className={`bi ${sub.icon} text-lg`}></i>
+                              <span>{sub.label}</span>
+                            </Link>
+                          ))}
+                        </div>
                       )}
-                    </button>
-                    {openMenu === menu.label && !sidebarCollapsed && (
-                      <div className="ml-4 mt-1 flex flex-col gap-2">
-                        {menu.submenu.map((sub, subIdx) => (
-                          <Link
-                            key={subIdx}
-                            to={sub.link}
-                            className={`flex items-center gap-3 text-sm px-3 py-1 rounded transition-all text-slate-700 duration-300 ${
-                              location.pathname === sub.link
-                                ? "bg-sky-50 text-sky-500"
-                                : "hover:text-sky-500 hover:bg-sky-50"
-                            }`}
-                          >
-                            <i className={`bi ${sub.icon} text-lg`}></i>
-                            <span>{sub.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <Link
-                    to={menu.link}
-                    className={`${
-                      sidebarCollapsed ? "flex justify-center items-center" : ""
-                    } px-4 py-2 rounded-lg flex gap-3 items-center text-slate-500 transition-all duration-500 ease-in-out ${
-                      location.pathname === menu.link && openMenu !== menu.label
+                    </>
+                  ) : (
+                    <Link
+                      to={menu.link}
+                      className={`${sidebarCollapsed ? "justify-center" : ""} px-4 py-2 rounded-lg flex gap-3 items-center 
+                      ${
+                        location.pathname.includes(menu.link)
                         ? "bg-sky-800 text-white"
                         : "hover:text-sky-500 hover:bg-sky-50"
-                    } ${openMenu === menu.label ? "bg-transparent" : ""}`}
-                  >
-                    <i className={`bi ${menu.icon} text-lg`}></i>
-                    {!sidebarCollapsed && (
-                      <span className="font-light text-sm">{menu.label}</span>
-                    )}
-                  </Link>
-                )}
-              </div>
-            ))}
+                      }`}
+                    >
+                      <i className={`bi ${menu.icon} text-lg`}></i>
+                      {!sidebarCollapsed && <span className="text-sm">{menu.label}</span>}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Hapus Cabang Button - hanya tampil di halaman tertentu */}
-        {location.pathname === "/perusahaan/settings-cabang" &&
-          !sidebarCollapsed && (
+          {location.pathname.includes("settings-cabang") && !sidebarCollapsed && (
             <div className="px-4 mt-10 pb-4">
-              <button
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Apakah Anda yakin ingin menghapus cabang ini?"
-                    )
-                  ) {
-                    console.log("Cabang berhasil dihapus");
-                  }
-                }}
-                className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-all text-sm"
+              <button 
+                onClick={() => confirm("Hapus cabang?") && console.log("Cabang dihapus")}
+                className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 text-sm"
               >
                 Hapus Cabang
               </button>
             </div>
           )}
-      </div>
+        </div>
+      )}
 
-      {/* Main Content Area dengan penyesuaian margin sesuai lebar sidebar */}
-      <div
-        className={`flex-1 ${
-          sidebarCollapsed ? "ml-[60px]" : "ml-[238px]"
-        } flex flex-col min-h-screen transition-all duration-300`}
-      >
-        <NavAdmin
-          toggleSidebar={toggleSidebar}
+      {/* Main Content */}
+      <div className={`flex-1 ${
+        isCabangRoute ? (sidebarCollapsed ? "ml-[60px]" : "ml-[238px]") : ""
+      } flex flex-col min-h-screen transition-all duration-300`}>
+        
+        <NavAdmin 
+          toggleSidebar={toggleSidebar} 
           sidebarCollapsed={sidebarCollapsed}
+          showToggle={isCabangRoute}
         />
+        
         <div className="flex-grow bg-indigo-50 px-3 pt-5 pb-0">
           <Outlet />
         </div>
-
-        {/* Footer */}
-        <div className="mt-auto">
-          <div className="bg-white rounded-t-xl px-5 py-4 w-full flex justify-between">
-            <div className="text-slate-400 font-normal text-sm">
-              © Copyright Edmate 2024, All Right Reserved
-            </div>
-            <div className="flex gap-5">
-              {footerMenus.map((item, i) => (
-                <Link
-                  key={i}
-                  to="#"
-                  className="text-slate-400 text-sm font-normal"
-                >
-                  {item}
-                </Link>
-              ))}
-            </div>
+        
+        <div className="bg-white rounded-t-xl px-5 py-4 w-full flex justify-between">
+          <div className="text-slate-400 text-sm">© Copyright 2024</div>
+          <div className="flex gap-5">
+            {footerMenus.map((item, i) => (
+              <Link key={i} to="#" className="text-slate-400 text-sm">
+                {item}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

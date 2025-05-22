@@ -48,8 +48,8 @@ export default function AbsensiTable() {
               jam_kembali: item.jam_kembali || "-",
               jam_pulang: item.jam_pulang || "-",
               metode: item.metode || "-",
-              status: item.status_kehadiran === 1 ? "Hadir" : "Terlambat",
-              status_kehadiran: item.status_kehadiran === 1 ? "Hadir" : "Terlambat",
+              status: item.status_kehadiran === 0 ? "Hadir" : "Terlambat",
+              status_kehadiran: item.status_kehadiran === 0 ? "Hadir" : "Terlambat",
               nama: peserta.nama || "Unknown",
               image: peserta.foto?.find(f => f.type === 'profile')?.path 
                 ? `${import.meta.env.VITE_API_URL_FILE}/storage/${peserta.foto.find(f => f.type === 'profile').path}`
@@ -118,7 +118,6 @@ export default function AbsensiTable() {
 
   // Count statistics
   const totalHadir = data.filter(item => item.status === "Hadir").length;
-  const totalTerlambat = data.filter(item => item.status === "Terlambat").length;
   const totalAlpha = data.filter(item => item.status === "Alpha").length;
   const totalIzinSakit = data.filter(item => item.status === "Izin" || item.status === "Sakit").length;
   const totalAbsensi = data.length;

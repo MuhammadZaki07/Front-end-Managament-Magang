@@ -1,5 +1,5 @@
 import React from "react";
-import { Eye, Printer, Trash } from "lucide-react";
+import { Eye, Download, Trash } from "lucide-react";
 
 export default function DataPeringatan({
   data,
@@ -107,7 +107,11 @@ export default function DataPeringatan({
 
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {new Date(item.created_at).toLocaleDateString("id-ID")}
+                    {new Date(item.created_at).toLocaleDateString("id-ID", {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -116,7 +120,7 @@ export default function DataPeringatan({
                       <Eye size={20} />
                     </button>
                     <button className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1">
-                      <Printer size={20} />
+                      <Download size={20} />
                     </button>
                     <button
                       onClick={() => onBuatSurat(item.id)}

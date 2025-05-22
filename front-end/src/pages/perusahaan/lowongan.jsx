@@ -180,12 +180,12 @@ export default function Lowongan() {
                       className="hover:bg-gray-50 border-t border-gray-100"
                     >
                       <td className="p-4">
-                        <div className="font-semibold">{job.perusahaan.perusahaan.nama} | {job.cabang.nama}</div>
+                        <div className="font-semibold">{job.perusahaan.nama} | {job.cabang.nama}</div>
                         <div className="text-sm text-gray-500">
-                        {job.perusahaan.perusahaan.kota}
+                        {job.perusahaan.kota}
                         </div>
                       </td>
-                      <td className="p-4 text-sm">{job.perusahaan.perusahaan.alamat}</td>
+                      <td className="p-4 text-sm">{job.perusahaan.alamat}</td>
                       <td className="p-4 text-sm">{job.max_kuota}</td>
                       <td className="p-4 flex items-center gap-2">
                         <span

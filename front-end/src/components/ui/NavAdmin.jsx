@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import axios from "axios";
 import Modal from "../Modal";
 import { Link } from "react-router-dom";
@@ -7,7 +7,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import ModalTambahCabang from "../modal/ModalTambahCabang";
 import Swal from "sweetalert2"; // Import SweetAlert2
 
-const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
+const NavAdmin = ({ toggleSidebar, sidebarCollapsed, showToggle }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isCabangDropdownOpen, setIsCabangDropdownOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
@@ -26,7 +26,7 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
   const [cabang, setisCabang] = useState([]);
   const cabangDropdownRef = useRef(null);
   const isActive = (path) => currentPath === path;
-
+  
   useEffect(() => {
     if (user && user.id) {
       setId(user.id);
@@ -271,16 +271,21 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
   return (
     <nav className="bg-white w-full h-[60px] flex items-center px-6 sticky top-0 z-50 border-b border-b-slate-300">
       {/* Tombol Toggle Sidebar */}
-      <button
-        onClick={toggleSidebar}
-        className="mr-4 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
-      >
-        {sidebarCollapsed ? (
-          <i className="bi bi-filter-right text-xl"></i>
-        ) : (
-          <i className="bi bi-filter-left text-xl"></i>
-        )}
-      </button>
+      {showToggle ? 
+          <button
+            onClick={toggleSidebar}
+            className="mr-4 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            {sidebarCollapsed ? (
+              <i className="bi bi-filter-right text-xl"></i>
+            ) : (
+              <i className="bi bi-filter-left text-xl"></i>
+            )}
+          </button>
+          :
+                <img src="/assets/img/Logo.png" alt="Logo" className="w-48 mr-7" />
+          
+      }
 
       <div className="flex gap-4 items-center">
         {/* Dashboard Link */}
@@ -376,9 +381,9 @@ const NavAdmin = ({ toggleSidebar, sidebarCollapsed }) => {
                     {cabang.map((cabang) => (
                       <Link
                         key={cabang.id}
-                        to={`/perusahaan/cabang/${cabang.id}`}
+                        to={`/perusahaan/cabang/${cabang.nama}`}
                         className={`block px-4 py-2 text-sm hover:bg-gray-100 ${
-                          currentPath === `/perusahaan/cabang/${cabang.id}`
+                          currentPath === `/perusahaan/cabang/${encodeURIComponent(cabang.nama)}/asdasdasd`
                             ? "bg-gray-100 font-medium"
                             : ""
                         }`}
