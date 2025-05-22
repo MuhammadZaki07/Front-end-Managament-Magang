@@ -3,6 +3,7 @@ import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import axios from 'axios'
 import './calendar-custom.css'
 import TambahJadwalPresentasi from '../../components/modal/TambahJadwalPresentasi'
 import DetailsPresentasi from '../../components/modal/DetailsPresentasi'
@@ -17,7 +18,12 @@ const Calendar = () => {
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState(null)
   
-  // Sample participants data
+  // Events state
+  const [events, setEvents] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+  
+  // Sample participants data (bisa digunakan sebagai fallback)
   const sampleParticipants = [
     [
       { id: 1, name: 'Budi Santoso', photo: '/assets/img/Profil.png', projectStage: 'Tahap 1', status: 'hadir' },
@@ -29,129 +35,84 @@ const Calendar = () => {
       { id: 5, name: 'Gunawan Hidayat', photo: '/assets/img/Profil.png', projectStage: 'Tahap 2', status: 'hadir' },
       { id: 6, name: 'Heni Mulyani', photo: '/assets/img/Profil.png', projectStage: 'Tahap 2', status: 'tidak hadir' },
       { id: 7, name: 'Indra Kusuma', photo: '/assets/img/Profil.png', projectStage: 'Tahap 2', status: 'hadir' }
-    ],
-    [
-      { id: 8, name: 'Joko Widodo', photo: '/assets/img/Profil.png', projectStage: 'Tahap 3', status: 'hadir' },
-      { id: 9, name: 'Kartika Sari', photo: '/assets/img/Profil.png', projectStage: 'Tahap 3', status: 'hadir' }
-    ],
-    [
-      { id: 10, name: 'Lisa Permata', photo: '/assets/img/Profil.png', projectStage: 'Tahap 4', status: 'hadir' },
-      { id: 11, name: 'Maman Suryaman', photo: '/assets/img/Profil.png', projectStage: 'Tahap 4', status: 'tidak hadir' },
-      { id: 12, name: 'Novi Susanti', photo: '/assets/img/Profil.png', projectStage: 'Tahap 4', status: 'hadir' },
-      { id: 13, name: 'Oki Setiawan', photo: '/assets/img/Profil.png', projectStage: 'Tahap 4', status: 'hadir' },
-      { id: 14, name: 'Putri Rahayu', photo: '/assets/img/Profil.png', projectStage: 'Tahap 4', status: 'hadir' }
-    ],
-    [
-      { id: 15, name: 'Ratu Maharani', photo: '/assets/img/Profil.png', projectStage: 'Tahap 5', status: 'hadir' },
-      { id: 16, name: 'Surya Darma', photo: '/assets/img/Profil.png', projectStage: 'Tahap 5', status: 'tidak hadir' }
-    ],
-    [
-      { id: 17, name: 'Tono Sucipto', photo: '/assets/img/Profil.png', projectStage: 'Tahap 6', status: 'hadir' },
-      { id: 18, name: 'Umi Kaltsum', photo: '/assets/img/Profil.png', projectStage: 'Tahap 6', status: 'hadir' },
-      { id: 19, name: 'Vina Panduwinata', photo: '/assets/img/Profil.png', projectStage: 'Tahap 6', status: 'tidak hadir' }
     ]
   ];
-  
-  // Sample events with colors based on status
-  const [events, setEvents] = useState([
-    { 
-      title: 'Presentasi online', 
-      start: '2025-04-01', 
-      allDay: true, 
-      backgroundColor: '#FEF9C3', // Yellow for online
-      textColor: '#CA8A04', 
-      borderColor: '#FEF9C3',
-      extendedProps: { 
-        status: 'online',
-        quota: '30',
-        startTime: '09:00',
-        endTime: '11:00',
-        zoomLink: 'https://zoom.us/j/123456789',
-        location: '',
-        participants: sampleParticipants[0]
-      }
-    },
-    { 
-      title: 'Presentasi offline', 
-      start: '2025-04-08', 
-      backgroundColor: '#E6EFFF', // Blue for offline
-      textColor: '#3B82F6', 
-      borderColor: '#E6EFFF',
-      extendedProps: { 
-        status: 'offline',
-        quota: '15',
-        startTime: '13:00',
-        endTime: '15:00',
-        zoomLink: '',
-        location: 'Ruang Meeting Lt. 3',
-        participants: sampleParticipants[1]
-      }
-    },
-    { 
-      title: 'Presentasi offline', 
-      start: '2025-04-15', 
-      backgroundColor: '#E6EFFF', // Blue for offline
-      textColor: '#3B82F6', 
-      borderColor: '#E6EFFF',
-      extendedProps: { 
-        status: 'offline',
-        quota: '20',
-        startTime: '10:00',
-        endTime: '12:00',
-        zoomLink: '',
-        location: 'Auditorium',
-        participants: sampleParticipants[2]
-      }
-    },
-    { 
-      title: 'Presentasi online', 
-      start: '2025-04-11', 
-      backgroundColor: '#FEF9C3', // Yellow for online
-      textColor: '#CA8A04', 
-      borderColor: '#FEF9C3',
-      extendedProps: { 
-        status: 'online',
-        quota: '50',
-        startTime: '14:00',
-        endTime: '16:00',
-        zoomLink: 'https://zoom.us/j/987654321',
-        location: '',
-        participants: sampleParticipants[3]
-      }
-    },
-    { 
-      title: 'Presentasi offline', 
-      start: '2025-04-11', 
-      backgroundColor: '#E6EFFF', // Blue for offline
-      textColor: '#3B82F6', 
-      borderColor: '#E6EFFF',
-      extendedProps: { 
-        status: 'offline',
-        quota: '25',
-        startTime: '09:00',
-        endTime: '11:00',
-        zoomLink: '',
-        location: 'Ruang Rapat Utama',
-        participants: sampleParticipants[4]
-      }
-    },
-    { 
-      title: 'Presentasi offline', 
-      start: '2025-04-12', 
-      backgroundColor: '#E6EFFF', // Blue for offline
-      textColor: '#3B82F6', 
-      borderColor: '#E6EFFF',
-      extendedProps: { 
-        status: 'offline',
-        quota: '15',
-        startTime: '13:30',
-        endTime: '15:30',
-        zoomLink: '',
-        location: 'Ruang Training',
-        participants: sampleParticipants[5]
+
+  // Fetch jadwal presentasi from API
+  useEffect(() => {
+    const fetchJadwalPresentasi = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/jadwal-presentasi`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json"
+            },
+          }
+        )
+
+        if (response.data.status === "success") {
+          // Transform API data to FullCalendar events format
+          const transformedEvents = response.data.data.map((jadwal, index) => {
+            // Determine colors based on tipe
+            let backgroundColor, textColor, borderColor, title
+            
+            if (jadwal.tipe === 'online') {
+              backgroundColor = '#FEF9C3' // Yellow for online
+              textColor = '#CA8A04'
+              borderColor = '#FEF9C3'
+              title = 'Presentasi Online'
+            } else {
+              backgroundColor = '#E6EFFF' // Blue for offline
+              textColor = '#3B82F6'
+              borderColor = '#E6EFFF'
+              title = 'Presentasi Offline'
+            }
+
+            return {
+              id: jadwal.id, // Use API id
+              title: title,
+              start: jadwal.tanggal, // Format: YYYY-MM-DD
+              backgroundColor,
+              textColor,
+              borderColor,
+              extendedProps: {
+                apiId: jadwal.id, // Store original API id
+                status: jadwal.status, // dijadwalkan/selesai
+                tipe: jadwal.tipe, // online/offline
+                kuota: jadwal.kuota,
+                startTime: jadwal.waktu_mulai,
+                endTime: jadwal.waktu_selesai,
+                zoomLink: jadwal.link_zoom || '',
+                location: jadwal.lokasi || '',
+                // Use sample participants as fallback - nanti bisa diganti dengan API participants
+                participants: sampleParticipants[index % sampleParticipants.length] || []
+              }
+            }
+          })
+          
+          setEvents(transformedEvents)
+          console.log('Jadwal presentasi loaded:', transformedEvents)
+        } else {
+          setError("Failed to fetch jadwal presentasi")
+        }
+      } catch (err) {
+        console.error("Error fetching jadwal presentasi:", err)
+        setError(
+          err.response?.data?.message || 
+          "Terjadi kesalahan saat mengambil data jadwal presentasi"
+        )
+      } finally {
+        setIsLoading(false)
       }
     }
-  ])
+
+    fetchJadwalPresentasi()
+  }, [])
   
   // Format the current date to display month and year
   const formatMonthYear = (date) => {
@@ -231,49 +192,53 @@ const Calendar = () => {
   }
   
   // Handle add event form submission
-  const handleAddEventSubmit = (eventData) => {
-    // Get current date from calendar
-    const calendarApi = calendarRef.current.getApi()
-    const currentDate = calendarApi.getDate()
+  const handleAddEventSubmit = (responseData) => {
+    // When form is submitted successfully, refresh the calendar data
+    // Or add the new event directly to the events array
     
-    // Format the date as YYYY-MM-DD
-    const formattedDate = currentDate.toISOString().split('T')[0]
-    
-    // Set the background and text colors based on the selected status
-    let backgroundColor, textColor, borderColor
-    
-    if (eventData.status === 'online') {
-      backgroundColor = '#FEF9C3' // Yellow for online
-      textColor = '#CA8A04'
-      borderColor = '#FEF9C3'
-    } else {
-      backgroundColor = '#E6EFFF' // Blue for offline
-      textColor = '#3B82F6'
-      borderColor = '#E6EFFF'
-    }
-    
-    // Create the new event
-    const newEvent = {
-      title: eventData.title,
-      start: formattedDate,
-      backgroundColor,
-      textColor,
-      borderColor,
-      extendedProps: {
-        status: eventData.status,
-        quota: eventData.quota,
-        startTime: eventData.startTime,
-        endTime: eventData.endTime,
-        zoomLink: eventData.zoomLink,
-        location: eventData.location,
-        participants: [] // Start with empty participants list
+    if (responseData && responseData.data) {
+      const newJadwal = responseData.data
+      
+      // Determine colors based on tipe
+      let backgroundColor, textColor, borderColor, title
+      
+      if (newJadwal.tipe === 'online') {
+        backgroundColor = '#FEF9C3' // Yellow for online
+        textColor = '#CA8A04'
+        borderColor = '#FEF9C3'
+        title = 'Presentasi Online'
+      } else {
+        backgroundColor = '#E6EFFF' // Blue for offline
+        textColor = '#3B82F6'
+        borderColor = '#E6EFFF'
+        title = 'Presentasi Offline'
       }
+
+      const newEvent = {
+        id: newJadwal.id,
+        title: title,
+        start: newJadwal.tanggal,
+        backgroundColor,
+        textColor,
+        borderColor,
+        extendedProps: {
+          apiId: newJadwal.id,
+          status: newJadwal.status,
+          tipe: newJadwal.tipe,
+          kuota: newJadwal.kuota,
+          startTime: newJadwal.waktu_mulai,
+          endTime: newJadwal.waktu_selesai,
+          zoomLink: newJadwal.link_zoom || '',
+          location: newJadwal.lokasi || '',
+          participants: [] // Start with empty participants list
+        }
+      }
+      
+      // Add the new event to the events array
+      setEvents(prevEvents => [...prevEvents, newEvent])
+      
+      console.log('New jadwal added to calendar:', newEvent)
     }
-    
-    // Add the new event to the events array
-    setEvents(prevEvents => [...prevEvents, newEvent])
-    
-    console.log('New event added:', newEvent)
     
     // Close the modal
     setShowAddModal(false)
@@ -301,6 +266,34 @@ const Calendar = () => {
       });
     });
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="calendar-wrapper">
+        <div className="flex justify-center items-center p-8">
+          <div className="text-gray-500">Loading jadwal presentasi...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="calendar-wrapper">
+        <div className="flex justify-center items-center p-8">
+          <div className="text-red-500">Error: {error}</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="calendar-wrapper">

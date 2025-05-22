@@ -7,6 +7,7 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, divisionId,
   const [error, setError] = useState(null);
   const [students, setStudents] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
+  const [allStudents, setAllStudents] = useState([]); // Store all students for debugging
   
   useEffect(() => {
     // Reset form when modal is opened
@@ -33,10 +34,27 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, divisionId,
       );
       
       if (response.data?.data) {
-        // Transform the data for react-select
-        const studentOptions = response.data.data.map(student => ({
+        // Store all students for debugging
+        setAllStudents(response.data.data);
+        
+        // Filter students where mentor_id or id_mentor is null
+        const unassignedStudents = response.data.data.filter(student => {
+          // Check for both possible field names
+          return (
+            (student.mentor_id === null || student.mentor_id === undefined) && 
+            (student.id_mentor === null || student.id_mentor === undefined)
+          );
+        });
+        
+        console.log("Total students:", response.data.data.length);
+        console.log("Unassigned students:", unassignedStudents.length);
+        
+        // Transform the filtered data for react-select
+        const studentOptions = unassignedStudents.map(student => ({
           value: student.id,
-          label: student.nama,
+          label: student.nama || student.user?.nama || `Student ID: ${student.id}`,
+          // Add raw data for debugging
+          rawData: student
         }));
         
         setStudents(studentOptions);
@@ -64,7 +82,6 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, divisionId,
     
     try {
       // Prepare student IDs for submission
-
       const studentIds = selectedStudents.map(student => student.value);
       
       // Post selected students to the mentor
@@ -90,6 +107,13 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, divisionId,
       setError("Terjadi kesalahan saat menambahkan siswa. Silakan coba lagi.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Debug function to check data - remove in production
+  const showStudentStructure = () => {
+    if (allStudents.length > 0) {
+      console.log("Student data structure sample:", allStudents[0]);
     }
   };
 
@@ -122,7 +146,7 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, divisionId,
                 options={students}
                 className="basic-multi-select"
                 classNamePrefix="select"
-                placeholder="Pilih siswa..."
+                placeholder={students.length > 0 ? "Pilih siswa..." : "Tidak ada siswa tanpa mentor"}
                 value={selectedStudents}
                 onChange={setSelectedStudents}
                 isLoading={loading}
@@ -132,11 +156,22 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, divisionId,
                     <div>{option.label}</div>
                   </div>
                 )}
-                noOptionsMessage={() => "Tidak ada siswa tersedia"}
+                noOptionsMessage={() => "Tidak ada siswa tanpa mentor tersedia"}
               />
               <p className="mt-1 text-xs text-gray-500">
-                Anda dapat memilih lebih dari satu siswa
+                Daftar menampilkan siswa yang belum memiliki mentor di divisi ini
               </p>
+              
+              {/* Debug button - remove in production */}
+              {process.env.NODE_ENV === 'development' && (
+                <button 
+                  type="button" 
+                  onClick={showStudentStructure}
+                  className="mt-2 text-xs text-blue-500 underline"
+                >
+                  Debug data structure
+                </button>
+              )}
             </div>
             
             {error && (
@@ -158,7 +193,7 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, divisionId,
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-blue-500 border border-transparent rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              disabled={loading}
+              disabled={loading || selectedStudents.length === 0}
             >
               {loading ? (
                 <div className="flex items-center">

@@ -170,7 +170,7 @@ export const router = createBrowserRouter([
         element: <OnlinePresentasi />,
       },
       {
-        path: "track-record/:id",
+        path: "siswa/:id",
         element: <TrackRecordSiswa />,
       },
     ],
