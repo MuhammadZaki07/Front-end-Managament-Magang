@@ -124,7 +124,7 @@ const TableAbsensi = () => {
           <p className="text-center py-10">Tidak ada data absensi</p>
         ) : (
           <table className="min-w-full text-left divide-y divide-gray-200">
-            <thead className="bg-white text-black font-bold text-sm border-b border-slate-300">
+            <thead className="bg-white text-black font-bold text-sm">
               <tr>
                 <th className="py-3 px-6">Tanggal</th>
                 <th className="py-3 px-6">Masuk</th>
@@ -157,16 +157,16 @@ const TableAbsensi = () => {
               {paginatedData.map((item) => (
                 <tr
                   key={item.id + item.tanggal}
-                  className="border-b hover:bg-gray-50 transition-all duration-150"
+                  className="hover:bg-gray-50 transition-all duration-150 bg-[#F7F6FE]"
                 >
-                  <td className="py-3 px-6 text-center">{item.tanggal}</td>
-                  <td className="py-3 px-6 text-center">{item.jam_masuk}</td>
-                  <td className="py-3 px-6 text-center">{item.jam_istirahat}</td>
-                  <td className="py-3 px-6 text-center">{item.jam_kembali}</td>
-                  <td className="py-3 px-6 text-center">{item.jam_pulang}</td>
-                  <td className="py-3 px-6 text-center">
+                  <td className="py-3 px-6 ">{item.tanggal}</td>
+                  <td className="py-3 px-6 ">{item.jam_masuk}</td>
+                  <td className="py-3 px-6 ">{item.jam_istirahat}</td>
+                  <td className="py-3 px-6 ">{item.jam_kembali}</td>
+                  <td className="py-3 px-6 ">{item.jam_pulang}</td>
+                  <td className="py-3 px-6 ">
                     <span
-                      className={`px-3 py-1 text-xs rounded-full font-semibold ${
+                      className={`px-3 py-1 text-xs rounded-full font-semibold  ${
                         getStatusClass(item.status)
                       }`}
                     >

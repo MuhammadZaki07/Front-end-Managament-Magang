@@ -277,11 +277,11 @@ export const router = createBrowserRouter([
           element: <ApprovalPerusahaan />,
         },
         {
-          path: "pendataan",
+          path: "jurnal",
           element: <Pendataan />,
         },
         {
-          path: "absensi",
+          path: "presensi",
           element: <DataAbsensi />,
         },
         {

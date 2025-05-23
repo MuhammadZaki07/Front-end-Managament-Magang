@@ -19,6 +19,8 @@ const Jurnal = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedJournal, setSelectedJournal] = useState(null);
 
+  console.log(events);
+  
   const fetchJurnal = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -33,7 +35,7 @@ const Jurnal = () => {
 
       const jurnalData = response.data.data.map((jurnal) => ({
         id: jurnal.id,
-        title: "Mengisi", // Tampilkan teks ini di event
+        title: "Mengisi",
         start: jurnal.tanggal,
         allDay: true,
         extendedProps: {

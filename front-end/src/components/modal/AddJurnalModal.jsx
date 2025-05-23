@@ -167,7 +167,7 @@ const AddJurnalModal = ({ isOpen, onClose, editMode, selectedJournal, onSubmitSu
       className="fixed inset-0 bg-black/40 flex justify-center items-center z-[999] modal-overlay"
       onClick={handleOutsideClick}
     >
-      <div className="bg-white rounded-lg w-full max-w-md shadow-lg">
+      <div className="bg-white rounded-lg w-full max-w-xl shadow-lg">
         <div className="flex justify-between items-center p-6 pb-4 border-b">
           <div>
             <h2 className="text-xl font-bold">
@@ -230,7 +230,7 @@ const AddJurnalModal = ({ isOpen, onClose, editMode, selectedJournal, onSubmitSu
                 <img
                   src={previewUrl}
                   alt="Preview"
-                  className="w-full h-48 object-cover rounded"
+                  className="w-full h-48 object-cover rounded-lg shadow-lg"
                 />
                 <button
                   type="button"

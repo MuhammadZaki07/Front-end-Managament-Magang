@@ -3,6 +3,8 @@ import { X } from "lucide-react";
 
 const DetailJurnalModal = ({ isOpen, onClose, event, onEditClick }) => {
   const [showFullDescription, setShowFullDescription] = useState(false);
+  console.log(event);
+  
 
   if (!isOpen || !event) return null;
 
@@ -11,7 +13,7 @@ const DetailJurnalModal = ({ isOpen, onClose, event, onEditClick }) => {
     const createdAt = new Date(event.extendedProps?.created_at);
     const now = new Date();
     const hoursElapsed = (now - createdAt) / (1000 * 60 * 60);
-    return hoursElapsed < 1; // Mengubah dari 24 jam menjadi 1 jam
+    return hoursElapsed < 1; 
   };
 
   // Handle click outside modal
@@ -27,14 +29,17 @@ const DetailJurnalModal = ({ isOpen, onClose, event, onEditClick }) => {
       onClick={handleOutsideClick}
     >
       <div
-        className="bg-white rounded-lg w-full max-w-2xl overflow-hidden shadow-lg"
+        className="bg-white rounded-lg w-full max-w-xl overflow-hidden shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 pb-2">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-xl font-bold">{event.extendedProps?.originalData?.nama || "Tidak ada nama"}</h2>
-              <p className="text-gray-500 text-sm">{event.extendedProps?.originalData?.sekolah || "Tidak ada sekolah"}</p>
+              <h2 className="text-2xl font-bold">{event.extendedProps?.originalData?.nama || "Tidak ada nama"}</h2>
+              <div className="flex justify-between">
+              <p className="text-gray-500 text-lg">{event.extendedProps?.originalData?.sekolah || "Tidak ada sekolah"}</p>
+              <span className="text-lg ml-5 text-gray-600">{event.startStr}</span>
+              </div>
             </div>
             <button
               onClick={onClose}
@@ -43,17 +48,15 @@ const DetailJurnalModal = ({ isOpen, onClose, event, onEditClick }) => {
               <X size={20} />
             </button>
           </div>
-          <p className="text-sm mt-4 mb-2 font-medium">Judul</p>
-          <p className="text-sm text-gray-600">{event.title}</p>
-          <p className="text-sm mt-4 mb-2 font-medium">Bukti Kegiatan</p>
+          <p className="text-lg font-medium my-7">{event.extendedProps.originalData.judul}</p>
         </div>
 
-        <div className="w-full">
+        <div className="w-11/12 mx-auto">
           {event.extendedProps?.bukti ? (
             <img
               src={`${import.meta.env.VITE_API_URL_FILE}/storage/${event.extendedProps.bukti}`}
               alt="Bukti kegiatan"
-              className="w-auto h-60 object-cover mx-auto rounded-lg"
+              className="min-w-full h-60 object-cover mx-auto rounded-lg shadow-lg"
               style={{ maxWidth: "90%" }}
             />
           ) : (
@@ -64,13 +67,8 @@ const DetailJurnalModal = ({ isOpen, onClose, event, onEditClick }) => {
         </div>
 
         <div className="p-4">
-          <div className="mb-3">
-            <p className="text-sm font-medium">Tanggal</p>
-            <p className="text-sm text-gray-600">{event.startStr}</p>
-          </div>
 
-          <div className="overflow-y-auto h-auto">
-            <p className="text-sm font-medium mb-1">Kegiatan</p>
+          <div className="overflow-y-auto h-auto mt-8">
             <p className="text-sm text-gray-600">
               {event.extendedProps?.deskripsi?.length > 200 && !showFullDescription
                 ? `${event.extendedProps.deskripsi.slice(0, 200)}...`

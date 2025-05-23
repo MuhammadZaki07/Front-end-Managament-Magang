@@ -24,19 +24,9 @@ const PerusahaanLayout = () => {
       hasSubmenu: true,
       submenu: [
         {
-          icon: "bi-person",
-          label: "Admin",
-          link: `admin`,
-        },
-        {
-          icon: "bi-mortarboard",
-          label: "Mentor",
-          link: `mentor`,
-        },
-        {
-          icon: "bi-people",
-          label: "Peserta Magang",
-          link: `peserta`,
+          icon: "bi-check-square",
+          label: "Approval",
+          link: `approval`,
         },
         {
           icon: "bi-pc-display",
@@ -44,19 +34,35 @@ const PerusahaanLayout = () => {
           link: `divisi`,
         },
         {
-          icon: "bi-check-square",
-          label: "Approval",
-          link: `approval`,
+          icon: "bi-mortarboard",
+          label: "Mentor",
+          link: `mentor`,
+        },
+        {
+          icon: "bi-person",
+          label: "Admin",
+          link: `admin`,
+        },
+        {
+          icon: "bi bi-stopwatch",
+          label: "Jam Kantor",
+          link: `jam-kantor`,
+        },
+        
+        {
+          icon: "bi-people",
+          label: "Peserta Magang",
+          link: `peserta`,
         },
         {
           icon: "bi-card-list",
-          label: "Pendataan",
-          link: `pendataan`,
+          label: "Jurnal",
+          link: `jurnal`,
         },
         {
           icon: "bi-card-list",
-          label: "Absensi",
-          link: `absensi`,
+          label: "Presensi",
+          link: `presensi`,
         },
         {
           icon: "bi-envelope",
@@ -64,19 +70,14 @@ const PerusahaanLayout = () => {
           link: `surat`,
         },
         {
-          icon: "bi-upc-scan",
-          label: "RFID",
-          link: `RFID`,
-        },
-        {
           icon: "bi-card-checklist",
           label: "Piket",
           link: `piket`,
         },
         {
-          icon: "bi bi-stopwatch",
-          label: "Jam Kantor",
-          link: `jam-kantor`,
+          icon: "bi-upc-scan",
+          label: "RFID",
+          link: `RFID`,
         },
         {
           icon: "bi bi-sliders2-vertical",
