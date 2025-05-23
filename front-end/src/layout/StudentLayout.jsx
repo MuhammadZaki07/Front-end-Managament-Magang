@@ -150,7 +150,8 @@ const StudentLayout = () => {
     { icon: "bi-mortarboard", label: "Jadwal Presentasi", link: "presentasi" },
     // { icon: "bi-mortarboard", label: "Jadwal Presentasi 2", link: "presentasi2" },
     { icon: "bi-pin-map", label: "Riwayat Presentasi", link: "riwayat-presentasi" },
-    { icon: "bi-pin-map", label: "Piket", link: "piket" },
+    { icon: "bi bi-cast", label: "Route Project", link: "route-project" },
+    { icon: "bi bi-list-check", label: "Piket", link: "piket" },
   ];
 
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];

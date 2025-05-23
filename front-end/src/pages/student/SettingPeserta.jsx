@@ -1,26 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import DataPeserta from "../../components/cards/DataPeserta";
 import PasswordPeserta from "../../components/cards/PasswordPeserta";
-import ProjectCard from "../../components/cards/ProjectCard";
+// import ProjectCard from "../../components/cards/ProjectCard";
 
 const CompanyCard = () => {
-  // Dummy data untuk testing
-  const [dataPeserta] = useState({
-    nama: "John Doe",
-    divisi: "IT Development",
-    sekolah: "Universitas Indonesia",
-    jurusan: "Teknik Informatika",
-    mulai_magang: "2024-01-15",
-    perusahaan:"PT. Elang Jaya",
-    selesai_magang: "2024-06-15",
-    foto: [
-      {
-        type: "profile",
-        path: "/assets/img/Profil.png"
-      }
-    ],
-    cover_image: "/assets/img/Cover.png"
-  });
+  const [dataPeserta, setDataPeserta] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [coverImage, setCoverImage] = useState("/assets/img/Cover.png");
   const [profileImage, setProfileImage] = useState("/assets/img/Profil.png");
@@ -35,6 +22,67 @@ const CompanyCard = () => {
   const [animating, setAnimating] = useState(false);
   const [activeMenu, setActiveMenu] = useState("Data Peserta");
 
+  // Fetch participant data from API
+  useEffect(() => {
+    const fetchParticipantData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/peserta/detail`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        console.log("API Response:", response.data); // Debug log
+
+        if (response.data.status === "success") {
+          const data = response.data.data;
+          
+          // Transform data sesuai dengan struktur yang dibutuhkan
+          const transformedData = {
+            nama: data.nama || "N/A",
+            divisi: data.divisi || "N/A",
+            sekolah: data.sekolah || "N/A",
+            jurusan: data.jurusan || "N/A",
+            mulai_magang: data.mulai_magang || null,
+            perusahaan: data.perusahaan || "N/A",
+            selesai_magang: data.selesai_magang || null,
+            foto: data.foto || [],
+            cover_image: data.cover_image || "/assets/img/Cover.png"
+          };
+
+          setDataPeserta(transformedData);
+
+          // Set images from API data
+          const profilePhoto = data.foto?.find((f) => f.type === "profile");
+          if (profilePhoto && profilePhoto.path) {
+            setProfileImage(`${import.meta.env.VITE_API_URL}/storage/${profilePhoto.path}`);
+          }
+
+          const coverPhoto = data.foto?.find((f) => f.type === "cover");
+          if (coverPhoto && coverPhoto.path) {
+            setCoverImage(`${import.meta.env.VITE_API_URL}/storage/${coverPhoto.path}`);
+          } else if (data.cover_image) {
+            // Jika cover_image langsung ada di response
+            setCoverImage(data.cover_image.startsWith('http') ? data.cover_image : `${import.meta.env.VITE_API_URL}/storage/${data.cover_image}`);
+          }
+          
+        } else {
+          setError("Gagal mengambil data peserta");
+        }
+      } catch (err) {
+        console.error("Error fetching participant data:", err);
+        setError(err.response?.data?.message || "Terjadi kesalahan saat mengambil data peserta");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchParticipantData();
+  }, []);
+
   const handleMenuClick = (menuName) => {
     if (menuName !== activeMenu) {
       setAnimating(true);
@@ -48,6 +96,19 @@ const CompanyCard = () => {
   const handleImageSelect = (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
+    
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Ukuran file maksimal 2MB");
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert("File harus berupa gambar (JPG/PNG)");
+      return;
+    }
+
     const previewUrl = URL.createObjectURL(file);
     if (type === "cover") {
       setTempCoverImage({ file, preview: previewUrl });
@@ -75,19 +136,53 @@ const CompanyCard = () => {
   const handleSaveImages = async () => {
     setIsUploading(true);
     
-    // Simulate upload delay
-    setTimeout(() => {
-      if (tempCoverImage) setCoverImage(tempCoverImage.preview);
-      if (tempProfileImage) setProfileImage(tempProfileImage.preview);
-
-      setShowUploadModal(false);
-      setTempCoverImage(null);
-      setTempProfileImage(null);
-      setIsUploading(false);
+    try {
+      const formData = new FormData();
       
-      // Show success message
-      alert("Foto berhasil diupdate!");
-    }, 2000);
+      if (tempCoverImage?.file) {
+        formData.append('cover_image', tempCoverImage.file);
+      }
+      
+      if (tempProfileImage?.file) {
+        formData.append('profile_image', tempProfileImage.file);
+      }
+
+      // API call to upload images
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/peserta/upload-foto`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      if (response.data.status === "success") {
+        // Update images from API response
+        if (response.data.data.cover_image) {
+          setCoverImage(`${import.meta.env.VITE_API_URL}/storage/${response.data.data.cover_image}`);
+        }
+        
+        if (response.data.data.profile_image) {
+          setProfileImage(`${import.meta.env.VITE_API_URL}/storage/${response.data.data.profile_image}`);
+        }
+
+        setShowUploadModal(false);
+        setTempCoverImage(null);
+        setTempProfileImage(null);
+        
+        alert("Foto berhasil diupdate!");
+      } else {
+        throw new Error(response.data.message || "Gagal mengupload foto");
+      }
+    } catch (err) {
+      console.error("Error uploading images:", err);
+      alert("Gagal mengupload foto: " + (err.response?.data?.message || err.message));
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -98,13 +193,59 @@ const CompanyCard = () => {
 
   const menuItems = [
     { label: "Data Peserta" }, 
-    { label: "Project" },
+    // { label: "Project" },
     { label: "Password" }
   ];
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+        <div className="w-full h-60 bg-gray-200 animate-pulse"></div>
+        <div className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 bg-gray-200 rounded-full animate-pulse"></div>
+            <div className="flex-1">
+              <div className="h-6 bg-gray-200 rounded animate-pulse mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4 mb-1"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg overflow-hidden shadow-sm p-6">
+        <div className="text-center">
+          <div className="text-red-500 mb-2">
+            <i className="bi bi-exclamation-triangle text-4xl"></i>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Error</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No data state
   if (!dataPeserta) {
     return (
-      <div className="w-full h-60 bg-gray-200 animate-pulse rounded-lg"></div>
+      <div className="bg-white rounded-lg overflow-hidden shadow-sm p-6">
+        <div className="text-center text-gray-500">
+          <i className="bi bi-person-x text-4xl mb-2"></i>
+          <p>Data peserta tidak ditemukan</p>
+        </div>
+      </div>
     );
   }
 
@@ -116,6 +257,9 @@ const CompanyCard = () => {
             src={coverImage}
             alt="Cover"
             className="w-full h-60 object-cover"
+            onError={(e) => {
+              e.target.src = "/assets/img/Cover.png";
+            }}
           />
           <button
             className="absolute top-4 right-4 flex items-center gap-2 border border-gray-300 bg-white bg-opacity-80 text-[#344054] px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-[#0069AB] hover:text-white transition-all duration-200"
@@ -133,6 +277,9 @@ const CompanyCard = () => {
                 src={profileImage}
                 alt="Profile"
                 className="w-14 h-14 rounded-full border border-gray-200 object-cover"
+                onError={(e) => {
+                  e.target.src = "/assets/img/Profil.png";
+                }}
               />
             </div>
             <div>
@@ -147,7 +294,6 @@ const CompanyCard = () => {
                 <i className="bi bi-geo-alt"></i> 
                 {dataPeserta.perusahaan}
               </div>
-
             </div>
           </div>
         </div>
@@ -182,8 +328,8 @@ const CompanyCard = () => {
               : "opacity-100 translate-y-0"
           }`}
         >
-          {activeMenu === "Data Peserta" && <DataPeserta />}
-          {activeMenu === "Project" && <ProjectCard />}
+          {activeMenu === "Data Peserta" && <DataPeserta dataPeserta={dataPeserta} />}
+          {/* {activeMenu === "Project" && <ProjectCard />} */}
           {activeMenu === "Password" && <PasswordPeserta />}
         </div>
       </div>
