@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Card from "./Card";
 import ReactPaginate from "react-paginate";
 import ModalTambahMentor from "../../components/modal/ModalTambahMentor";
@@ -29,7 +29,7 @@ export default function MentorBranchCard() {
           (branch) => String(branch.divisi.id) === String(selectedDivision)
         )
     : [];
-
+  const {namaCabang} = useParams();
   const pageCount = Math.ceil(filteredBranches.length / itemsPerPage);
   const displayedBranches = filteredBranches.slice(
     currentPage * itemsPerPage,
@@ -103,7 +103,7 @@ export default function MentorBranchCard() {
       console.error("ID Mentor tidak valid");
       return;
     }
-    navigate(`/perusahaan/mentor/${mentorId}`);
+    navigate(`/perusahaan/cabang/${namaCabang}/mentor/${mentorId}`);
   };
 
   const handleOpenDeleteModal = (branchId) => {

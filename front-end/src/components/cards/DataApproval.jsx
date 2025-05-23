@@ -455,7 +455,7 @@ export default function ApprovalTable() {
       />
     </div>
   );
-  if (loading) return  <Loading />;
+  // if (loading) return  <Loading />;
 
   return (
     <div className="w-full">

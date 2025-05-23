@@ -158,12 +158,12 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, divisionId,
                 )}
                 noOptionsMessage={() => "Tidak ada siswa tanpa mentor tersedia"}
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Daftar menampilkan siswa yang belum memiliki mentor di divisi ini
+              <p className="mt-2 text-xs text-red-500">
+                *Daftar menampilkan peserta magang yang belum memiliki mentor di divisi ini
               </p>
               
               {/* Debug button - remove in production */}
-              {process.env.NODE_ENV === 'development' && (
+              {/* {process.env.NODE_ENV === 'development' && (
                 <button 
                   type="button" 
                   onClick={showStudentStructure}
@@ -171,7 +171,7 @@ export default function AddStudentModal({ isOpen, onClose, mentorId, divisionId,
                 >
                   Debug data structure
                 </button>
-              )}
+              )} */}
             </div>
             
             {error && (

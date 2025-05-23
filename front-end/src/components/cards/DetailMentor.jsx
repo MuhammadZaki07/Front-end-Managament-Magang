@@ -184,7 +184,6 @@ export default function DetailMentor() {
                 )}
               </div>
               <h3 className="font-bold text-xl text-center">{user.nama || 'Name Not Available'}</h3>
-              <div className="text-xs text-gray-500 mt-1 mb-2">ID: {mentorId}</div>
               <div className="bg-blue-500 text-white text-xs rounded-full px-3 py-1 mt-2 uppercase font-semibold tracking-wider">
                 {division}
               </div>

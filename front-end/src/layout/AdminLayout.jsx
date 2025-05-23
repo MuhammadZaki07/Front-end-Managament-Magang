@@ -21,11 +21,14 @@ import {
 } from "lucide-react";
 import { Link, Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import axios from "axios";
 
 const AdminLayout = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
   const [isPresentasiOpen, setIsPresentasiOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const sidebarMenus = [
     { icon: <LayoutDashboard size={18} />, label: "Dashboard", link: "/admin/dashboard" },
@@ -42,6 +45,76 @@ const AdminLayout = () => {
   ];
 
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];
+
+  const handleLogout = async () => {
+    // Using SweetAlert2 for logout confirmation
+    Swal.fire({
+      title: 'Logout Confirmation',
+      text: 'Are you sure you want to logout?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#e11d48', // Red color for confirm button (tailwind rose-600)
+      cancelButtonColor: '#d1d5db', // Gray color for cancel button (tailwind gray-300)
+      confirmButtonText: 'Yes, Logout',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setIsLoggingOut(true);
+        try {
+          // Show loading state with SweetAlert2
+          Swal.fire({
+            title: 'Logging out...',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+          
+          const response = await axios.post(
+            "http://127.0.0.1:8000/api/logout",
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+
+          if (response.status === 200) {
+            localStorage.removeItem("token");
+            sessionStorage.removeItem("token");
+            
+            // Show success message before redirecting
+            Swal.fire({
+              title: 'Logout Success!',
+              text: 'You have been logged out successfully',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              window.location.href = "/auth/login";
+            });
+          } else {
+            Swal.fire({
+              title: 'Logout Failed',
+              text: 'Please try again',
+              icon: 'error'
+            });
+          }
+        } catch (error) {
+          console.error("Logout error:", error);
+          Swal.fire({
+            title: 'Logout Failed',
+            text: 'An error occurred during logout',
+            icon: 'error'
+          });
+        } finally {
+          setIsLoggingOut(false);
+        }
+      }
+    });
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -113,13 +186,14 @@ const AdminLayout = () => {
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
                   <div className="py-2">
-                    <a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                      Menu 1
-                    </a>
-                    <a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                      Menu 2
-                    </a>
-                  </div>
+                <a
+                  href="#"
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </a>
+              </div>
                 </div>
               )}
             </div>
