@@ -1,3 +1,24 @@
+import {
+  LayoutDashboard,
+  CalendarDays,
+  Users,
+  Settings,
+  ClipboardList,
+  GraduationCap,
+  ScanLine,
+  Clock,
+  FileText,
+  Bell,
+  Globe,
+  ChevronDown,
+  UserCheck,
+  CheckSquare,
+  ScrollText,
+  Calendar,
+  FileCheck,
+  Shield,
+  Building2,
+} from "lucide-react";
 import { Link, Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -7,17 +28,17 @@ const AdminLayout = () => {
   const [isPresentasiOpen, setIsPresentasiOpen] = useState(false);
 
   const sidebarMenus = [
-    { icon: "bi-grid", label: "Dashboard", link: "/admin/dashboard" },
-    { icon: "bi-calendar4-week", label: "Approval", link: "/admin/approval" },
-    { icon: "bi-clipboard2-minus", label: "Pendataan Admin", link: "/admin/pendataan" },
-    { icon: "bi-mortarboard", label: "Surat", link: "/admin/surat" },
-    { icon: "bi-gear", label: "Sekolah / Universitas", link: "/admin/sekolah" },
-    { icon: "bi-gear", label: "Divisi", link: "/admin/divisi" },
-    { icon: "bi-gear", label: "RFID", link: "/admin/rfid" },
-    { icon: "bi-gear", label: "Kategori Project", link: "/admin/kategori" },
-    { icon: "bi-gear", label: "User", link: "/admin/user" },
-    { icon: "bi-gear", label: "Piket", link: "/admin/iket" },
-    { icon: "bi-gear", label: "Lowongan", link: "/admin/lowongan" },
+    { icon: <LayoutDashboard size={18} />, label: "Dashboard", link: "/admin/dashboard" },
+    { icon: <UserCheck size={18} />, label: "Mentor", link: "/admin/mentor" },
+    { icon: <Users size={18} />, label: "Peserta Magang", link: "/admin/peserta" },
+    { icon: <Building2 size={18} />, label: "Divisi", link: "/admin/divisi" },
+    { icon: <CheckSquare size={18} />, label: "Approval", link: "/admin/approval" },
+    { icon: <ScrollText size={18} />, label: "Jurnal", link: "/admin/jurnal" },
+    { icon: <Calendar size={18} />, label: "Absensi", link: "/admin/absensi" },
+    { icon: <FileCheck size={18} />, label: "Surat", link: "/admin/surat" },
+    { icon: <ScanLine size={18} />, label: "RFID", link: "/admin/rfid" },
+    { icon: <Shield size={18} />, label: "Piket", link: "/admin/piket" },
+    { icon: <Clock size={18} />, label: "Jam Kantor", link: "/admin/jam-kantor" },
   ];
 
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];
@@ -44,21 +65,14 @@ const AdminLayout = () => {
     <div className="w-full flex">
       {/* Sidebar */}
       <div className="bg-white border-r border-r-slate-300 w-[238px] h-screen fixed py-4 px-2 z-[60]">
-        <img
-          src="/assets/img/Logo.png"
-          alt="Logo"
-          className="w-48 mx-auto object-cover"
-        />
+        <img src="/assets/img/Logo.png" alt="Logo" className="w-48 mx-auto object-cover" />
         <div className="flex flex-col gap-3 mt-8">
           {sidebarMenus.map((menu, idx) => {
             if (menu.hasSubmenu) {
               return (
                 <div key={idx} className="flex flex-col">
-                  <button
-                    onClick={() => setIsPresentasiOpen(!isPresentasiOpen)}
-                    className="px-4 py-2 rounded-lg flex gap-3 items-center text-slate-500 hover:text-white hover:bg-sky-800 transition-all duration-500 ease-in-out"
-                  >
-                    <i className={`bi ${menu.icon} text-lg`}></i>
+                  <button onClick={() => setIsPresentasiOpen(!isPresentasiOpen)} className="px-4 py-2 rounded-lg flex gap-3 items-center text-slate-500 hover:text-white hover:bg-sky-800 transition-all duration-500 ease-in-out">
+                    {menu.icon}
                     <span className="font-light text-sm">{menu.label}</span>
                   </button>
                 </div>
@@ -66,12 +80,8 @@ const AdminLayout = () => {
             }
 
             return (
-              <Link
-                to={menu.link}
-                key={idx}
-                className="px-4 py-2 rounded-lg flex gap-3 items-center text-slate-500 hover:text-white hover:bg-sky-800 transition-all duration-500 ease-in-out"
-              >
-                <i className={`bi ${menu.icon} text-lg`}></i>
+              <Link to={menu.link} key={idx} className="px-4 py-2 rounded-lg flex gap-3 items-center text-slate-500 hover:text-white hover:bg-sky-800 transition-all duration-500 ease-in-out">
+                {menu.icon}
                 <span className="font-light text-sm">{menu.label}</span>
               </Link>
             );
@@ -86,40 +96,27 @@ const AdminLayout = () => {
           <div className="flex gap-5 ml-auto items-center">
             <div className="w-7 h-7 rounded-full bg-indigo-100 relative flex justify-center items-center">
               <div className="bg-red-500 w-2 h-2 rounded-full absolute top-1 right-2 animate-ping"></div>
-              <i className={`bi bi-bell ${isRinging ? "bell-shake" : ""}`}></i>
+              <Bell size={16} className={`${isRinging ? "bell-shake" : ""}`} />
             </div>
             <div className="w-7 h-7 rounded-full bg-indigo-100 relative flex justify-center items-center">
-              <i className="bi bi-globe text-sm"></i>
+              <Globe size={14} />
             </div>
 
             {/* Profile Dropdown */}
             <div className="relative profile-dropdown">
-              <div
-                className="flex items-center gap-2 bg-white pr-4 pl-1 py-0.5 rounded-full border border-gray-300 cursor-pointer"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              >
-                <img
-                  src="/assets/img/user-img.png"
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full object-cover"
-                />
+              <div className="flex items-center gap-2 bg-white pr-4 pl-1 py-0.5 rounded-full border border-gray-300 cursor-pointer" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                <img src="/assets/img/user-img.png" alt="Profile" className="w-8 h-8 rounded-full object-cover" />
                 <div className="absolute w-3 h-3 bg-green-500 rounded-full left-6 top-6 border-2 border-white"></div>
-                <i className="bi bi-chevron-down text-gray-500"></i>
+                <ChevronDown size={16} className="text-gray-500" />
               </div>
 
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden">
                   <div className="py-2">
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
+                    <a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                       Menu 1
                     </a>
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
+                    <a href="#" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                       Menu 2
                     </a>
                   </div>
@@ -138,16 +135,10 @@ const AdminLayout = () => {
           {/* Footer */}
           <div className="mt-3">
             <div className="bg-white rounded-t-xl px-5 py-4 w-full flex justify-between">
-              <div className="text-slate-400 font-normal text-sm">
-                © Copyright Edmate 2024, All Right Reserved
-              </div>
+              <div className="text-slate-400 font-normal text-sm">© Copyright Edmate 2024, All Right Reserved</div>
               <div className="flex gap-5">
                 {footerMenus.map((item, i) => (
-                  <Link
-                    key={i}
-                    to="#"
-                    className="text-slate-400 text-sm font-normal"
-                  >
+                  <Link key={i} to="#" className="text-slate-400 text-sm font-normal">
                     {item}
                   </Link>
                 ))}

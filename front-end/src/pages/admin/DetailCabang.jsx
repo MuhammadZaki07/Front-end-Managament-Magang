@@ -1,17 +1,17 @@
 import { useState } from "react";
-import PerusahaanCard from "../../components/cards/PerusahaanCard"; // Import the new component
 import DataApproval from "../../components/cards/DataApproval";
+import DetailCard from "../../components/cards/DetailCard"; // Import the new component
 
 const Approval = () => {
   return (
-    <div className="p-6">
+    <div className="p-6"> 
       {/* Use the new PerusahaanCard component */}
-      <PerusahaanCard />
+      <DetailCard />
 
-      {/* Komponen BerandaBranchCard */}
-      <div className="mt-8 px-1 pb-6">
+      {/* Komponen DataApproval */}
+      {/* <div className="mt-8 px-1 pb-6">
         <DataApproval />
-      </div>
+      </div> */}
     </div>
   );
 };

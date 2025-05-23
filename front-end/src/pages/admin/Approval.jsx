@@ -4,12 +4,11 @@ import DataApproval from "../../components/cards/DataApproval";
 
 const Approval = () => {
   return (
-    <div className="p-6">
+    <div className="p-2">
       {/* Use the new PerusahaanCard component */}
-      <PerusahaanCard />
 
       {/* Komponen BerandaBranchCard */}
-      <div className="mt-8 px-1 pb-6">
+      <div className="mt-2 px-1 pb-6">
         <DataApproval />
       </div>
     </div>
