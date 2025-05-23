@@ -201,7 +201,7 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
     try {
       const profilePhoto = fotoArray.find((foto) => foto?.type === "profile");
       if (profilePhoto?.path) {
-        return `${import.meta.env.VITE_API_URL}/storage/${profilePhoto.path}`;
+        return `${import.meta.env.VITE_API_URL_FILE}/storage/${profilePhoto.path}`;
       }
       return defaultPhoto;
     } catch (error) {

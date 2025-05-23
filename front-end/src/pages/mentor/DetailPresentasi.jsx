@@ -8,6 +8,7 @@ const ParticipantDetailView = () => {
   const [projectTracks, setProjectTracks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isUpdating, setIsUpdating] = useState({}); // Track which tasks are being updated
 
   // State to track which tracks are expanded
   const [expandedTracks, setExpandedTracks] = useState({});
@@ -19,16 +20,20 @@ const ParticipantDetailView = () => {
     const fetchParticipantData = async () => {
       try {
         setIsLoading(true);
+        console.log("Fetching data for ID:", id); // Debug log
+        
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/peserta-progress/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
 
+        console.log("API Response:", response.data); // Debug log
+
         if (response.data.status === "success") {
           const data = response.data.data;
           
-          // Transform participant data
+          // Transform participant data sesuai dengan struktur API response yang sebenarnya
           const transformedParticipant = {
             name: data.nama,
             divisi: data.divisi,
@@ -37,7 +42,7 @@ const ParticipantDetailView = () => {
             email: data.email,
             company: data.perusahaan,
             cabang: data.cabang,
-            RFID: data.rfid || "N/A", // RFID might not be in API response
+            RFID: data.rfid || "N/A",
             mentor: data.mentor,
             period: `${formatDate(data.mulai_magang)} - ${formatDate(data.selesai_magang)}`,
             profileImage: data.foto?.find((f) => f.type === "profile")?.path 
@@ -47,23 +52,38 @@ const ParticipantDetailView = () => {
 
           setParticipant(transformedParticipant);
 
-          // Transform progress data to project tracks
-          const transformedTracks = data.progress.map((progress, index) => ({
-            id: progress.id,
-            stage: `Tahap ${index + 1}`, // You might want to get actual stage names from another API endpoint
-            status: progress.status === 1 ? "Selesai" : "Dikerjakan",
-            startDate: formatDate(progress.created_at),
-            endDate: progress.status === 1 ? formatDate(progress.updated_at) : null,
-            revisions: progress.progress.length > 0 ? [{
-              id: 1,
-              name: "Revisi Utama",
-              tasks: progress.progress.map(p => p.deskripsi)
-            }] : []
-          }));
+          // Transform progress data - sesuaikan dengan struktur API response
+          let transformedTracks = [];
+          
+          if (data.progress) {
+            // Progress adalah object tunggal, bukan array
+            const progress = data.progress;
+            transformedTracks = [{
+              id: progress.id,
+              stage: "Proyek Utama", // Atau sesuaikan dengan kategori proyek
+              status: progress.selesai ? "Selesai" : "Dikerjakan",
+              startDate: formatDate(progress.mulai),
+              endDate: progress.selesai ? formatDate(progress.selesai) : null,
+              revisions: data.revisi && data.revisi.length > 0 ? 
+                data.revisi.map((rev, index) => ({
+                  id: rev.id || index + 1,
+                  name: `Revisi ${index + 1}`, // Generate nama revisi karena tidak ada di API
+                  status: rev.status, // Status dari API (0 atau 1)
+                  created_at: rev.created_at,
+                  updated_at: rev.updated_at,
+                  tasks: rev.progress && rev.progress.length > 0 ? 
+                    rev.progress.map((prog) => ({
+                      id: prog.id,
+                      deskripsi: prog.deskripsi,
+                      status: prog.status // Status task (0 atau 1)
+                    })) : []
+                })) : []
+            }];
+          }
 
           setProjectTracks(transformedTracks);
         } else {
-          setError("Failed to fetch participant data");
+          setError("Gagal mengambil data peserta");
         }
       } catch (err) {
         console.error("Error fetching participant:", err);
@@ -75,6 +95,8 @@ const ParticipantDetailView = () => {
 
     if (id) {
       fetchParticipantData();
+    } else {
+      setError("ID peserta tidak ditemukan");
     }
   }, [id]);
 
@@ -106,6 +128,116 @@ const ParticipantDetailView = () => {
     }));
   };
 
+  // Function to handle task status update
+  const handleTaskStatusUpdate = async (trackId, revisionId, taskId, currentStatus) => {
+    const taskKey = `${trackId}-${revisionId}-${taskId}`;
+    
+    try {
+      setIsUpdating(prev => ({ ...prev, [taskKey]: true }));
+      
+      const newStatus = currentStatus === 1 ? 0 : 1; // Toggle status
+      
+      // API call to update task status
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/peserta-progress/${id}/task/${taskId}/status`,
+        { 
+          status: newStatus,
+          revision_id: revisionId 
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      
+      if (response.data.status === "success") {
+        // Update local state
+        setProjectTracks(prev => 
+          prev.map(track => {
+            if (track.id === trackId) {
+              return {
+                ...track,
+                revisions: track.revisions.map(revision => {
+                  if (revision.id === revisionId) {
+                    return {
+                      ...revision,
+                      tasks: revision.tasks.map(task => 
+                        task.id === taskId 
+                          ? { ...task, status: newStatus }
+                          : task
+                      )
+                    };
+                  }
+                  return revision;
+                })
+              };
+            }
+            return track;
+          })
+        );
+
+        // Check if all tasks in this revision are completed
+        const track = projectTracks.find(t => t.id === trackId);
+        const revision = track?.revisions.find(r => r.id === revisionId);
+        
+        if (revision) {
+          const updatedTasks = revision.tasks.map(task => 
+            task.id === taskId ? { ...task, status: newStatus } : task
+          );
+          
+          const allTasksCompleted = updatedTasks.every(task => task.status === 1);
+          
+          // Update revision status if all tasks are completed
+          if (allTasksCompleted && revision.status !== 1) {
+            await updateRevisionStatus(revisionId, 1);
+          } else if (!allTasksCompleted && revision.status === 1) {
+            await updateRevisionStatus(revisionId, 0);
+          }
+        }
+        
+      } else {
+        throw new Error("Gagal mengupdate status task");
+      }
+    } catch (err) {
+      console.error("Error updating task status:", err);
+      alert("Gagal mengupdate status task: " + (err.response?.data?.message || err.message));
+    } finally {
+      setIsUpdating(prev => ({ ...prev, [taskKey]: false }));
+    }
+  };
+
+  // Function to update revision status
+  const updateRevisionStatus = async (revisionId, status) => {
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/peserta-progress/${id}/revision/${revisionId}/status`,
+        { status },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      
+      if (response.data.status === "success") {
+        // Update local state for revision status
+        setProjectTracks(prev => 
+          prev.map(track => ({
+            ...track,
+            revisions: track.revisions.map(revision => 
+              revision.id === revisionId 
+                ? { ...revision, status }
+                : revision
+            )
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Error updating revision status:", err);
+    }
+  };
+
   // Function to render status badge with appropriate color
   const renderStatusBadge = (status) => {
     if (status === "Selesai") {
@@ -128,38 +260,61 @@ const ParticipantDetailView = () => {
       );
     }
   };
+
+  // Function to render revision status badge
+  const renderRevisionStatusBadge = (status) => {
+    if (status === 1) {
+      return (
+        <span className="inline-flex bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">
+          Selesai
+        </span>
+      );
+    } else {
+      return (
+        <span className="inline-flex bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs">
+          Dalam Progress
+        </span>
+      );
+    }
+  };
   
   // Function to check if "Tandai Selesai" button should be shown
   const shouldShowTandaiSelesai = (status) => {
     return status === "Dikerjakan";
   };
 
-  // Function to determine if checkbox should be checked based on track status
-  const isCheckboxChecked = (trackStatus) => {
-    return trackStatus === "Selesai";
+  // Function to determine if checkbox should be checked based on task status
+  const isTaskCompleted = (taskStatus) => {
+    return taskStatus === 1;
   };
 
   // Function to handle marking task as complete
   const handleMarkComplete = async (trackId) => {
     try {
-      // You might need to implement an API endpoint to mark tasks as complete
-      // Example API call:
-      // await axios.put(`${import.meta.env.VITE_API_URL}/peserta-progress/${id}/complete/${trackId}`, {}, {
-      //   headers: {
-      //     Authorization: `Bearer ${localStorage.getItem("token")}`,
-      //   },
-      // });
-      
-      // For now, just update the local state
-      setProjectTracks(prev => 
-        prev.map(track => 
-          track.id === trackId 
-            ? { ...track, status: "Selesai", endDate: formatDate(new Date()) }
-            : track
-        )
+      // Implementasi API call untuk menandai sebagai selesai
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/peserta-progress/${id}/complete`, 
+        { track_id: trackId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
+      
+      if (response.data.status === "success") {
+        // Update local state
+        setProjectTracks(prev => 
+          prev.map(track => 
+            track.id === trackId 
+              ? { ...track, status: "Selesai", endDate: formatDate(new Date()) }
+              : track
+          )
+        );
+      }
     } catch (err) {
       console.error("Error marking task as complete:", err);
+      alert("Gagal menandai tugas sebagai selesai");
     }
   };
 
@@ -167,7 +322,7 @@ const ParticipantDetailView = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-8 min-h-screen">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">Memuat data...</div>
       </div>
     );
   }
@@ -185,7 +340,7 @@ const ParticipantDetailView = () => {
   if (!participant) {
     return (
       <div className="flex justify-center items-center p-8 min-h-screen">
-        <div className="text-gray-500">Participant not found</div>
+        <div className="text-gray-500">Data peserta tidak ditemukan</div>
       </div>
     );
   }
@@ -206,7 +361,7 @@ const ParticipantDetailView = () => {
       </div>
 
       {/* Profile section */}
-      <div className="bg-white rounded-lg p-6 mb-6">
+      <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border">
         <div className="flex gap-6">
           <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md">
             <img
@@ -265,7 +420,7 @@ const ParticipantDetailView = () => {
         <h2 className="text-lg font-semibold mb-4 px-4">Track Record Project</h2>
 
         {projectTracks.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
+          <div className="text-center text-gray-500 py-8 bg-gray-50 rounded-lg">
             Belum ada progress yang tersedia
           </div>
         ) : (
@@ -273,10 +428,10 @@ const ParticipantDetailView = () => {
             {projectTracks.map((track) => (
               <div
                 key={track.id}
-                className="bg-white rounded-lg overflow-hidden border border-[#D5DBE7]"
+                className="bg-white rounded-lg overflow-hidden border border-[#D5DBE7] shadow-sm"
               >
                 <div 
-                  className="flex justify-between items-center p-4 cursor-pointer"
+                  className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50"
                   onClick={() => toggleTrack(track.id)}
                 >
                   <div>
@@ -284,7 +439,7 @@ const ParticipantDetailView = () => {
                       <h3 className="font-medium">{track.stage}</h3>
                       {shouldShowTandaiSelesai(track.status) && (
                         <button 
-                          className="text-blue-500 bg-blue-50 px-3 py-1 rounded-md text-xs hover:bg-blue-100"
+                          className="text-blue-500 bg-blue-50 px-3 py-1 rounded-md text-xs hover:bg-blue-100 transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleMarkComplete(track.id);
@@ -310,62 +465,90 @@ const ParticipantDetailView = () => {
                 
                 {/* Expandable content */}
                 {expandedTracks[track.id] && (
-                  <div className="px-4 pb-4 text-sm text-gray-600 border-t border-gray-100 pt-2">
-                    <div className="mt-2 mb-4 font-medium">Detail Revisi</div>
-                    
-                    {/* Revisions list - with max height and scrolling */}
-                    <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                      {track.revisions.map((revision) => (
-                        <div key={revision.id} className="border-b border-gray-100 pb-2">
-                          {/* Revision header */}
-                          <div 
-                            className="flex items-center justify-between cursor-pointer pb-2 sticky top-0 bg-white"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleRevision(track.id, revision.id);
-                            }}
-                          >
-                            <div className="font-medium">{revision.name}</div>
-                            <button className="text-gray-400">
-                              <svg 
-                                xmlns="http://www.w3.org/2000/svg" 
-                                width="16" 
-                                height="16" 
-                                viewBox="0 0 24 24" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                strokeWidth="2" 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round"
-                                style={{ 
-                                  transform: expandedRevisions[`${track.id}-${revision.id}`] ? 'rotate(180deg)' : 'rotate(0deg)',
-                                  transition: 'transform 0.2s'
+                  <div className="px-4 pb-4 text-sm text-gray-600 border-t border-gray-100 pt-4">
+                    {track.revisions.length > 0 ? (
+                      <>
+                        <div className="mb-4 font-medium">Detail Revisi</div>
+                        
+                        {/* Revisions list - with max height and scrolling */}
+                        <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                          {track.revisions.map((revision) => (
+                            <div key={revision.id} className="border-b border-gray-100 pb-2">
+                              {/* Revision header */}
+                              <div 
+                                className="flex items-center justify-between cursor-pointer pb-2 sticky top-0 bg-white"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleRevision(track.id, revision.id);
                                 }}
                               >
-                                <path d="M18 15l-6-6-6 6"/>
-                              </svg>
-                            </button>
-                          </div>
-
-                          {/* Revision tasks */}
-                          {expandedRevisions[`${track.id}-${revision.id}`] && (
-                            <div className="pl-2">
-                              {revision.tasks.map((task, index) => (
-                                <div key={index} className="flex items-start gap-2 mb-2">
-                                  <input 
-                                    type="checkbox" 
-                                    className="mt-1" 
-                                    checked={isCheckboxChecked(track.status)}
-                                    readOnly={track.status === "Selesai"}
-                                  />
-                                  <div>{task}</div>
+                                <div className="flex items-center gap-2">
+                                  <div className="font-medium">{revision.name}</div>
+                                  {renderRevisionStatusBadge(revision.status)}
                                 </div>
-                              ))}
+                                <button className="text-gray-400">
+                                  <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="16" 
+                                    height="16" 
+                                    viewBox="0 0 24 24" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                    style={{ 
+                                      transform: expandedRevisions[`${track.id}-${revision.id}`] ? 'rotate(180deg)' : 'rotate(0deg)',
+                                      transition: 'transform 0.2s'
+                                    }}
+                                  >
+                                    <path d="M18 15l-6-6-6 6"/>
+                                  </svg>
+                                </button>
+                              </div>
+
+                              {/* Revision tasks */}
+                              {expandedRevisions[`${track.id}-${revision.id}`] && (
+                                <div className="pl-2">
+                                  {revision.tasks && revision.tasks.length > 0 ? (
+                                    revision.tasks.map((task) => {
+                                      const taskKey = `${track.id}-${revision.id}-${task.id}`;
+                                      const isUpdatingTask = isUpdating[taskKey];
+                                      
+                                      return (
+                                        <div key={task.id} className="flex items-start gap-2 mb-2">
+                                          <div className="relative">
+                                            <input 
+                                              type="checkbox" 
+                                              className={`mt-1 cursor-pointer ${isUpdatingTask ? 'opacity-50' : ''}`}
+                                              checked={isTaskCompleted(task.status)}
+                                              onChange={() => handleTaskStatusUpdate(track.id, revision.id, task.id, task.status)}
+                                              disabled={isUpdatingTask}
+                                            />
+                                            {isUpdatingTask && (
+                                              <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="w-3 h-3 border border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+                                              </div>
+                                            )}
+                                          </div>
+                                          <div className={`${isTaskCompleted(task.status) ? 'line-through text-gray-400' : ''} ${isUpdatingTask ? 'opacity-50' : ''}`}>
+                                            {task.deskripsi}
+                                          </div>
+                                        </div>
+                                      );
+                                    })
+                                  ) : (
+                                    <div className="text-gray-400 italic">Belum ada tugas untuk revisi ini</div>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                          )}
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </>
+                    ) : (
+                      <div className="text-gray-400 italic">Belum ada revisi untuk proyek ini</div>
+                    )}
                   </div>
                 )}
               </div>
