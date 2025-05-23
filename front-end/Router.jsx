@@ -73,6 +73,7 @@ import DataSurat from "./src/pages/admin/Surat";
 import DataRFID from "./src/pages/admin/RFID";
 import DataPiket from "./src/pages/admin/Piket";
 import DataJamkantor from "./src/pages/admin/Jam-kantor";
+import ProjectCard from "./src/components/cards/ProjectCard";
 
 
 export const router = createBrowserRouter([
@@ -157,6 +158,10 @@ export const router = createBrowserRouter([
       {
         path: "detail-project",
         element: <DetailProjectPage />,
+      },
+      {
+        path: "route-project",
+        element: <ProjectCard />,
       },
     ],
   },
