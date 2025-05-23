@@ -1,10 +1,11 @@
 import React from 'react';
 
-export default function SummaryCards() {
+export default function SummaryCards({summary}) {
+  
   const summaryData = [
     {
       title: 'Jumlah Admin',
-      count: 120,
+      count: summary.total_admin,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-500">
           <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
@@ -16,7 +17,7 @@ export default function SummaryCards() {
     },
     {
       title: 'Jumlah Mentor',
-      count: 50,
+      count: summary.total_mentor,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
           <circle cx="12" cy="12" r="10"></circle>
@@ -27,7 +28,7 @@ export default function SummaryCards() {
     },
     {
       title: 'Jumlah Divisi',
-      count: 14,
+      count: summary.total_divisi,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -41,7 +42,7 @@ export default function SummaryCards() {
     },
     {
       title: 'Jumlah Peserta Magang',
-      count: 250,
+      count: summary.total_peserta,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
           <circle cx="12" cy="12" r="10"></circle>

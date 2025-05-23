@@ -230,6 +230,14 @@ export const router = createBrowserRouter([
     {
       path: "cabang",
       element: <CabangPerusahaan />,
+    },       
+    {
+      path: "update-perusahaan/:id_perusahaan",
+      element: <SettingsPerusahaan />,
+    },
+    {
+      path: "settings",
+      element: <CompanyRegistrationForm />,
     },
     {
       path: "lowongan",
@@ -291,15 +299,6 @@ export const router = createBrowserRouter([
         {
           path: "RFID",
           element: <RFID />,
-        },
-        {
-          path: "settings",
-          element: <CompanyRegistrationForm />,
-        },
-        
-        {
-          path: "update-perusahaan/:id_perusahaan",
-          element: <SettingsPerusahaan />,
         },
         {
           path: "mentor/:mentorId",

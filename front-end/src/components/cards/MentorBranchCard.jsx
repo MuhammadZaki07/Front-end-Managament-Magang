@@ -7,7 +7,7 @@ import ModalTambahMentor from "../../components/modal/ModalTambahMentor";
 import ModalDelete from "../../components/modal/ModalDeleteAdminCabang";
 import Loading from "../../components/cards/Loading";
 import DataNotAvaliable from "../DataNotAvaliable";
-
+import Swal from "sweetalert2";
 export default function MentorBranchCard() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,6 +38,15 @@ export default function MentorBranchCard() {
 
   const fetchMentors = async () => {
     try {
+      Swal.fire({
+                title: 'Memuat data...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                  Swal.showLoading();
+                }
+              });
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/mentor`,
         {
@@ -48,6 +57,7 @@ export default function MentorBranchCard() {
       );
       setBranches(Array.isArray(response.data?.data) ? response.data.data : []);
       setLoading(false);
+      Swal.close();
     } catch (error) {
       console.error("Error fetching mentors:", error);
     } finally {

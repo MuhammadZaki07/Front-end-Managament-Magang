@@ -1,12 +1,16 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import DataPerusahaan from "../../components/cards/DataPerusahaan";
 import Password from "../../components/cards/Password";
+import axios from "axios";
+import Loading from "../../components/cards/Loading";
+import Swal from "sweetalert2";
 
 const CompanyCard = () => {
-  const [companyName] = useState("PT. HUMMA TECHNOLOGY INDONESIA");
-  const [location] = useState("Malang, Indonesia");
-  const [join] = useState("Join August 2024");
-
+  const [companyName, setCompanyName] = useState('');
+  const [location, setLocation] = useState('');
+  const [joinDate, setJoinDate] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   // File upload states
   const [coverImage, setCoverImage] = useState("/assets/img/Cover.png");
   const [logoImage, setLogoImage] = useState("/assets/img/logoperusahaan.png");
@@ -15,8 +19,76 @@ const CompanyCard = () => {
   const coverInputRef = useRef(null);
   const logoInputRef = useRef(null);
 
+  // UI states
   const [animating, setAnimating] = useState(false);
   const [activeMenu, setActiveMenu] = useState("Data Perusahaan");
+
+  const dataProfile = async () => {
+    try {
+      // Show loading for initial load
+      if (!companyName) {
+        Swal.fire({
+          title: 'Memuat data...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+      }
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/perusahaan/edit`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      
+      setCompanyName(res.data.data.perusahaan.nama)
+      const { kecamatan, kota, provinsi } = res.data.data.perusahaan;
+      const locationParts = [kecamatan, kota, provinsi].filter(part => part && part.trim() !== '');
+      const formattedLocation = locationParts.join(', ');
+      setLocation(formattedLocation);
+      setJoinDate(res.data.data.perusahaan.created_at)
+      const logo = res.data.data.foto.find((f) => f.type === "profile");
+      const cover = res.data.data.foto.find((f) => f.type === "profil_cover");
+
+      Swal.close();
+    
+      setLogoImage(logo ? `${import.meta.env.VITE_API_URL_FILE}/storage/${logo.path}` : null);
+      setCoverImage(cover ? `${import.meta.env.VITE_API_URL_FILE}/storage/${cover.path}` : null);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError(err.message);
+       if (err.response) {
+        console.error("Response data:", err.response.data);
+        console.error("Response status:", err.response.status);
+        console.error("Response headers:", err.response.headers);
+      } else if (err.request) {
+        console.error("Request data:", err.request);
+      } else {
+        console.error("Error message:", err.message);
+      }
+      
+      // Show error alert
+      await Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: err.response?.data?.message || 'Terjadi kesalahan saat memperbarui data',
+        confirmButtonText: 'OK'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    dataProfile();
+  }, []); 
 
   const handleMenuClick = (menuName) => {
     if (menuName !== activeMenu) {
@@ -44,6 +116,7 @@ const CompanyCard = () => {
       reader.readAsDataURL(file);
     }
   };
+  if (loading) return  <Loading />;
 
   const menuItems = [{ label: "Data Perusahaan" }, { label: "Password" }];
 
@@ -91,10 +164,10 @@ const CompanyCard = () => {
             <div>
               <h2 className="text-lg font-semibold text-gray-800">{companyName}</h2>
               <div className="text-[13px] text-gray-500 flex items-center gap-2 mt-1">
-                <i className="bi bi-geo-alt-fill"></i> {location}
+                <i className="bi bi-geo-alt-fill"></i> {location ? location : '-'}
               </div>
               <div className="text-[13px] text-gray-500 flex items-center gap-2 mt-1">
-                <i className="bi bi-calendar-fill"></i> {join}
+                <i className="bi bi-calendar-fill"></i> Bergabung {joinDate ? joinDate : '-'}
               </div>
             </div>
           </div>

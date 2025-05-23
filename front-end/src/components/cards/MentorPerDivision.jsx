@@ -1,35 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function MentorPerDivisionChart() {
-  const [year, setYear] = useState('2024');
-  
+export default function MentorPerDivisionChart({ mentor }) {
+  const [year, setYear] = useState('2025'); // Default year
+
+  // Dynamically create chart data from mentor prop
+  const chartData = mentor.map(item => ({
+    name: item.nama_divisi, // Division name
+    value: item.total_mentor, // Total mentors in the division
+  }));
+
+  // You can use a mapping of year to mentor data if necessary in the future
   const yearData = {
-    '2024': [
-      { name: 'UI/UX', value: 20 },
-      { name: 'Web Dev', value: 15 },
-      { name: 'Data Analyst', value: 10 },
-      { name: 'Cyber Security', value: 25 },
-      { name: 'Public Relations', value: 22 },
-      { name: 'IT Support', value: 8 },
-    ],
-    '2023': [
-      { name: 'UI/UX', value: 15 },
-      { name: 'Web Dev', value: 20 },
-      { name: 'Data Analyst', value: 8 },
-      { name: 'Cyber Security', value: 22 },
-      { name: 'Public Relations', value: 25 },
-      { name: 'IT Support', value: 10 },
-    ]
+    '2025': chartData, // Default to the data passed in mentor prop
+    '2024': chartData, // You can extend this to other years
   };
 
+  // Colors for each division (can be dynamic or predefined)
   const colors = [
     '#2c4d8a', '#5076ba', '#7ba3e8', '#c3d4f2', '#dbe7fb', '#d1d5db',
   ];
 
-  const currentData = yearData[year];
+  // Get current year data (based on the selected year)
+  const currentData = yearData[year] || [];
+
   const total = currentData.reduce((sum, item) => sum + item.value, 0);
 
-  const radius = 80; // <--- Mengecilkan radius lingkaran
+  // Adjust the radius for the donut chart
+  const radius = 80; // Size of the donut chart
   const circumference = 2 * Math.PI * radius;
 
   let accumulatedPercentage = 0;
@@ -39,7 +36,7 @@ export default function MentorPerDivisionChart() {
     const dashArray = `${segmentLength} ${circumference - segmentLength}`;
     const dashOffset = -circumference * accumulatedPercentage;
     accumulatedPercentage += percentage;
-    
+
     return {
       ...item,
       dashArray,
@@ -50,9 +47,9 @@ export default function MentorPerDivisionChart() {
   });
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 w-full max-w-xl mx-auto"> {/* max-w-2xl biar lebih kecil */}
+    <div className="bg-white rounded-lg shadow p-4 w-full max-w-xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-l font-bold text-gray-800">Jumlah Mentor Per Divisi</h2> {/* text-2xl */}
+        <h2 className="text-l font-bold text-gray-800">Jumlah Mentor Per Divisi</h2>
         
         <div className="relative">
           <select 
@@ -60,8 +57,8 @@ export default function MentorPerDivisionChart() {
             onChange={(e) => setYear(e.target.value)}
             className="appearance-none bg-white-50 rounded-md px-3 py-1.5 pr-8 text-gray-700 focus:outline-none border border-gray-200 text-sm"
           >
+            <option value="2025">2025</option>
             <option value="2024">2024</option>
-            <option value="2023">2023</option>
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
             <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 290">
@@ -80,14 +77,14 @@ export default function MentorPerDivisionChart() {
                 className="w-3 h-3 mr-2 rounded-full" 
                 style={{ backgroundColor: colors[index] }}
               />
-              <span className="text-gray-600 text-sm">{division.name}</span> {/* text-sm */}
+              <span className="text-gray-600 text-sm">{division.name}</span>
             </div>
           ))}
         </div>
         
         {/* Donut Chart */}
         <div className="w-1/2 flex justify-end">
-          <div className="w-48 h-48 relative"> {/* w-48 h-48 */}
+          <div className="w-48 h-48 relative">
             <svg width="100%" height="100%" viewBox="0 0 200 200">
               {segments.map((segment, index) => (
                 <circle
@@ -97,7 +94,7 @@ export default function MentorPerDivisionChart() {
                   r={radius}
                   fill="none"
                   stroke={segment.color}
-                  strokeWidth="30" // <- mengecilkan stroke
+                  strokeWidth="30"
                   strokeDasharray={segment.dashArray}
                   strokeDashoffset={segment.dashOffset}
                   transform="rotate(-90 100 100)"
@@ -106,7 +103,7 @@ export default function MentorPerDivisionChart() {
               <circle 
                 cx="100" 
                 cy="100" 
-                r="35" // <- mengecilkan lingkaran putih di tengah
+                r="35" // Circle at the center (white space)
                 fill="white" 
               />
             </svg>

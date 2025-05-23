@@ -11,6 +11,7 @@ import axios from "axios";
 import AddEditModal from "../../components/modal/AddEditModal";
 import DeleteModal from "../../components/modal/DeleteModal";
 import DetailModal from "../../components/modal/DetailModal";
+import Swal from "sweetalert2";
 
 export default function UniversityCardGrid() {
   const [partners, setPartners] = useState([]);
@@ -51,6 +52,15 @@ export default function UniversityCardGrid() {
 
   const fetchAllData = async () => {
     try {
+        Swal.fire({
+          title: 'Memuat data...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/mitra`,
         {
@@ -60,8 +70,26 @@ export default function UniversityCardGrid() {
         }
       );
       setPartners(response.data.data);
+      Swal.close();
     } catch (err) {
       console.error("Gagal memuat data mitra:", err);
+       if (err.response) {
+        console.error("Response data:", err.response.data);
+        console.error("Response status:", err.response.status);
+        console.error("Response headers:", err.response.headers);
+      } else if (err.request) {
+        console.error("Request data:", err.request);
+      } else {
+        console.error("Error message:", err.message);
+      }
+      
+      // Show error alert
+      await Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: err.response?.data?.message || 'Terjadi kesalahan saat memperbarui data',
+        confirmButtonText: 'OK'
+      });
     } finally {
       setLoading(false);
     }

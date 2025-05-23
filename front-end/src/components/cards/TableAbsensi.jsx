@@ -10,6 +10,8 @@ const TableAbsensi = () => {
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
 
+  console.log(data);
+  
   const fetchAbsensi = async () => {
     try {
       setLoading(true);

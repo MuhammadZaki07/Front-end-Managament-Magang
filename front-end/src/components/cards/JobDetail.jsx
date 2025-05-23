@@ -16,6 +16,8 @@ import axios from "axios";
 
 const JobDetail = ({ job, onClose, onEdit,onSucces }) => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  console.log(job);
+  
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === "Escape") {
@@ -69,7 +71,7 @@ const JobDetail = ({ job, onClose, onEdit,onSucces }) => {
       <div className="mb-4 relative">
         <img
           src="/assets/img/Container.png"
-          alt={job.perusahaan.perusahaan.nama}
+          alt={job.perusahaan.nama}
           className="w-full h-32 object-cover rounded-lg"
         />
         <div className="relative -mt-8 flex justify-center">
@@ -82,7 +84,7 @@ const JobDetail = ({ job, onClose, onEdit,onSucces }) => {
       </div>
 
       <h3 className="text-center text-lg font-bold mt-2">
-        {job.perusahaan.perusahaan.nama}
+        {job.perusahaan.nama}
       </h3>
       <p className="text-center text-sm text-gray-500 mb-2">
         {job.cabang.kota}

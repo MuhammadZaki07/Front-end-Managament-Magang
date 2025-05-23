@@ -4,6 +4,8 @@ import { CalendarDays, Search, Filter } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import TablePendaftaran from "./TablePeserta";
+import Swal from "sweetalert2";
+import Loading from "../Loading";
 
 export default function ApprovalTable() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -11,7 +13,7 @@ export default function ApprovalTable() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedDivisi, setSelectedDivisi] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-
+  const [loading, setLoading] = useState(true);
   const [dataPendaftaran, setDataPendaftaran] = useState([]);
   const [divisiOptions, setDivisiOptions] = useState([]);
   const [statusOptions, setStatusOptions] = useState([]);
@@ -23,6 +25,15 @@ useEffect(() => {
   const fetchPesertaDanDivisi = async () => {
     try {
       // Ambil data peserta
+      Swal.fire({
+        title: 'Memuat data...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const pesertaRes = await axios.get(`${apiUrl}/peserta-by-cabang`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -48,8 +59,11 @@ useEffect(() => {
 
       // Status dummy
       setStatusOptions(["aktif", "non-aktif"]);
+
+      Swal.close();
     } catch (err) {
       console.error("Gagal mengambil data:", err);
+      setLoading(false);
     }
   };
 
@@ -74,6 +88,8 @@ useEffect(() => {
         : "Pilih Tanggal"}
     </button>
   ));
+
+  if (loading) return  <Loading />;
 
   return (
     <div className="w-full">

@@ -8,6 +8,7 @@ import axios from "axios";
 import DataPenerimaan from "./DataPenerimaan";
 import DataPeringatan from "./DataPeringatan";
 import WarningLetterModal from "../modal/WarningLetterModal";
+import Swal from "sweetalert2";
 
 export default function Surat() {
   const [activeTab, setActiveTab] = useState("DataPenerimaan");
@@ -25,6 +26,15 @@ export default function Surat() {
 
 const fetchPenerimaan = async () => {
   try {
+    Swal.fire({
+      title: 'Memuat data...',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
     const response = await axios.get(`${apiUrl}/surat`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -40,6 +50,7 @@ const fetchPenerimaan = async () => {
 
     console.log("Filtered penerimaan:", approvedData);
     setDataPenerimaan(approvedData);
+    Swal.close();
   } catch (error) {
     console.error("Error fetching data penerimaan:", error);
     console.error("Error details:", error.response);

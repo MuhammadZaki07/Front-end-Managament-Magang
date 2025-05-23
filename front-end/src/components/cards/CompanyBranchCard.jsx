@@ -22,6 +22,15 @@ export default function CompanyBranchCard() {
 
   const fetchAdmins = async () => {
     try {
+      Swal.fire({
+                      title: 'Memuat data...',
+                      allowOutsideClick: false,
+                      allowEscapeKey: false,
+                      showConfirmButton: false,
+                      didOpen: () => {
+                        Swal.showLoading();
+                      }
+                    });
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/admin`,
         {
@@ -31,6 +40,7 @@ export default function CompanyBranchCard() {
         }
       );
       setBranches(response.data.data);
+      Swal.close();
     } catch (error) {
       console.error("Error fetching admins:", error);
     } finally {

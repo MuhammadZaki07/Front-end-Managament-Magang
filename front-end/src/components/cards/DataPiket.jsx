@@ -11,6 +11,7 @@ import {
   PlusCircle
 } from "lucide-react";
 import Select from "react-select";
+import Swal from "sweetalert2";
 
 export default function JadwalPiket() {
   const navigate = useNavigate();
@@ -32,6 +33,15 @@ export default function JadwalPiket() {
 
   const fetchMembers = async () => {
     try {
+      Swal.fire({
+        title: 'Memuat data...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+        });
       const token = localStorage.getItem("token");
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/peserta-by-cabang`,
@@ -46,6 +56,7 @@ export default function JadwalPiket() {
         label: item.nama,
       }));
       setAllMembersOptions(options);
+      Swal.close();
     } catch (err) {
       console.error("Gagal mengambil data peserta:", err);
     } finally {

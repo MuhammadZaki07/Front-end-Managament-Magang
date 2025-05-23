@@ -15,6 +15,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CSVLink } from "react-csv";
 import axios from "axios";
+import Loading from "../Loading";
 export default function ApprovalTable() {
   const [activeTab, setActiveTab] = useState("pendaftaran");
   const [searchTerm, setSearchTerm] = useState("");
@@ -28,6 +29,8 @@ export default function ApprovalTable() {
   const [dataPendaftaran, setDataPendaftaran] = useState([]);
   const [dataIzin, setDataIzin] = useState([]);
   const [showModalIzin, setShowModalIzin] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   const mapFrontendStatusToApi = (frontendStatus) => {
     switch (frontendStatus) {
       case "approved":
@@ -39,8 +42,6 @@ export default function ApprovalTable() {
     }
   };
 
-  console.log(dataIzin);
-  
 
   const FileIcon = () => (
     <svg
@@ -107,6 +108,16 @@ export default function ApprovalTable() {
 
   const fetchDataPendaftaran = async () => {
     try {
+      Swal.fire({
+          title: 'Memuat data...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+      });
+
       const response = await axios.get(`${API_BASE_URL}/magang`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -114,8 +125,12 @@ export default function ApprovalTable() {
       });
       let pendaftaranData = response.data.data || response.data;
       setDataPendaftaran(pendaftaranData);
+
+      Swal.close();
     } catch (error) {
       console.error("Failed to fetch data pendaftaran:", error);
+      setLoading(false);
+
     }
   };
 
@@ -440,6 +455,7 @@ export default function ApprovalTable() {
       />
     </div>
   );
+  if (loading) return  <Loading />;
 
   return (
     <div className="w-full">

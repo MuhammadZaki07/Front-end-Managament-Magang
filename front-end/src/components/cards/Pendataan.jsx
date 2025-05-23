@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CSVLink } from "react-csv";
 import Jurnal from "./Jurnal";
+import Swal from "sweetalert2";
 
 export default function Pendataan() {
   const [searchSchool, setSearchSchool] = useState("");
@@ -17,6 +18,15 @@ export default function Pendataan() {
   useEffect(() => {
     const fetchJurnal = async () => {
       try {
+        Swal.fire({
+          title: 'Memuat data...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
         const token = localStorage.getItem("token");
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/jurnal-peserta-cabang`,
@@ -50,6 +60,8 @@ export default function Pendataan() {
 
         setDataJurnal(formatted);
         setFilteredData(formatted);
+
+        Swal.close();
       } catch (error) {
         console.error("Gagal mengambil data jurnal:", error);
       }

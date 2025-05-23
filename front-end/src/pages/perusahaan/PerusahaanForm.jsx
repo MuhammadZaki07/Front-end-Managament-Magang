@@ -128,8 +128,8 @@ export default function CompanyRegistrationForm() {
         // Hanya angka dengan format yang valid
         if (!/^\d+$/.test(value)) {
           error = "Nomor telepon hanya boleh berisi angka";
-        } else if (value.length < 8 || value.length > 15) {
-          error = "Nomor telepon harus 8-15 digit";
+        } else if (value.length < 10 || value.length > 13) {
+          error = "Nomor telepon harus 10-13 digit";
         }
         break;
       
@@ -657,6 +657,7 @@ export default function CompanyRegistrationForm() {
                 className={`w-full p-2 border ${errors.telepon ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 value={formData.telepon}
                 onChange={handleChange}
+                maxLength={13}
                 required
               />
               {errors.telepon && (

@@ -4,6 +4,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CSVLink } from "react-csv";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 export default function AbsensiTable() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,6 +17,15 @@ export default function AbsensiTable() {
 
   const fetchAbsensi = async () => {
     try {
+      Swal.fire({
+        title: 'Memuat data...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       setLoading(true);
       
       // First, get kehadiran data (replace URL with actual endpoint)
@@ -85,7 +95,7 @@ export default function AbsensiTable() {
       
       console.log("Combined data:", combinedData);
       setData(combinedData);
-      
+      Swal.close();
     } catch (error) {
       console.error("Failed to fetch attendance data:", error);
       setData([]);

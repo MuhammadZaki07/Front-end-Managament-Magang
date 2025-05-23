@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Loading from "../Loading";
+import Swal from "sweetalert2";
 
 export default function ScheduleCard() {
   const API_URL = `${import.meta.env.VITE_API_URL}/jam-kantor`;
@@ -238,6 +239,15 @@ export default function ScheduleCard() {
 
   const fetchData = async () => {
     try {
+      Swal.fire({
+        title: 'Memuat data...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const res = await axios.get(API_URL, { headers });
       const allDays = ["senin", "selasa", "rabu", "kamis", "jumat"];
       const updatedScheduleData = {};
@@ -283,6 +293,7 @@ export default function ScheduleCard() {
         updatedDays[day] = updatedScheduleData[day].active;
       });
       setDays(updatedDays);
+      Swal.close();
     } catch (error) {
       console.error("Gagal ambil data jam kantor:", error);
     } finally {

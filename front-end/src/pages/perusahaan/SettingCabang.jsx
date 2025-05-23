@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import DataCabang from "../../components/cards/DataCabang";
 import PasswordCabang from "../../components/cards/PasswordCabang";
+import Swal from "sweetalert2";
 
 const CompanyCard = () => {
   const [dataCabang, setDataCabang] = useState(null);
@@ -18,10 +19,18 @@ const CompanyCard = () => {
   const [animating, setAnimating] = useState(false);
   const [activeMenu, setActiveMenu] = useState("Data Cabang");
 
-  console.log(dataCabang);
   
   const fetchCabangData = async () => {
     try {
+      Swal.fire({
+        title: 'Memuat data...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/cabang-detail`,
         {
@@ -52,6 +61,7 @@ const CompanyCard = () => {
         const cover = cabang.foto.find((f) => f.type === "profil_cover");
         setCoverImage(cover ? `/storage/${cover.path}` : null);
       }
+      Swal.close();
     } catch (err) {
       console.error("Gagal fetch data cabang", err);
     }

@@ -5,6 +5,7 @@ import JobDetail from "../../components/cards/JobDetail";
 import AddJobModal from "../../components/modal/AddJobModal";
 import axios from "axios";
 import Loading from "../../components/Loading";
+import Swal from "sweetalert2";
 
 export default function Lowongan() {
   const [sortStatus, setSortStatus] = useState("All");
@@ -16,12 +17,22 @@ export default function Lowongan() {
 
   const GetData = async () => {
     try {
+      Swal.fire({
+        title: 'Memuat data...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/lowongan`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
       setLowongan(res.data.data);
+      Swal.close();
     } catch (error) {
       console.log(error);
     }finally {
