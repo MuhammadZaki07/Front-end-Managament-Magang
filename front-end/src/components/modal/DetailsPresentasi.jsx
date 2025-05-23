@@ -57,7 +57,8 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
           kuota: apiData.kuota || 0,
           participants: Array.isArray(apiData.Peserta)
             ? apiData.Peserta.map((peserta) => ({
-                id: peserta.id,
+                id: peserta.id, // This is the participant ID we need for updates
+                pesertaId: peserta.peserta?.id, // This is the peserta UUID
                 name: peserta.peserta?.nama || "Unknown",
                 projectStage: peserta.projek || "",
                 photo: getProfilePhoto(peserta.peserta?.foto),
@@ -93,7 +94,7 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
   // Reset state and fetch data when eventId changes or modal opens/closes
   useEffect(() => {
     console.log("useEffect triggered - show:", show, "eventId:", eventId);
-    
+
     if (show && eventId) {
       // Reset all states when opening modal with new eventId
       console.log("Resetting states and fetching data for eventId:", eventId);
@@ -101,7 +102,7 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
       setError(null);
       setIsLoading(false);
       setChangedParticipants(new Set()); // Reset changed participants tracking
-      
+
       // Fetch new data with current eventId
       fetchEventData(eventId);
     } else if (!show) {
@@ -234,7 +235,7 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
   };
 
   const handleAttendanceChange = async (participantId, status) => {
-    if (!eventId || !participantId || (status !== 0 && status !== 1)) {
+    if (!participantId || (status !== 0 && status !== 1)) {
       alert("Data tidak lengkap untuk mengubah status kehadiran");
       return;
     }
@@ -246,9 +247,11 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
         return;
       }
 
-      // Update attendance status via API
+      console.log(`Updating participant ${participantId} status to ${status}`);
+
+      // FIXED: Use the correct endpoint with participant ID
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/presentasi/${eventId}`,
+        `${import.meta.env.VITE_API_URL}/presentasi/${participantId}`,
         { status }, // Send numeric status (0 or 1)
         {
           headers: {
@@ -258,6 +261,8 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
         }
       );
 
+      console.log("Update response:", response.data);
+
       if (response.data?.status === "success") {
         // Update local state
         setEvent((prevEvent) => {
@@ -265,18 +270,15 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
 
           return {
             ...prevEvent,
-            participants: prevEvent.participants.map((participant) => 
-              participant.id === participantId 
-                ? { ...participant, status, hasBeenChanged: true }
-                : participant
-            ),
+            participants: prevEvent.participants.map((participant) => (participant.id === participantId ? { ...participant, status, hasBeenChanged: true } : participant)),
           };
         });
 
         // Track that this participant has been changed
-        setChangedParticipants(prev => new Set([...prev, participantId]));
-        
-        console.log(`Changed participant ${participantId} status to ${status} for event ${eventId}`);
+        setChangedParticipants((prev) => new Set([...prev, participantId]));
+
+        console.log(`Successfully changed participant ${participantId} status to ${status}`);
+        alert("Status kehadiran berhasil diubah!");
       } else {
         throw new Error(response.data?.message || "Failed to update attendance");
       }
@@ -297,7 +299,7 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
         text: "Hadir",
       },
       0: {
-      className: "px-3 py-1 text-[#EA5455] border border-[#EA5455] rounded-lg text-sm font-medium",
+        className: "px-3 py-1 text-[#EA5455] border border-[#EA5455] rounded-lg text-sm font-medium",
         text: "Tidak Hadir",
       },
     };
@@ -443,18 +445,13 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
                           />
                           <div className="min-w-0 flex-1">
                             <p className="font-semibold text-gray-900 truncate">{participant.name}</p>
-                            {participant.projectStage && (
-                              <p className="text-sm text-blue-500 truncate">{participant.projectStage}</p>
-                            )}
+                            {participant.projectStage && <p className="text-sm text-blue-500 truncate">{participant.projectStage}</p>}
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {/* Show status badge if status has been set or changed */}
-                          {(participant.hasBeenChanged || changedParticipants.has(participant.id) || 
-                            (participant.status !== null && participant.status !== undefined)) && (
-                            getStatusBadge(participant.status)
-                          )}
+                          {(participant.hasBeenChanged || changedParticipants.has(participant.id) || (participant.status !== null && participant.status !== undefined)) && getStatusBadge(participant.status)}
 
                           {/* Show dropdown only if status can be changed */}
                           {canChangeStatus(participant) && (
@@ -501,25 +498,21 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
 
           {/* Footer Actions */}
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-  <button
-    onClick={handleClose}
-    className="px-6 py-2 border border-[#0069AB] text-[#0069AB] rounded-full text-sm hover:bg-[#0069AB] hover:text-white transition-colors"
-  >
-    Close
-  </button>
+            <button onClick={handleClose} className="px-6 py-2 border border-[#0069AB] text-[#0069AB] rounded-full text-sm hover:bg-[#0069AB] hover:text-white transition-colors">
+              Close
+            </button>
 
-  {event && event.presentationStatus === "dijadwalkan" && (
-    <button
-      onClick={() => {
-        console.log("Continue action for event:", event.id);
-      }}
-      className="px-6 py-2 border border-[#0069AB] text-[#0069AB] rounded-full text-sm hover:bg-[#0069AB] hover:text-white transition-colors"
-    >
-      Continue
-    </button>
-  )}
-</div>
-
+            {event && event.presentationStatus === "dijadwalkan" && (
+              <button
+                onClick={() => {
+                  console.log("Continue action for event:", event.id);
+                }}
+                className="px-6 py-2 border border-[#0069AB] text-[#0069AB] rounded-full text-sm hover:bg-[#0069AB] hover:text-white transition-colors"
+              >
+                Continue
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
