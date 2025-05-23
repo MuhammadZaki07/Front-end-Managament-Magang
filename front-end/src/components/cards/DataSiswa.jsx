@@ -25,22 +25,61 @@ export default function StudentTable() {
         });
 
         if (response.data.status === "success") {
+          // DEBUG: Print raw API response
+          console.log("RAW API RESPONSE:", response.data);
+          console.log("RAW API DATA:", response.data.data);
+          console.log("FIRST STUDENT RAW:", response.data.data[0]);
+          
           // Transform API data to match component expectations
-          const transformedData = response.data.data.map((student, index) => ({
-            id: student.id || index + 1, // Use student.id if available, fallback to generated ID
-            apiId: student.id, // Store the actual API ID for navigation
-            name: student.nama,
-            sekolah: student.sekolah,
-            project: student.project,
-            status: student.selesai ? "Completed" : "In Progress",
-            email: student.email,
-            nomor_identitas: student.nomor_identitas,
-            mulai: student.mulai,
-            selesai: student.selesai,
-            // Get profile image from foto array
-            image: student.foto?.find((f) => f.type === "profile")?.path ? `${import.meta.env.VITE_API_URL}/storage/${student.foto.find((f) => f.type === "profile").path}` : "/assets/img/default-avatar.png", // fallback image
-          }));
+          const transformedData = response.data.data.map((student, index) => {
+            // DEBUG: Print each student structure
+            console.log(`STUDENT ${index}:`, student);
+            console.log(`STUDENT ${index} PROGRESS:`, student.progress);
+            
+            // Ambil id_peserta dari array progress (ambil yang pertama karena id_peserta sama semua)
+            let idPeserta = null;
+            
+            // Coba berbagai cara untuk ambil ID peserta
+            if (student.progress && Array.isArray(student.progress) && student.progress.length > 0) {
+              idPeserta = student.progress[0].id_peserta;
+              console.log(`ID PESERTA from progress[0]:`, idPeserta);
+            }
+            
+            // Fallback: cek apakah ada field lain yang mengandung UUID
+            const possibleIdFields = ['id', 'user_id', 'peserta_id', 'uuid', 'id_peserta'];
+            for (const field of possibleIdFields) {
+              if (student[field] && typeof student[field] === 'string' && student[field].includes('-')) {
+                idPeserta = student[field];
+                console.log(`ID PESERTA found in field '${field}':`, idPeserta);
+                break;
+              }
+            }
+            
+            console.log(`FINAL ID PESERTA for ${student.nama}:`, idPeserta);
 
+            return {
+              id: idPeserta || `temp-${index + 1}`, // Gunakan id_peserta sebagai ID utama
+              apiId: idPeserta, // Store the actual peserta ID for navigation
+              name: student.nama,
+              sekolah: student.sekolah,
+              project: student.project,
+              status: student.selesai ? "Completed" : "In Progress",
+              email: student.email,
+              nomor_identitas: student.nomor_identitas,
+              mulai: student.mulai,
+              selesai: student.selesai,
+              // Get profile image from foto array
+              image: student.foto?.find((f) => f.type === "profile")?.path 
+                ? `${import.meta.env.VITE_API_URL_FILE}/storage/${student.foto.find((f) => f.type === "profile").path}` 
+                : "/assets/img/default-avatar.png", // fallback image
+              // Tambahan: simpan juga progress data jika diperlukan
+              progressData: student.progress || [],
+              // DEBUG: simpan raw data untuk debug
+              rawData: student
+            };
+          });
+
+          console.log("FINAL TRANSFORMED DATA:", transformedData);
           setAllStudentsData(transformedData);
         } else {
           setError("Failed to fetch student data");
@@ -71,6 +110,7 @@ export default function StudentTable() {
     data: filteredStudents.length > 0 ? filteredStudents : allStudentsData,
     filename: "students_report.csv",
     headers: [
+      { label: "ID Peserta", key: "apiId" },
       { label: "Nama", key: "name" },
       { label: "Email", key: "email" },
       { label: "Nomor Identitas", key: "nomor_identitas" },
@@ -81,14 +121,23 @@ export default function StudentTable() {
       { label: "Tanggal Selesai", key: "selesai" },
     ],
   };
+  
 
   // Function untuk handle navigation ke halaman detail siswa
   const handleEditStudent = (student) => {
-    // Use the actual API ID for navigation
-    const studentId = student.apiId || student.id;
-    window.location.href = `/mentor/siswa/${studentId}`;
+    // Use the actual peserta ID for navigation
+    const studentId = student.apiId;
+    console.log("Student ID untuk navigasi:", studentId);
+    console.log("Full student data:", student);
+    
+    if (studentId) {
+      window.location.href = `/mentor/siswa/${studentId}`;
+      // console.log(`Navigating to: /mentor/siswa/${studentId}`);
+    } else {
+      console.error("ID Peserta tidak ditemukan!");
+    }
   };
-
+  
   // Loading state
   if (isLoading) {
     return (
@@ -155,7 +204,10 @@ export default function StudentTable() {
                         e.target.src = "/assets/img/default-avatar.png";
                       }}
                     />
-                    <span className="font-medium">{student.name}</span>
+                    <div>
+                      <span className="font-medium block">{student.name}</span>
+                      {/* <span className="text-xs text-gray-500">ID: {student.apiId}</span> */}
+                    </div>
                   </td>
                   <td className="p-3">{student.sekolah}</td>
                   <td className="p-3 capitalize">{student.project}</td>

@@ -63,6 +63,17 @@ import DetailProjectPage from "./src/pages/student/DetailProjectPage";
 import Presentasi2 from "./src/pages/student/Presentasi2";
 import TrackRecordSiswa from "./src/pages/mentor/DetailPresentasi";
 import CabangLayout from "./src/layout/CabangLayout";
+import DataMentor from "./src/pages/admin/Mentor";
+import DataPeserta from "./src/pages/admin/Peserta";
+import DataApproval from "./src/pages/admin/Approval";
+import DataDivisi from "./src/pages/admin/Divisi";
+import DataPendataan from "./src/pages/admin/Pendataan";
+import DataAbsensii from "./src/pages/admin/Absensi";
+import DataSurat from "./src/pages/admin/Surat";
+import DataRFID from "./src/pages/admin/RFID";
+import DataPiket from "./src/pages/admin/Piket";
+import DataJamkantor from "./src/pages/admin/Jam-kantor";
+
 
 export const router = createBrowserRouter([
   {
@@ -184,13 +195,49 @@ export const router = createBrowserRouter([
         element: <AdminDashboard />,
       },
       {
+        path: "mentor",
+        element: <DataMentor />,
+      },
+      {
+          path: "peserta",
+          element: <DataPeserta />,
+        },
+      {
         path: "approval",
-        element: <Approval />,
+        element: <DataApproval />,
       },
       {
         path: "pendataan",
         element: <PendataanAdmin />,
       },
+      {
+        path: "divisi",
+        element: <DataDivisi />,
+      },
+      {
+          path: "jurnal",
+          element: <DataPendataan />,
+        },
+        {
+          path: "absensi",
+          element: <DataAbsensii />,
+        },
+        {
+          path: "surat",
+          element: <DataSurat />,
+        },
+        {
+          path: "RFID",
+          element: <DataRFID />,
+        },
+        {
+          path: "piket",
+          element: <DataPiket />,
+        },
+        {
+          path: "jam-kantor",
+          element: <DataJamkantor />,
+        },
     ],
   },
   {

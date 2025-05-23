@@ -1,6 +1,6 @@
 import { useState } from "react";
+import Pendataan from "../../components/cards/Pendataan";
 import PerusahaanCard from "../../components/cards/PerusahaanCard"; // Import the new component
-import DataApproval from "../../components/cards/DataApproval";
 
 const Approval = () => {
   return (
@@ -8,9 +8,9 @@ const Approval = () => {
       {/* Use the new PerusahaanCard component */}
       <PerusahaanCard />
 
-      {/* Komponen BerandaBranchCard */}
+      {/* Komponen DataApproval */}
       <div className="mt-8 px-1 pb-6">
-        <DataApproval />
+        <Pendataan />
       </div>
     </div>
   );
