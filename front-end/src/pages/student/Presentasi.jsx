@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import ModalApplyPresentation from "../../components/modal/ModalApplyPresentation";
 
 // Component PresentationCard with image background instead of colored pattern
@@ -15,8 +16,7 @@ const PresentationCard = ({ item, buttonLabel = "Apply Presentation", onButtonCl
       
       {/* Content wrapper with padding - no overlay for cleaner look */}
       <div className="relative z-10 w-full p-4 flex justify-between items-start">
-        <h3 className="text-lg font-semibold text-black">
-          {item.title}
+        <h3 className="text-lg font-semibold text-black"> Presentasi { item.tipe}
         </h3>
       </div>
     </div>
@@ -29,10 +29,10 @@ const PresentationCard = ({ item, buttonLabel = "Apply Presentation", onButtonCl
         }`}>
           {item.status}
         </span>
-        {/* Added quota and application count */}
+        {/* Added kuota and application count */}
         <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
           <i className="bi bi-people"></i>
-          {item.applicants}/{item.quota} orang
+          {item.applicants}/{item.kuota} orang
         </span>
       </div>
     )}
@@ -70,14 +70,11 @@ const PresentationCard = ({ item, buttonLabel = "Apply Presentation", onButtonCl
 
 // Main Presentation component
 const Presentasi = () => {
+  const [presentations, setPresentations] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedPresentation, setSelectedPresentation] = useState(null);
-
-  const handleApplyClick = (item) => {
-    // Removed the check for status === "Selesai" so it works for all presentations
-    setShowModal(true);
-    setSelectedPresentation(item);
-  };
 
   // Background images based on status
   const getBackgroundImage = (status) => {
@@ -88,50 +85,105 @@ const Presentasi = () => {
     }
   };
 
-  const basePresentations = [
-    {
-      status: "Dijadwalkan",
-      title: "Presentasi Offline",
-      date: "Senin, 25 Maret 2025",
-      time: "14:00 - 16:00 (2 Jam)",
-      quota: 30,
-      applicants: 18,
-    },
-    {
-      status: "Selesai",
-      title: "Presentasi Offline", 
-      date: "Selasa, 26 Maret 2025",
-      time: "09:00 - 11:00 (2 Jam)",
-      quota: 25,
-      applicants: 12,
-    },
-    {
-      status: "Selesai",
-      title: "Presentasi Offline",
-      date: "Rabu, 27 Maret 2025", 
-      time: "13:00 - 15:00 (2 Jam)",
-      quota: 35,
-      applicants: 29,
-    },
-    {
-      status: "Offline",
-      title: "Presentasi Offline",
-      date: "Kamis, 28 Maret 2025",
-      time: "10:00 - 12:00 (2 Jam)",
-      quota: 20,
-      applicants: 20,
-    }
-  ];
-
-  // Generate 16 cards (4 rows x 4 columns) with status-based background images
-  const presentations = Array(16).fill(null).map((_, index) => {
-    const basePresentation = basePresentations[index % basePresentations.length];
-    return {
-      ...basePresentation,
-      id: index + 1,
-      backgroundImage: getBackgroundImage(basePresentation.status)
+  // Format date function
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    
+    const date = new Date(dateString);
+    const options = {
+      weekday: 'long',
+      year: 'numeric', 
+      month: 'long',
+      day: 'numeric'
     };
-  });
+    
+    return date.toLocaleDateString('id-ID', options);
+  };
+
+  // Format time function
+  const formatTime = (startTime, endTime, duration) => {
+    if (startTime && endTime) {
+      return `${startTime} - ${endTime}`;
+    }
+    if (startTime && duration) {
+      return `${startTime} (${duration})`;
+    }
+    return startTime || "";
+  };
+
+
+  // Fetch presentations data from API
+  useEffect(() => {
+    const fetchPresentations = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/presentasi`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (response.data.status === "success") {
+          // Transform API data to match component expectations
+          const transformedData = response.data.data.map((presentation, index) => ({
+            id: presentation.id || index + 1,
+            tipe: presentation.judul || presentation.tipe || "Presentasi Offline",
+            date: formatDate(presentation.tanggal || presentation.date),
+            time: formatTime(
+              presentation.waktu_mulai || presentation.startTime,
+              presentation.waktu_selesai || presentation.endTime,
+              presentation.durasi || presentation.duration
+            ),
+            status: presentation.status || "Dijadwalkan",
+            kuota: presentation.kuota || presentation.kuota || 30,
+            applicants: presentation.jumlah_pendaftar || presentation.applicants || 0,
+            backgroundImage: getBackgroundImage(presentation.status || "Dijadwalkan"),
+            // Include original data for modal
+            originalData: presentation
+          }));
+
+          setPresentations(transformedData);
+        } else {
+          setError("Failed to fetch presentation data");
+        }
+      } catch (err) {
+        console.error("Error fetching presentations:", err);
+        setError(err.response?.data?.message || "Terjadi kesalahan saat mengambil data presentasi");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPresentations();
+  }, []);
+
+  const handleApplyClick = (item) => {
+    setShowModal(true);
+    setSelectedPresentation(item);
+  };
+  
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="flex justify-center items-center p-8">
+          <div className="text-gray-500">Loading presentasi...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="flex justify-center items-center p-8">
+          <div className="text-red-500">Error: {error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -144,21 +196,42 @@ const Presentasi = () => {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 rounded-lg">
         <h1 className="text-xl font-semibold text-gray-900">Jadwal Presentasi</h1>
+        {presentations.length > 0 && (
+          <p className="text-sm text-gray-600 mt-1">
+            Total {presentations.length} jadwal presentasi tersedia
+          </p>
+        )}
       </div>
 
       {/* Content */}
       <div className="px-6 py-6">
-        {/* Grid for presentation cards - 4 columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {presentations.map((item, index) => (
-            <PresentationCard
-              key={index}
-              item={item}
-              buttonLabel="Apply Presentation"
-              onButtonClick={handleApplyClick}
-            />
-          ))}
-        </div>
+        {presentations.length > 0 ? (
+          /* Grid for presentation cards - 4 columns */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {presentations.map((item, index) => (
+              <PresentationCard
+                key={item.id || index}
+                item={item}
+                buttonLabel="Apply Presentation"
+                onButtonClick={handleApplyClick}
+              />
+            ))}
+          </div>
+        ) : (
+          /* Empty state */
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-gray-400 mb-4">
+              <i className="bi bi-calendar-x" style={{ fontSize: '3rem' }}></i>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Belum Ada Jadwal Presentasi
+            </h3>
+            <p className="text-gray-500 text-center max-w-md">
+              Saat ini belum ada jadwal presentasi yang tersedia. 
+              Silakan cek kembali nanti atau hubungi admin untuk informasi lebih lanjut.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Modal */}

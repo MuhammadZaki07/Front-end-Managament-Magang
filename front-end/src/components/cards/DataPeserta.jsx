@@ -110,7 +110,7 @@ const DataDiriCard = () => {
 
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Cabang Perusahaan</label>
-            <input type="text" value={dataPeserta?.cabang_perusahaan || ""} className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" readOnly />
+            <input type="text" value={dataPeserta?.cabang || ""} className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" readOnly />
           </div>
 
           <div>

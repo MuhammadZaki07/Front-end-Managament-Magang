@@ -148,7 +148,7 @@ const StudentLayout = () => {
     { icon: "bi-calendar4-week", label: "Absensi", link: "absensi" },
     { icon: "bi-clipboard2-minus", label: "Jurnal", link: "jurnal" },
     { icon: "bi-mortarboard", label: "Jadwal Presentasi", link: "presentasi" },
-    { icon: "bi-mortarboard", label: "Jadwal Presentasi 2", link: "presentasi2" },
+    // { icon: "bi-mortarboard", label: "Jadwal Presentasi 2", link: "presentasi2" },
     { icon: "bi-pin-map", label: "Riwayat Presentasi", link: "riwayat-presentasi" },
     { icon: "bi-pin-map", label: "Piket", link: "piket" },
   ];

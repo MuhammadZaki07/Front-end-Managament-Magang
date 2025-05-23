@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 import axios from 'axios'
 import './calendar-custom.css'
 import TambahJadwalPresentasi from '../../components/modal/TambahJadwalPresentasi'
-import DetailsPresentasi from '../../components/modal/DetailsPresentasi'
+import EventDetailModal from '../../components/modal/DetailsPresentasi'
 
 const Calendar = () => {
   const [view, setView] = useState('month')
@@ -16,7 +16,7 @@ const Calendar = () => {
   // Modal state
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
-  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [selectedEventId, setSelectedEventId] = useState(null)
   
   // Events state
   const [events, setEvents] = useState([])
@@ -182,7 +182,9 @@ const Calendar = () => {
 
   // Handle event click to show detail modal
   const handleEventClick = (clickInfo) => {
-    setSelectedEvent(clickInfo.event)
+    console.log('Event clicked:', clickInfo.event)
+    const eventId = clickInfo.event.extendedProps.apiId || clickInfo.event.id
+    setSelectedEventId(eventId)
     setShowDetailModal(true)
   }
 
@@ -244,28 +246,11 @@ const Calendar = () => {
     setShowAddModal(false)
   }
 
-  // Toggle attendance status for participants
-  const toggleAttendanceStatus = (eventId, participantId, newStatus) => {
-    setEvents(prevEvents => {
-      return prevEvents.map(event => {
-        if (event === eventId) {
-          return {
-            ...event,
-            extendedProps: {
-              ...event.extendedProps,
-              participants: event.extendedProps.participants.map(participant => {
-                if (participant.id === participantId) {
-                  return { ...participant, status: newStatus };
-                }
-                return participant;
-              })
-            }
-          };
-        }
-        return event;
-      });
-    });
-  };
+  // Handle close detail modal
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false)
+    setSelectedEventId(null)
+  }
 
   // Show loading state
   if (isLoading) {
@@ -376,14 +361,11 @@ const Calendar = () => {
       />
       
       {/* Event Detail Modal */}
-      {selectedEvent && (
-        <DetailsPresentasi
-          show={showDetailModal}
-          onClose={() => setShowDetailModal(false)}
-          event={selectedEvent}
-          onToggleAttendance={toggleAttendanceStatus}
-        />
-      )}
+      <EventDetailModal
+        show={showDetailModal}
+        onClose={handleCloseDetailModal}
+        eventId={selectedEventId}
+      />
     </div>
   )
 }

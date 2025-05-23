@@ -27,7 +27,8 @@ export default function StudentTable() {
         if (response.data.status === "success") {
           // Transform API data to match component expectations
           const transformedData = response.data.data.map((student, index) => ({
-            id: index + 1, // Generate ID since API doesn't provide one
+            id: student.id || index + 1, // Use student.id if available, fallback to generated ID
+            apiId: student.id, // Store the actual API ID for navigation
             name: student.nama,
             sekolah: student.sekolah,
             project: student.project,
@@ -82,7 +83,9 @@ export default function StudentTable() {
   };
 
   // Function untuk handle navigation ke halaman detail siswa
-  const handleEditStudent = (studentId) => {
+  const handleEditStudent = (student) => {
+    // Use the actual API ID for navigation
+    const studentId = student.apiId || student.id;
     window.location.href = `/mentor/siswa/${studentId}`;
   };
 
@@ -170,7 +173,7 @@ export default function StudentTable() {
                     )}
                   </td>
                   <td className="p-3">
-                    <button onClick={() => handleEditStudent(student.id)} className="p-2 rounded-md hover:bg-purple-100 transition-all" title={`Edit ${student.name}`}>
+                    <button onClick={() => handleEditStudent(student)} className="p-2 rounded-md hover:bg-purple-100 transition-all" title={`Edit ${student.name}`}>
                       <Edit className="h-5 w-5 text-purple-600" />
                     </button>
                   </td>

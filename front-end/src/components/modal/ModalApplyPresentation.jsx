@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import Swal from "sweetalert2"; // Make sure to import SweetAlert
+import Swal from "sweetalert2";
+import axios from "axios";
 
 const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
   const [showModal, setShowModal] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
   
   // Handle ESC key
   useEffect(() => {
@@ -29,26 +31,70 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
   // Define header background color based on status
   const headerBgColor = data?.status === "Selesai" ? "bg-white-100" : "bg-white-100";
   
-  const handleApplyClick = () => {
-    // Close the current modal first
-    onClose();
-    
-    // Show SweetAlert success message
-    Swal.fire({
-      title: 'Presentasi berhasil dipilih',
-      text: 'lihat detail presentasi',
-      icon: 'success',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Lihat',
-      cancelButtonText: 'Tutup'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Navigate to riwayat-presentasi page when "Lihat" is clicked
-        window.location.href = '/peserta/riwayat-presentasi';
+  const handleApplyClick = async () => {
+    try {
+      setIsApplying(true);
+      
+      // Make API call to apply for presentation
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/riwayat-presentasi`,
+        {
+          id_jadwal_presentasi: data?.id || data?.id_jadwal_presentasi
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            'Content-Type': 'application/json'
+          },
+        }
+      );
+
+      // Close the current modal first
+      onClose();
+      
+      // Check if the response is successful
+      if (response.data.status === "success" || response.status === 200 || response.status === 201) {
+        // Show SweetAlert success message
+        Swal.fire({
+          tipe: 'Presentasi berhasil dipilih',
+          text: 'Lihat detail presentasi',
+          icon: 'success',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Lihat',
+          cancelButtonText: 'Tutup'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Navigate to riwayat-presentasi page when "Lihat" is clicked
+            window.location.href = '/peserta/riwayat-presentasi';
+          }
+        });
+      } else {
+        throw new Error(response.data.message || 'Gagal mendaftar presentasi');
       }
-    });
+      
+    } catch (error) {
+      console.error('Error applying for presentation:', error);
+      
+      // Close the modal
+      onClose();
+      
+      // Show error message
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          'Terjadi kesalahan saat mendaftar presentasi';
+      
+      Swal.fire({
+        tipe: 'Gagal Mendaftar',
+        text: errorMessage,
+        icon: 'error',
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Tutup'
+      });
+    } finally {
+      setIsApplying(false);
+    }
   };
   
   return (
@@ -64,9 +110,9 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
       >
         {/* HEADER */}
         <div className={`relative ${headerBgColor}`}>
-          {/* Title with high z-index to ensure visibility */}
+          {/* tipe with high z-index to ensure visibility */}
           <div className="h-32 flex items-left justify-left relative z-20 mt-10 ml-5">
-            <h2 className="text-3xl font-bold text-black">{data?.title || "Presentasi Offline"}</h2>
+            <h2 className="text-3xl font-bold text-black">Presentasi { data?.tipe || "Presentasi Offline"}</h2>
           </div>
           
           {/* Background image at bottom */}
@@ -114,12 +160,25 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
             </div>
           </div>
           
-          {/* Apply Button - now triggers SweetAlert */}
+          {/* Apply Button - now triggers API call and SweetAlert */}
           <button 
             onClick={handleApplyClick}
-            className="w-full py-3 border border-[#0069AB] text-[#0069AB] hover:bg-[#0069AB] hover:text-white transition-colors duration-200 rounded-lg"
+            disabled={isApplying}
+            className={`w-full py-3 border border-[#0069AB] text-[#0069AB] hover:bg-[#0069AB] hover:text-white transition-colors duration-200 rounded-lg ${
+              isApplying ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
-            Apply Presentation
+            {isApplying ? (
+              <div className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Mendaftar...
+              </div>
+            ) : (
+              'Apply Presentation'
+            )}
           </button>
         </div>
       </div>
