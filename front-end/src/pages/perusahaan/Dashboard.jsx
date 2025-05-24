@@ -70,7 +70,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden">
+    <div className="w-full max-w-full overflow-x-hidden mb-3">
       {loading ? (
         <div className="h-screen">
           <div className="w-full h-14 bg-slate-300 border border-slate-200 rounded-lg flex justify-between py-1 px-3 items-center mb-4 animate-pulse">

@@ -76,6 +76,8 @@ const Presentasi = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedPresentation, setSelectedPresentation] = useState(null);
 
+  console.log(presentations);
+  
   // Background images based on status
   const getBackgroundImage = (status) => {
     if (status === "Selesai") {

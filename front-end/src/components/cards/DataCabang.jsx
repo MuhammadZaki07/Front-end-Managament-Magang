@@ -16,7 +16,8 @@ export default function CabangPerusahaan() {
   const [cities, setCities] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState("");
   const [message, setMessage] = useState({ text: "", type: "" });
-
+  console.log(formData.bidang_usaha);
+  
   useEffect(() => {
     fetch("https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json")
       .then((res) => res.json())
@@ -204,7 +205,7 @@ export default function CabangPerusahaan() {
               className="w-full p-2 border border-[#D5DBE7] rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
               required
             >
-              <option value="">Pilih Bidang Usaha</option>
+              <option value="">{formData.bidang_usaha}</option>
               <option value="teknologi">Teknologi</option>
               <option value="kesehatan">Kesehatan</option>
               <option value="pendidikan">Pendidikan</option>

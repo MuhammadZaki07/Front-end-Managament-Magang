@@ -13,8 +13,8 @@ const StaticAbsensiPerusahaan = () => {
       ],
       series: [
         { name: "Hadir", data: [3, 4, 5, 6, 7, 8, 9, 7, 6, 5, 4, 5] },
-        { name: "Tidak Hadir", data: [1, 1, 2, 1, 2, 1, 2, 3, 2, 3, 2, 3] },
-        { name: "Izin", data: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1] },
+        { name: "Alpha", data: [1, 1, 2, 1, 2, 1, 2, 3, 2, 3, 2, 3] },
+        { name: "Izin/Sakit", data: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1] },
       ],
     },
     "Cabang B": {
@@ -24,8 +24,8 @@ const StaticAbsensiPerusahaan = () => {
       ],
       series: [
         { name: "Hadir", data: [3, 6, 7, 6, 5, 4, 5, 6, 7, 6, 7, 8] },
-        { name: "Tidak Hadir", data: [2, 3, 2, 3, 2, 1, 2, 1, 2, 1, 1, 2] },
-        { name: "Izin", data: [1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1] },
+        { name: "Alpha", data: [2, 3, 2, 3, 2, 1, 2, 1, 2, 1, 1, 2] },
+        { name: "Izin/Sakit", data: [1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1] },
       ],
     },
     "Cabang C": {
@@ -35,8 +35,8 @@ const StaticAbsensiPerusahaan = () => {
       ],
       series: [
         { name: "Hadir", data: [3, 7, 8, 7, 6, 7, 8, 9, 8, 7, 6, 5] },
-        { name: "Tidak Hadir", data: [1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 2, 3] },
-        { name: "Izin", data: [0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0] },
+        { name: "Alpha", data: [1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 2, 3] },
+        { name: "Izin/Sakit", data: [0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0] },
       ],
     },
     "Cabang D": {
@@ -46,8 +46,8 @@ const StaticAbsensiPerusahaan = () => {
       ],
       series: [
         { name: "Hadir", data: [4, 3, 4, 5, 6, 5, 4, 4, 5, 6, 7, 6] },
-        { name: "Tidak Hadir", data: [3, 2, 2, 1, 1, 2, 3, 2, 3, 2, 1, 1] },
-        { name: "Izin", data: [1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1] },
+        { name: "Alpha", data: [3, 2, 2, 1, 1, 2, 3, 2, 3, 2, 1, 1] },
+        { name: "Izin/Sakit", data: [1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1] },
       ],
     },
   };
@@ -62,11 +62,11 @@ const StaticAbsensiPerusahaan = () => {
         </div>
         <div className="flex items-center">
           <span className="inline-block w-3 h-3 rounded-full mr-1" style={{ backgroundColor: "#1E40AF" }}></span>
-          <span className="text-sm">Tidak Hadir</span>
+          <span className="text-sm">Alpha</span>
         </div>
         <div className="flex items-center">
           <span className="inline-block w-3 h-3 rounded-full mr-1" style={{ backgroundColor: "#F1C40F" }}></span>
-          <span className="text-sm">Izin</span>
+          <span className="text-sm">Izin/Sakit</span>
         </div>
       </div>
     );
@@ -104,7 +104,7 @@ const StaticAbsensiPerusahaan = () => {
   return (
     <>
       <div className="flex flex-wrap justify-between items-center mb-3">
-        <Title className="ml-5">Statistik Absensi</Title>
+        <Title className="ml-5">Statistik Presensi</Title>
         <div className="flex items-center space-x-3">
           {renderCustomLegend()} {/* Custom legend di samping filter */}
           <select

@@ -1,19 +1,57 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Globe, Instagram, Linkedin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Card from "../../components/cards/Card";
 import ReactPaginate from 'react-paginate';
 import ModalTambahCabang from "../../components/modal/ModalTambahCabang";
 import ModalDeleteAdminCabang from "../../components/modal/ModalDeleteAdminCabang"; // Import the new component
+import axios from 'axios';
+import Swal from 'sweetalert2';
 
 
 export default function CompanyBranchCard() {
   const navigate = useNavigate();
   
-  const [branches, setBranches] = useState([
-    { id: 1, name: "PT. HUMMA TECHNOLOGY INDONESIA", location: "Malang, Jawa Timur", address: "150 Peserta Magang", backgroundImage: "/assets/img/Cover.png", logoImage: "/assets/img/logoperusahaan.png" },
-  ]);
+  const [branches, setBranches] = useState([]);
+  const [coverImage, setCoverImage] = useState("/assets/img/Cover.png");
+  const [logoImage, setLogoImage] = useState("/assets/img/logoperusahaan.png");
+  
+  console.log(branches);
+  
+  const getBranches = async ()=> {
+    try{
+      // Swal.fire({
+      //   title: 'Memuat data...',
+      //   allowOutsideClick: false,
+      //   allowEscapeKey: false,
+      //   showConfirmButton: false,
+      //   didOpen: () => {
+      //     Swal.showLoading();
+      //   }
+      // });
 
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/cabang`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      setBranches(res.data.data)
+      const logo = res.data.data.foto.find((f) => f.type === "logo");
+      const cover = res.data.data.foto.find((f) => f.type === "profil_cover");
+  
+        // Swal.close();
+      
+        setLogoImage(logo ? `${import.meta.env.VITE_API_URL_FILE}/storage/${logo.path}` : null);
+        setCoverImage(cover ? `${import.meta.env.VITE_API_URL_FILE}/storage/${cover.path}` : null);
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  useEffect(() => {
+    getBranches();
+  }, [])
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 12;
   const pageCount = Math.ceil(branches.length / itemsPerPage);
@@ -76,8 +114,9 @@ export default function CompanyBranchCard() {
   };
 
   return (
+    <div className='max-w-11/12 mx-auto'>
     <Card>
-      <div className="mt-8 px-1 pb-6">
+      <div className="mt-8 px-1 pb-6 ">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-bold">Cabang Perusahaan Terdaftar</h1>
           <div className="flex items-center space-x-2">
@@ -102,18 +141,18 @@ export default function CompanyBranchCard() {
           {displayedBranches.map((branch) => (
             <div key={branch.id} className="bg-white border border-[#D5DBE7] rounded-lg overflow-hidden">
               <div className="relative">
-                <img src={branch.backgroundImage} alt="Company Building" className="w-full h-32 object-cover" />
+                <img src={coverImage} alt="Company Building" className="w-full h-32 object-cover" />
                 <div className="absolute -bottom-4 left-0 right-0 flex justify-center">
                   <div className="rounded-full overflow-hidden border-2 border-white bg-white w-8 h-8">
-                    <img src={branch.logoImage} alt="Company Logo" className="w-full h-full object-cover" />
+                    <img src={logoImage} alt="Company Logo" className="w-full h-full object-cover" />
                   </div>
                 </div>
               </div>
 
               <div className="pt-8 px-3 pb-4">
-                <h3 className="font-bold text-sm text-gray-800 text-center mb-2">{branch.name}</h3>
-                <p className="text-xs text-gray-600 text-center mb-1">{branch.location}</p>
-                <p className="text-xs text-gray-600 text-center mb-3">{branch.address}</p>
+                <h3 className="font-bold text-sm text-gray-800 text-center mb-2">{branch.nama}</h3>
+                <p className="text-xs text-gray-600 text-center mb-1">{branch.kota}</p>
+                <p className="text-xs text-gray-600 text-center mb-3">{branch.provinsi}</p>
 
                 <div className="flex justify-center space-x-4 my-3">
                   <Instagram size={16} className="text-gray-600 hover:text-pink-500 cursor-pointer" />
@@ -124,7 +163,7 @@ export default function CompanyBranchCard() {
                 <div className="flex justify-center mt-3">
                   <div className="border border-[#D5DBE7] rounded p-2 w-full flex justify-between items-center space-x-2">
                     <button 
-                      onClick={() => handleViewDetail(branch.id)}
+                      onClick={() => handleViewDetail(branch.nama)}
                       className="text-blue-500 border border-blue-500 rounded px-3 py-1 text-xs hover:bg-blue-50"
                     >
                       Lihat Detail
@@ -178,5 +217,6 @@ export default function CompanyBranchCard() {
         onConfirm={handleDeleteBranch}
       />
     </Card>
+    </div>
   );
 }

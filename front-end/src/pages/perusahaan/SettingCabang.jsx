@@ -320,6 +320,7 @@ const CompanyCard = () => {
                   >
                     Pilih Gambar
                   </button>
+                  <p className="text-xs text-gray-500 mt-4">Ukuran : 1260 x 240 px</p>
                 </div>
               </div>
 
@@ -364,7 +365,9 @@ const CompanyCard = () => {
                   >
                     Pilih Gambar
                   </button>
+                  <p className="text-xs text-gray-500 mt-4">Ukuran : 56 x 56 px</p>
                 </div>
+
               </div>
             </div>
 
