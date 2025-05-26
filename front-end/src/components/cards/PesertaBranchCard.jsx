@@ -21,55 +21,68 @@ export default function ApprovalTable() {
   const apiUrl = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
-useEffect(() => {
-  const fetchPesertaDanDivisi = async () => {
-    try {
-      // Ambil data peserta
-      Swal.fire({
-        title: 'Memuat data...',
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-        didOpen: () => {
-          Swal.showLoading();
+  useEffect(() => {
+    const fetchPesertaDanDivisi = async () => {
+      try {
+        // Ambil data peserta
+        Swal.fire({
+          title: 'Memuat data...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+        
+        const pesertaRes = await axios.get(`${apiUrl}/peserta-by-cabang`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("Response peserta:", pesertaRes.data); // Debug log
+
+        if (pesertaRes.data.status === "success") {
+          const pesertaData = pesertaRes.data.data;
+          setDataPendaftaran(pesertaData);
+          console.log("Data peserta berhasil di-set:", pesertaData); // Debug log
         }
-      });
-      const pesertaRes = await axios.get(`${apiUrl}/peserta-by-cabang`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
 
-      if (pesertaRes.data.status === "success") {
-        const pesertaData = pesertaRes.data.data;
-        setDataPendaftaran(pesertaData);
+        // Ambil data divisi dari API
+        const divisiRes = await axios.get(`${apiUrl}/divisi`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (divisiRes.data.data) {
+          const divisiList = divisiRes.data.data.map((d) => d.nama);
+          setDivisiOptions(divisiList);
+        }
+
+        // Status dummy
+        setStatusOptions(["Aktif", "Alumni"]);
+
+        Swal.close();
+        setLoading(false); // PERBAIKAN: Set loading false setelah data berhasil diambil
+        
+      } catch (err) {
+        console.error("Gagal mengambil data:", err);
+        Swal.close();
+        setLoading(false); // PERBAIKAN: Set loading false juga saat error
+        
+        // Tampilkan error message
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Gagal memuat data peserta'
+        });
       }
+    };
 
-      // Ambil data divisi dari API
-      const divisiRes = await axios.get(`${apiUrl}/divisi`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (divisiRes.data.data) {
-        const divisiList = divisiRes.data.data.map((d) => d.nama);
-        setDivisiOptions(divisiList);
-      }
-
-      // Status dummy
-      setStatusOptions(["aktif", "non-aktif"]);
-
-      Swal.close();
-    } catch (err) {
-      console.error("Gagal mengambil data:", err);
-      setLoading(false);
-    }
-  };
-
-  fetchPesertaDanDivisi();
-}, []);
-
+    fetchPesertaDanDivisi();
+  }, []);
 
   const CustomButton = React.forwardRef(({ value, onClick }, ref) => (
     <button
@@ -89,7 +102,7 @@ useEffect(() => {
     </button>
   ));
 
-  if (loading) return  <Loading />;
+  if (loading) return <Loading />;
 
   return (
     <div className="w-full">
@@ -97,7 +110,7 @@ useEffect(() => {
         <div className="p-6">
           <div className="flex justify-between items-start">
             <h2 className="text-xl font-semibold text-[#1D2939]">
-              Peserta Magang
+              Peserta Magang 
             </h2>
 
             <div className="flex items-center gap-3">

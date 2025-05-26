@@ -12,6 +12,7 @@ export default function ScheduleCard() {
     rabu: { active: false, exists: false },
     kamis: { active: false, exists: false },
     jumat: { active: false, exists: false },
+    sabtu: { active: false, exists: false },
   });
 
   const initialTimes = {
@@ -27,13 +28,13 @@ export default function ScheduleCard() {
     rabu: { ...initialTimes },
     kamis: { ...initialTimes },
     jumat: { ...initialTimes },
+    sabtu: { ...initialTimes },
   });
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState({});
   
-  // FIXED: Use useRef to prevent multiple initializations
   const isInitialized = useRef(false);
   const isInitializing = useRef(false);
   
@@ -44,10 +45,43 @@ export default function ScheduleCard() {
     'Accept': 'application/json'
   };
 
+  // FIXED: Improved time normalization to handle various formats
   const normalizeTime = (time) => {
     if (!time) return "08:00";
-    const [hours, minutes] = time.split(":");
-    return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`;
+    
+    // Handle different time formats from database
+    if (typeof time === 'string') {
+      // If it's already in HH:MM format
+      if (time.includes(':')) {
+        const [hours, minutes] = time.split(":");
+        return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`;
+      }
+      // If it's in HHMMSS or similar format
+      if (time.length >= 4) {
+        const hours = time.substring(0, 2);
+        const minutes = time.substring(2, 4);
+        return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`;
+      }
+    }
+    
+    return time.toString().padStart(5, "0"); // Default fallback
+  };
+
+  // FIXED: Enhanced status parsing function
+  const parseStatus = (status) => {
+    console.log("🔍 Parsing status:", status, "Type:", typeof status);
+    
+    // Handle various status formats from database
+    if (status === true || status === 1 || status === "1" || status === "true") {
+      return true;
+    }
+    if (status === false || status === 0 || status === "0" || status === "false") {
+      return false;
+    }
+    
+    // Default to false if uncertain
+    console.log("⚠️ Unknown status format, defaulting to false");
+    return false;
   };
 
   const mapTimesToPayload = (day) => {
@@ -65,35 +99,31 @@ export default function ScheduleCard() {
     };
   };
 
-  // FIXED: Extra safe duplicate prevention with fresh DB check
   const createMissingSchedules = async (existingDaysFromDB) => {
     console.log("🔍 Checking which schedules need to be created...");
     console.log("Existing days from DB:", existingDaysFromDB);
     
-    // CRITICAL: Fresh check before creating anything
     console.log("🔄 Performing fresh database check before creation...");
     try {
       const freshCheck = await axios.get(API_URL, { headers });
       const currentExistingDays = freshCheck.data?.data?.map(entry => entry.hari) || [];
       console.log("📊 Fresh DB check - current existing days:", currentExistingDays);
       
-      if (currentExistingDays.length >= 5) {
+      if (currentExistingDays.length >= 6) {
         console.log("⚠️ All schedules now exist (created by another instance), skipping creation");
-        return { created: 0, skipped: 5, freshCheck: true };
+        return { created: 0, skipped: 6, freshCheck: true };
       }
       
-      // Use fresh data for missing calculation
-      const allDays = ["senin", "selasa", "rabu", "kamis", "jumat"];
+      const allDays = ["senin", "selasa", "rabu", "kamis", "jumat","sabtu"];
       const missingDays = allDays.filter(day => !currentExistingDays.includes(day));
       
       if (missingDays.length === 0) {
         console.log("✅ All schedules already exist in database, no creation needed");
-        return { created: 0, skipped: 5 };
+        return { created: 0, skipped: 6 };
       }
 
       console.log("📝 Missing days that need creation:", missingDays);
 
-      // FIXED: Sequential creation to prevent conflicts (instead of parallel)
       let createdCount = 0;
       let skippedCount = 0;
       let errorCount = 0;
@@ -119,7 +149,6 @@ export default function ScheduleCard() {
           }
         }
         
-        // Small delay between requests to prevent server overload
         await new Promise(resolve => setTimeout(resolve, 200));
       }
 
@@ -127,23 +156,19 @@ export default function ScheduleCard() {
       console.log(`  - Created: ${createdCount}`);
       console.log(`  - Skipped (already exists): ${skippedCount}`);
       console.log(`  - Errors: ${errorCount}`);
-      console.log(`  - Total processed: ${createdCount + skippedCount + errorCount}`);
       
       return { created: createdCount, skipped: skippedCount, errors: errorCount };
       
     } catch (error) {
       console.error("❌ Error during fresh DB check:", error);
-      // If fresh check fails, don't create anything to be safe
       return { created: 0, skipped: 0, errors: 1, freshCheckError: true };
     }
   };
 
-  // Function untuk toggle aktif/nonaktif dengan improved error handling
   const toggleDay = async (day) => {
     const current = scheduleData[day];
     const willBeActive = !current.active;
 
-    // Set updating state
     setIsUpdating(prev => ({ ...prev, [day]: true }));
 
     try {
@@ -157,7 +182,6 @@ export default function ScheduleCard() {
       
       console.log(`${day} toggle response:`, response.data);
       
-      // Update state only after successful request
       setScheduleData(prev => ({
         ...prev,
         [day]: {
@@ -166,7 +190,6 @@ export default function ScheduleCard() {
         }
       }));
 
-      // Show success message
       Swal.fire({
         icon: 'success',
         title: 'Berhasil',
@@ -210,16 +233,13 @@ export default function ScheduleCard() {
         text: errorMessage,
       });
     } finally {
-      // Clear updating state
       setIsUpdating(prev => ({ ...prev, [day]: false }));
     }
   };
 
-  // Function untuk update waktu secara real-time dengan debouncing
   const updateTime = async (day, type, field, value) => {
     console.log(`Updating time: ${day} ${type} ${field} = ${value}`);
     
-    // Update state dulu untuk UI responsiveness
     setTimes((prev) => {
       const updated = {
         ...prev,
@@ -232,17 +252,14 @@ export default function ScheduleCard() {
         },
       };
 
-      // Clear previous timeout if exists
       if (window.updateTimeouts && window.updateTimeouts[day]) {
         clearTimeout(window.updateTimeouts[day]);
       }
 
-      // Initialize timeouts object if not exists
       if (!window.updateTimeouts) {
         window.updateTimeouts = {};
       }
 
-      // Debounce the API call
       window.updateTimeouts[day] = setTimeout(async () => {
         try {
           const payload = {
@@ -262,7 +279,6 @@ export default function ScheduleCard() {
           const response = await axios.put(`${API_URL}/${day}`, payload, { headers });
           console.log(`Schedule updated for ${day}:`, response.data);
           
-          // Clear errors on success
           setErrors((prev) => ({ ...prev, [day]: {} }));
           
         } catch (err) {
@@ -271,7 +287,6 @@ export default function ScheduleCard() {
           const apiErrors = err.response?.data?.errors || err.response?.data?.meta || {};
           setErrors((prev) => ({ ...prev, [day]: apiErrors }));
           
-          // Show error notification
           Swal.fire({
             icon: 'error',
             title: 'Gagal Update Waktu',
@@ -349,81 +364,113 @@ export default function ScheduleCard() {
     rabu: "Rabu",
     kamis: "Kamis",
     jumat: "Jum'at",
+    sabtu: "Sabtu",
   };
 
-  // Function untuk fetch data dari backend dan return existing days
+  // FIXED: Enhanced fetchData function with better data parsing
   const fetchData = async () => {
     try {
       console.log("📡 Fetching schedule data from database...");
       const res = await axios.get(API_URL, { headers });
-      console.log("✅ Fetched data:", res.data);
+      console.log("✅ Fetched raw data:", res.data);
       
-      const allDays = ["senin", "selasa", "rabu", "kamis", "jumat"];
+      const allDays = ["senin", "selasa", "rabu", "kamis", "jumat","sabtu"];
       const updatedScheduleData = {};
-      const updatedTimes = { ...times };
+      const updatedTimes = {};
       const existingDays = [];
 
       // Initialize dengan default values
       allDays.forEach((day) => {
         updatedScheduleData[day] = { active: false, exists: false };
-        if (!updatedTimes[day]) {
-          updatedTimes[day] = { ...initialTimes };
-        }
+        updatedTimes[day] = { ...initialTimes };
       });
 
-      // Update dengan data dari API
+      // FIXED: Better data processing with detailed logging
       if (res.data && Array.isArray(res.data.data)) {
-        res.data.data.forEach((entry) => {
-          existingDays.push(entry.hari);
-          updatedScheduleData[entry.hari] = {
-            active: entry.status === true || entry.status === 1 || entry.status === "1",
+        console.log("📋 Processing database entries:");
+        
+        res.data.data.forEach((entry, index) => {
+          console.log(`\n📝 Entry ${index + 1}:`, entry);
+          
+          const day = entry.hari;
+          if (!day) {
+            console.log("⚠️ Missing 'hari' field in entry, skipping");
+            return;
+          }
+          
+          existingDays.push(day);
+          
+          // FIXED: Enhanced status parsing with logging
+          const parsedStatus = parseStatus(entry.status);
+          console.log(`📊 Day: ${day}, Raw Status: ${entry.status}, Parsed: ${parsedStatus}`);
+          
+          updatedScheduleData[day] = {
+            active: parsedStatus,
             exists: true,
           };
-          updatedTimes[entry.hari] = {
+          
+          // FIXED: Enhanced time parsing with logging
+          const timeData = {
             masuk: {
-              start: entry.awal_masuk || "08:00",
-              end: entry.akhir_masuk || "09:00",
+              start: normalizeTime(entry.awal_masuk) || "08:00",
+              end: normalizeTime(entry.akhir_masuk) || "09:00",
             },
             istirahat: {
-              start: entry.awal_istirahat || "12:00",
-              end: entry.akhir_istirahat || "13:00",
+              start: normalizeTime(entry.awal_istirahat) || "12:00",
+              end: normalizeTime(entry.akhir_istirahat) || "13:00",
             },
             kembali: {
-              start: entry.awal_kembali || "13:00",
-              end: entry.akhir_kembali || "13:30",
+              start: normalizeTime(entry.awal_kembali) || "13:00",
+              end: normalizeTime(entry.akhir_kembali) || "13:30",
             },
             pulang: {
-              start: entry.awal_pulang || "17:00",
-              end: entry.akhir_pulang || "18:00",
+              start: normalizeTime(entry.awal_pulang) || "17:00",
+              end: normalizeTime(entry.akhir_pulang) || "18:00",
             },
           };
+          
+          console.log(`⏰ Time data for ${day}:`, timeData);
+          updatedTimes[day] = timeData;
         });
+      } else {
+        console.log("⚠️ No data array found in response or empty response");
       }
 
+      // FIXED: Force state update with logging
+      console.log("\n🔄 Updating state with processed data:");
+      console.log("📊 Final schedule data:", updatedScheduleData);
+      console.log("⏰ Final times data:", updatedTimes);
+      console.log("📅 Existing days:", existingDays);
+      
       setScheduleData(updatedScheduleData);
       setTimes(updatedTimes);
       
-      console.log("📊 Updated schedule data:", updatedScheduleData);
-      console.log("⏰ Updated times:", updatedTimes);
-      console.log("📅 Existing days in DB:", existingDays);
+      // Force a re-render by updating a dummy state if needed
+      setTimeout(() => {
+        console.log("🔄 State should be updated now");
+        console.log("Current scheduleData state:", updatedScheduleData);
+        console.log("Current times state:", updatedTimes);
+      }, 100);
       
       return existingDays;
       
     } catch (error) {
       console.error("❌ Gagal ambil data jam kantor:", error);
+      console.error("Error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
       throw error;
     }
   };
 
-  // FIXED: Stronger initialization guard with immediate flag setting
   const initializeData = async () => {
-    // FIXED: Immediately set flags to prevent race conditions
     if (isInitializing.current || isInitialized.current) {
       console.log("⚠️ Initialization already in progress or completed, skipping...");
       return;
     }
 
-    // Set both flags immediately to prevent any race condition
     isInitializing.current = true;
     isInitialized.current = true;
 
@@ -440,26 +487,22 @@ export default function ScheduleCard() {
         }
       });
 
-      // Step 1: Fetch existing data dari database
       console.log("\n📡 STEP 1: Fetching existing data from database...");
       const existingDaysInDB = await fetchData();
       
-      // CRITICAL: Double check if data was created by another instance
-      if (existingDaysInDB.length >= 5) {
-        console.log("\n✅ All 5 schedules found in database, no creation needed");
+      if (existingDaysInDB.length >= 6) {
+        console.log("\n✅ All 6 schedules found in database, no creation needed");
         Swal.close();
         console.log("\n✅ ===== INITIALIZATION COMPLETED (DATA EXISTS) =====\n");
         return;
       }
       
-      // Step 2: Create missing schedules ONLY if really missing
       console.log("\n🏗️ STEP 2: Creating missing schedules...");
-      console.log(`Missing count: ${5 - existingDaysInDB.length}`);
+      console.log(`Missing count: ${6 - existingDaysInDB.length}`);
       
       const createResult = await createMissingSchedules(existingDaysInDB);
       console.log("📋 Creation result:", createResult);
       
-      // Step 3: Refetch ONLY if something was actually created
       if (createResult.created > 0) {
         console.log(`\n🔄 STEP 3: Refetching data (${createResult.created} new schedules created)`);
         await fetchData();
@@ -472,7 +515,6 @@ export default function ScheduleCard() {
       console.error("\n💥 ===== INITIALIZATION FAILED =====");
       console.error("Error:", error);
       
-      // Reset initialization flag on error so it can be retried
       isInitialized.current = false;
       
       Swal.close();
@@ -497,9 +539,7 @@ export default function ScheduleCard() {
     }
   };
 
-  // FIXED: Most robust useEffect with session storage check
   useEffect(() => {
-    // FIXED: Check if component already initialized in this session
     const sessionKey = `schedule_initialized_${Date.now()}`;
     const wasInitialized = sessionStorage.getItem('schedule_component_initialized');
     
@@ -509,7 +549,6 @@ export default function ScheduleCard() {
       return;
     }
 
-    // FIXED: Prevent double initialization in React StrictMode
     if (isInitialized.current || isInitializing.current) {
       console.log("🔒 Initialization already in progress or completed, skipping...");
       setLoading(false);
@@ -520,7 +559,6 @@ export default function ScheduleCard() {
 
     const init = async () => {
       if (isMounted && !isInitialized.current && !isInitializing.current) {
-        // Set session marker
         sessionStorage.setItem('schedule_component_initialized', 'true');
         await initializeData();
       }
@@ -528,20 +566,16 @@ export default function ScheduleCard() {
 
     init();
 
-    // Cleanup
     return () => {
       isMounted = false;
       
-      // Cleanup timeouts
       if (window.updateTimeouts) {
         Object.values(window.updateTimeouts).forEach(timeout => {
           clearTimeout(timeout);
         });
       }
-      
-      // Don't clear session storage here - let it persist for the session
     };
-  }, []); // Empty dependency array
+  }, []);
 
   if (loading) return <Loading />;
 
@@ -573,6 +607,9 @@ export default function ScheduleCard() {
               )}
             </div>
             <h3 className="text-lg font-medium">{dayNames[day]}</h3>
+            <span className="text-xs text-gray-500">
+              ({isActive ? 'Aktif' : 'Non-aktif'})
+            </span>
             {isToggling && <span className="text-sm text-gray-500">Updating...</span>}
           </div>
         </div>
