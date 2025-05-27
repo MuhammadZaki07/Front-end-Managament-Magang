@@ -117,10 +117,10 @@ const Absensi = () => {
       if (error.response) {
         switch (error.response.status) {
           case 401:
-            errorMsg = "Sesi login telah berakhir. Silakan login kembali.";
+            errorMsg = error.response.data?.message || "Sesi login telah berakhir. Silakan login kembali.";
             break;
           case 403:
-            errorMsg = "Anda tidak memiliki izin untuk melakukan absensi.";
+            errorMsg = error.response.data?.message || "Anda tidak memiliki izin untuk melakukan absensi.";
             break;
           case 422:
             errorMsg = error.response.data?.message || "Data absensi tidak valid.";

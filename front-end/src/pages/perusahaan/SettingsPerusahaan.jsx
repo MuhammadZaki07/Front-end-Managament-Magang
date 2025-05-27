@@ -11,6 +11,11 @@ const CompanyCard = () => {
   const [joinDate, setJoinDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const formattedDate = new Date(joinDate).toLocaleDateString('id-ID', {
+  day: '2-digit',
+  month: 'long',
+  year: 'numeric',
+});
   // File upload states
   const [coverImage, setCoverImage] = useState("/assets/img/Cover.png");
   const [logoImage, setLogoImage] = useState("/assets/img/logoperusahaan.png");
@@ -167,7 +172,7 @@ const CompanyCard = () => {
                 <i className="bi bi-geo-alt-fill"></i> {location ? location : '-'}
               </div>
               <div className="text-[13px] text-gray-500 flex items-center gap-2 mt-1">
-                <i className="bi bi-calendar-fill"></i> Bergabung {joinDate ? joinDate : '-'}
+                <i className="bi bi-calendar-fill"></i> Bergabung {formattedDate ? formattedDate : '-'}
               </div>
             </div>
           </div>

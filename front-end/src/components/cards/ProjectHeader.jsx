@@ -1,7 +1,7 @@
 // components/ProjectHeader.jsx
 import React from 'react';
 
-const ProjectHeader = ({ projectTitle, studentName, category, mentorName, mentorTitle }) => {
+const ProjectHeader = ({ projectTitle, studentName, category, mentorName, mentorTitle, mentorProfile }) => {
   return (
     <div className="p-6">
       <div className="flex flex-col md:flex-row justify-between mb-4">
@@ -27,7 +27,7 @@ const ProjectHeader = ({ projectTitle, studentName, category, mentorName, mentor
       <div className="flex items-center">
         <div className="h-10 w-10 rounded-full bg-gray-300 overflow-hidden mr-3">
           <img 
-            src="/assets/img/Profil.png" 
+            src={`${import.meta.env.VITE_API_URL_FILE}/storage/${mentorProfile}`}
             alt={mentorName}
             className="h-full w-full object-cover"
           />

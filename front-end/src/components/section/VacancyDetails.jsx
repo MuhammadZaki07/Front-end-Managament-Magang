@@ -384,7 +384,7 @@ export default function JobVacancyDetail() {
                 <div className="flex items-center">
                   <ExternalLink size={16} className="text-gray-500 mr-2" />
                   <a
-                    href={`https://${job.company.website}`}
+                    href={job.company.website}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-700 hover:underline"

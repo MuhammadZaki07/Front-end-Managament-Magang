@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 // Modal component to display revision details
 const RevisionModal = ({ isOpen, onClose, revision }) => {
+  
   if (!isOpen) return null;
   
   return (
@@ -9,14 +10,21 @@ const RevisionModal = ({ isOpen, onClose, revision }) => {
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">{revision.title}</h3>
-          <div className="flex items-center">
+          {revision.status === 1 ? (
+            <div className="flex items-center text-green-600 mr-4">
+              <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm">Revisi Selesai</span>
+            </div>
+          ) : (
             <div className="flex items-center text-red-500 mr-4">
               <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
               </svg>
               <span className="text-sm">Revisi Belum Selesai</span>
             </div>
-          </div>
+          )}
         </div>
         
         <div className="mb-4">
@@ -52,7 +60,7 @@ const RevisionModal = ({ isOpen, onClose, revision }) => {
 };
 
 // Individual Review Card component
-const ReviewDetailCard = ({ title, date, tasks }) => {
+const ReviewDetailCard = ({ title, date, tasks, status }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const openModal = () => setIsModalOpen(true);
@@ -96,61 +104,28 @@ const ReviewDetailCard = ({ title, date, tasks }) => {
       <RevisionModal 
         isOpen={isModalOpen} 
         onClose={closeModal} 
-        revision={{ title, date, tasks }} 
+        revision={{ title, date, tasks, status }} 
       />
     </>
   );
 };
 
 // Main component to display all review cards
-const ReviewDetailList = () => {
-  const reviewDetails = [
-    {
-      id: 1,
-      title: 'Revisi ke - 1',
-      date: 'Selasa, 29 April 2025',
-      tasks: [
-        { id: 1, text: 'Menambahkan button untuk tampilan section siswa', completed: false },
-        { id: 2, text: 'Tambahkan animasi transisi agar lebih interaktif', completed: false },
-        { id: 3, text: 'Perjelas alur navigasi pengguna', completed: false },
-        { id: 4, text: 'Kombinasi warna yang digunakan belum konsisten dan bisa membingungkan pengguna, mohon diperbaiki.', completed: false },
-        { id: 5, text: 'Sesuaikan ukuran teks di tampilan kecil', completed: false },
-        { id: 6, text: 'Singkatkan kalimat yang terlalu panjang', completed: false },
-        { id: 7, text: 'Layout belum responsif di berbagai ukuran layar, sebaiknya gunakan grid atau flex agar fleksibel.', completed: false }
-      ]
-    },
-    {
-      id: 2,
-      title: 'Revisi ke - 2',
-      date: 'Selasa, 20 April 2025',
-      tasks: [
-        { id: 1, text: 'Tambah animasi sajikan', completed: true },
-        { id: 2, text: 'Desainnya terlalu kaku', completed: false },
-        { id: 3, text: 'Perjelas alur navigasi pengguna', completed: false }
-      ]
-    },
-    {
-      id: 3,
-      title: 'Revisi ke - 3',
-      date: 'Jumat, 17 April 2025',
-      tasks: [
-        { id: 1, text: 'Tambah fitur filter data', completed: true },
-        { id: 2, text: 'Perbaiki bug pada form input', completed: true },
-        { id: 3, text: 'Tambahkan konfirmasi saat hapus data', completed: false },
-        { id: 4, text: 'Perbesar font untuk heading utama', completed: false }
-      ]
-    },
-    {
-      id: 4,
-      title: 'Revisi ke - 4',
-      date: 'Rabu, 15 April 2025',
-      tasks: [
-        { id: 1, text: 'Optimasi loading page', completed: true },
-        { id: 2, text: 'Tambahkan fitur pencarian', completed: true },
-        { id: 3, text: 'Perbaiki tampilan di mobile', completed: false }
-      ]
-    }
-  ];
+const ReviewDetailList = ({revisi}) => {
+  
+  const reviewDetails = revisi?.map((item, index) => ({
+    id: item.id,
+    title: `Revisi ke - ${index + 1}`,
+    status: item.status,
+    date: new Date(item.created_at).toLocaleDateString('id-ID', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    }),
+    tasks: (item?.progress || []).map((task) => ({
+      id: task.id,
+      text: task.deskripsi || 'Belum ada catatan',
+      completed: task.status == 1 ? true : false
+    }))
+  }));
   
   return (
     <div className="p-6 bg-white">
@@ -159,10 +134,11 @@ const ReviewDetailList = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {reviewDetails.map((review) => (
           <ReviewDetailCard
-            key={review.id}
-            title={review.title}
-            date={review.date}
-            tasks={review.tasks}
+            key={review?.id}
+            title={review?.title}
+            date={review?.date}
+            tasks={review?.tasks}
+            status= {review?.status}
           />
         ))}
       </div>

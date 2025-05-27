@@ -156,7 +156,7 @@ export const router = createBrowserRouter([
         element: <SettingPeserta />,
       },
       {
-        path: "detail-project",
+        path: "detail-project/:routeId",
         element: <DetailProjectPage />,
       },
       {
