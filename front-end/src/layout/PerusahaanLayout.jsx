@@ -19,72 +19,64 @@ const PerusahaanLayout = () => {
       link: `/perusahaan/cabang/${namaCabang}/beranda`,
     },
     {
-      icon: "bi-building",
-      label: "Kelola Cabang",
-      hasSubmenu: true,
-      submenu: [
-        {
-          icon: "bi-check-square",
-          label: "Approval",
-          link: `approval`,
-        },
-        {
-          icon: "bi-pc-display",
-          label: "Divisi",
-          link: `divisi`,
-        },
-        {
-          icon: "bi-mortarboard",
-          label: "Mentor",
-          link: `mentor`,
-        },
-        {
-          icon: "bi-person",
-          label: "Admin",
-          link: `admin`,
-        },
-        {
-          icon: "bi bi-stopwatch",
-          label: "Jam Kantor",
-          link: `jam-kantor`,
-        },
-        
-        {
-          icon: "bi-people",
-          label: "Peserta Magang",
-          link: `peserta`,
-        },
-        {
-          icon: "bi-card-list",
-          label: "Jurnal",
-          link: `jurnal`,
-        },
-        {
-          icon: "bi-card-list",
-          label: "Presensi",
-          link: `presensi`,
-        },
-        {
-          icon: "bi-envelope",
-          label: "Surat",
-          link: `surat`,
-        },
-        {
-          icon: "bi-card-checklist",
-          label: "Piket",
-          link: `piket`,
-        },
-        {
-          icon: "bi-upc-scan",
-          label: "RFID",
-          link: `RFID`,
-        },
-        {
-          icon: "bi bi-sliders2-vertical",
-          label: "Profile Settings",
-          link: `settings-cabang`,
-        },
-      ],
+      icon: "bi-check-square",
+      label: "Approval",
+      link: `/perusahaan/cabang/${namaCabang}/approval`,
+    },
+    {
+      icon: "bi-pc-display",
+      label: "Divisi",
+      link: `/perusahaan/cabang/${namaCabang}/divisi`,
+    },
+    {
+      icon: "bi-mortarboard",
+      label: "Mentor",
+      link: `/perusahaan/cabang/${namaCabang}/mentor`,
+    },
+    {
+      icon: "bi-person",
+      label: "Admin",
+      link: `/perusahaan/cabang/${namaCabang}/admin`,
+    },
+    {
+      icon: "bi bi-stopwatch",
+      label: "Jam Kantor",
+      link: `/perusahaan/cabang/${namaCabang}/jam-kantor`,
+    },
+    {
+      icon: "bi-people",
+      label: "Peserta Magang",
+      link: `/perusahaan/cabang/${namaCabang}/peserta`,
+    },
+    {
+      icon: "bi-card-list",
+      label: "Jurnal",
+      link: `/perusahaan/cabang/${namaCabang}/jurnal`,
+    },
+    {
+      icon: "bi-card-list",
+      label: "Presensi",
+      link: `/perusahaan/cabang/${namaCabang}/presensi`,
+    },
+    {
+      icon: "bi-envelope",
+      label: "Surat",
+      link: `/perusahaan/cabang/${namaCabang}/surat`,
+    },
+    {
+      icon: "bi-card-checklist",
+      label: "Piket",
+      link: `/perusahaan/cabang/${namaCabang}/piket`,
+    },
+    {
+      icon: "bi-upc-scan",
+      label: "RFID",
+      link: `/perusahaan/cabang/${namaCabang}/RFID`,
+    },
+    {
+      icon: "bi bi-sliders2-vertical",
+      label: "Profile Settings",
+      link: `/perusahaan/cabang/${namaCabang}/settings-cabang`,
     },
   ]: [];
 
@@ -127,56 +119,18 @@ const PerusahaanLayout = () => {
             <div className="flex flex-col gap-3 mt-8">
               {sidebarMenus.map((menu, idx) => (
                 <div key={idx} className="flex flex-col">
-                  {menu.hasSubmenu ? (
-                    <>
-                      <button
-                        onClick={() => setOpenMenu(openMenu === menu.label ? null : menu.label)}
-                        className={`${sidebarCollapsed ? "justify-center" : ""} px-4 py-2 rounded-lg flex gap-3 items-center justify-between ${
-                          openMenu === menu.label ? "bg-sky-800 text-white" : "hover:text-sky-500 hover:bg-sky-50"
-                        }`}
-                      >
-                        <div className={`flex gap-3 items-center ${sidebarCollapsed ? "justify-center" : ""}`}>
-                          <i className={`bi ${menu.icon} text-lg`}></i>
-                          {!sidebarCollapsed && <span className="text-sm">{menu.label}</span>}
-                        </div>
-                        {!sidebarCollapsed && (
-                          <i className={`bi bi-chevron-${openMenu === menu.label ? "up" : "down"} text-xs`}></i>
-                        )}
-                      </button>
-                      
-                      {openMenu === menu.label && !sidebarCollapsed && (
-                        <div className="ml-4 mt-1 flex flex-col gap-2">
-                          {menu.submenu.map((sub, subIdx) => (
-                            <Link
-                              key={subIdx}
-                              to={`/perusahaan/cabang/${namaCabang}/${sub.link}`}
-                              className={`flex items-center gap-3 text-sm px-3 py-1 rounded ${
-                                location.pathname.includes(sub.link) 
-                                  ? "bg-sky-50 text-sky-500" 
-                                  : "hover:text-sky-500 hover:bg-sky-50"
-                              }`}
-                            >
-                              <i className={`bi ${sub.icon} text-lg`}></i>
-                              <span>{sub.label}</span>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <Link
-                      to={menu.link}
-                      className={`${sidebarCollapsed ? "justify-center" : ""} px-4 py-2 rounded-lg flex gap-3 items-center 
-                      ${
-                        location.pathname.includes(menu.link)
-                        ? "bg-sky-800 text-white"
-                        : "hover:text-sky-500 hover:bg-sky-50"
-                      }`}
-                    >
-                      <i className={`bi ${menu.icon} text-lg`}></i>
-                      {!sidebarCollapsed && <span className="text-sm">{menu.label}</span>}
-                    </Link>
-                  )}
+                  <Link
+                    to={menu.link}
+                    className={`${sidebarCollapsed ? "justify-center" : ""} px-4 py-2 rounded-lg flex gap-3 items-center 
+                    ${
+                      location.pathname === menu.link
+                      ? "bg-sky-800 text-white"
+                      : "hover:text-sky-500 hover:bg-sky-50"
+                    }`}
+                  >
+                    <i className={`bi ${menu.icon} text-lg`}></i>
+                    {!sidebarCollapsed && <span className="text-sm">{menu.label}</span>}
+                  </Link>
                 </div>
               ))}
             </div>

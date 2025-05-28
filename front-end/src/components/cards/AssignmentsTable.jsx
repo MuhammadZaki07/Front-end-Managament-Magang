@@ -38,7 +38,7 @@ const AssignmentsTable = () => {
         </a>
       </div>
          
-      <div className="overflow-x-auto flex-1 hide-scrollbar" style={{ maxHeight: '700px' }}>
+      <div className="overflow-x-auto flex-1 hide-scrollbar" style={{ maxHeight: '900px' }}>
         <table className="min-w-full table-fixed text-sm text-left">
           <thead>
             <tr className="border-b border-gray-300 bg-gray-100">

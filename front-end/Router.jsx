@@ -7,7 +7,7 @@ import Register from "./src/pages/Auth/Register";
 import Login from "./src/pages/Auth/Login";
 import StudentLayout from "./src/layout/StudentLayout";
 import Dashboard from "./src/pages/student/Dashboard";
-import MentorLayout from "./src/layout/MentorLayout";
+import MentorLayout1 from "./src/layout/MentorLayout1";
 import MentorDashboard from "./src/pages/mentor/MentorDashboard";
 import DataSiswa from "./src/pages/mentor/Siswa";
 import TrackRecord from "./src/pages/mentor/trackrecord";
@@ -74,6 +74,9 @@ import DataRFID from "./src/pages/admin/RFID";
 import DataPiket from "./src/pages/admin/Piket";
 import DataJamkantor from "./src/pages/admin/Jam-kantor";
 import ProjectCard from "./src/components/cards/ProjectCard";
+import SuperadminLayout from "./src/layout/SuperadminLayout";
+import DashboardSuperadmin from "./src/pages/superadmin/Dashboard";
+import MitraDetails from "./src/components/section/MitraDetails";
 
 
 export const router = createBrowserRouter([
@@ -109,6 +112,10 @@ export const router = createBrowserRouter([
         path: "/vacancy/:jobId",
         element: <VacancyDetails />,
       },
+      {
+        path: "mitradetails/:id",
+        element: <MitraDetails/>
+      }
     ],
   },
   {
@@ -167,7 +174,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/mentor",
-    element: <MentorLayout />,
+    element: <MentorLayout1 />,
     children: [
       {
         path: "dashboard",
@@ -381,6 +388,16 @@ export const router = createBrowserRouter([
           element: <SettingCabang />,
         },
       ]
+    }
+  ]
+},
+{
+  path: "/superadmin",
+  element: <SuperadminLayout />,
+  children: [
+    {
+      path: "dashboard",
+      element: <DashboardSuperadmin/>
     }
   ]
 },

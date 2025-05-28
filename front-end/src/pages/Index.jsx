@@ -10,6 +10,8 @@ import InternshipLanding from "../components/section/Landingpage/InternshipLandi
 import MyPartner from "../components/section/Landingpage/MyPartner";
 import StatsSection from "../components/section/Landingpage/StatsSection";
 import Testimonials from "../components/section/Landingpage/Testimonials";
+import Button from "../../src/components/Button";
+
 
 const Index = () => {
   // Animasi fade-up yang akan digunakan untuk setiap section
@@ -69,8 +71,17 @@ const Index = () => {
       </AnimatedSection>
       
       <AnimatedSection delay={0.1}>
-        <CarierStart />
-      </AnimatedSection>
+  <h2 className="text-center text-2xl font-semibold text-black mb-20">
+    Temukan Karir yang Tepat, dengan Cepat
+  </h2>
+  <CarierStart />
+  <div className="flex justify-center mt-8">
+              <Button icon="bi-arrow-right" onClick={() => window.location.href = '/partners'}>
+                Lihat semua lowongan
+              </Button>
+            </div>
+</AnimatedSection>
+
       
       <AnimatedSection delay={0.1}>
         <MyPartner />

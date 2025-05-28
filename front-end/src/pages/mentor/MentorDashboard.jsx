@@ -12,7 +12,7 @@ import StudentsList from "../../components/cards/StudentList";
 
 const MentorDashboard = () => {
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full pb-10">
       {/* GreetingsBox yang full width */}
       <div className="w-full mb-5">
         <GreetingsBox />
@@ -22,19 +22,19 @@ const MentorDashboard = () => {
       </div>
       
       <div className="flex w-full gap-5 items-stretch h-full">
-        <div className="flex-[8] w-full flex flex-col gap-5 h-full">
-          <div className="flex-1 h-full">
+        <div className="flex-[8] w-60 flex flex-col gap-5 h-[870px]">
+          <div className="flex-1 h-96">
             <AssignmentsTable />
           </div>
         </div>
         
         {/* Kalender + Events Section di Kanan */}
-        <div className="flex-[3] flex flex-col gap-5 h-full mt-5">
+        <div className="flex-[3] flex flex-col gap-5 h-[450px] mt-5">
           <Card className="px-1 py-1 flex-1 h-full">
             <EventsSection />
           </Card>
           
-          <Card className="px-2 py-2 mb-3 flex-1 h-full">
+          <Card className="px-2 py-2 flex-1 h-[450px]">
             <StudentsList />
           </Card>
         </div>
