@@ -1,14 +1,15 @@
-import React from 'react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 // Project Stage Card Component
-const ProjectStageCard = ({ title, icon, message, isCompleted, isLocked }) => {
+const ProjectStageCard = ({ title, icon, message, isCompleted, isLocked, route  }) => {
   return (
-    <div className="border border-black rounded-lg p-6 flex flex-col items-center h-full">
+    <div className="border border-blue-500 rounded-2xl p-6 flex flex-col items-center h-full shadow-lg shadow-blue-200">
       <h3 className="text-xl font-semibold text-black mb-4">{title}</h3>
       
       <div className="flex justify-center mb-3">
         {isLocked ? (
-          <div className="text-black">
+          <div className="text-black mt-5 mb-6">
             <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <circle cx="12" cy="16" r="1"></circle>
@@ -17,28 +18,28 @@ const ProjectStageCard = ({ title, icon, message, isCompleted, isLocked }) => {
           </div>
         ) : (
           <div className="flex justify-center">
-            {icon}
+            {icon ? icon : <div>Icon not available</div>}
           </div>
         )}
       </div>
       
       <div className="flex-grow">
-        <p className="text-center text-sm text-black mb-4">
+        <p className="text-center text-sm text-black mb-4 mt-3">
           {message}
         </p>
-        
-        {isLocked && <p className="text-center font-medium text-black">SEMANGAT!</p>}
       </div>
       
       <div className="w-full mt-auto">
-  {!isLocked ? (
-    <Link to="/peserta/detail-project">
+  {!isLocked && !isCompleted? (
+    <Link to={`/peserta/detail-project/${route}`}>
       <button className="w-full py-2 text-center border border-black rounded-full hover:bg-gray-50 transition-colors duration-200">
         Lihat Detail
       </button>
     </Link>
   ) : (
-    <div className="h-10"></div> // Spacer for locked cards
+    <div className="h-10">
+      <p className="text-center font-medium text-black">{!isCompleted ? 'SEMANGAT!': 'PERTAHANKAN SEMANGATMU!'}</p>
+    </div> // Spacer for locked cards
   )}
 </div>
     </div>
@@ -47,53 +48,61 @@ const ProjectStageCard = ({ title, icon, message, isCompleted, isLocked }) => {
 
 // Route Project Component
 const RouteProject = () => {
-  // Project stages data
-  const stages = [
-    {
-      id: 1,
-      title: "Tahap Pengenalan",
-      message: "Selamat! tahap ini sudah selesai",
-      isCompleted: true,
-      isLocked: false,
-      icon: (
-        <img 
-          src="/assets/svg/Selesai.svg" 
-          alt="Tahap Pengenalan" 
-          className="w-30 h-30" 
-        />
+
+  const [route, setRoute] = useState([]);
+  const [kategori, setKategori] = useState([]);
+  
+  // Project stages data 
+  const getRoute = async () => {
+    try {
+
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/route-peserta`,
+        {
+          headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+        }
       )
-    },
-    {
-      id: 2,
-      title: "Tahap Dasar",
-      message: "Selesaikan tahapnya dan lanjut ke tahap selanjutnya!",
-      isCompleted: false,
-      isLocked: false,
-      icon: (
-        <img 
-          src="/assets/svg/proses.svg" 
-          alt="Tahap Dasar" 
-          className="w-30 h-30"
-        />
-      )
-    },
-    {
-      id: 3,
-      title: "Tahap Mini Project",
-      message: "Tahap in masih terkunci! Selesaikan dulu tahap sebelumnya",
-      isCompleted: false,
-      isLocked: true,
-      icon: null
-    },
-    {
-      id: 4,
-      title: "Tahap Big Project",
-      message: "Tahap in masih terkunci! Selesaikan dulu tahap sebelumnya",
-      isCompleted: false,
-      isLocked: true,
-      icon: null
+      setRoute(response.data.data[0].route)
+      setKategori(response.data.data[0].kategori)
+    }catch (error) {
+      console.error(error);
     }
-  ];
+  }
+
+  useEffect(()=> {
+    getRoute();
+  },[])
+
+  const stages = kategori.map((kategoriItem) => {
+  const currentRoute = route.find(r => r.id_kategori_proyek === kategoriItem.id);
+  
+  // Tentukan apakah tahap sudah selesai berdasarkan 'selesai'
+  const isCompleted = currentRoute ? currentRoute.selesai !== null : false;
+
+  // Tentukan apakah kategori sedang dikerjakan (dengan memeriksa apakah id_kategori_proyek sama)
+  const isCurrentlyWorking = currentRoute ? currentRoute.id_kategori_proyek === kategoriItem.id : false;
+
+  // Tentukan apakah tahap terkunci
+  const isLocked = currentRoute ? currentRoute.id_kategori_proyek !== kategoriItem.id : false;
+
+    return {
+      id: kategoriItem.id,
+      title: `Tahap ${kategoriItem.nama}`,
+      message: isCurrentlyWorking && isCompleted
+        ? "Selamat! tahap ini sudah selesai"
+        : "Selesaikan tahapnya dan lanjut ke tahap selanjutnya!",
+      isCompleted: isCompleted,
+      isLocked: !isCurrentlyWorking, // Menandakan jika kategori belum dikerjakan, kunci tahap tersebut
+      icon: isCurrentlyWorking && isCompleted? (
+        <img src="/assets/svg/Selesai.svg" alt={`Tahap ${kategoriItem.nama}`} className="w-30 h-30" />
+      ) : (
+        <img src="/assets/svg/proses.svg" alt={`Tahap ${kategoriItem.nama}`} className="w-30 h-30" />
+      ),
+      routeId: currentRoute ? currentRoute.id : null,
+    };
+  });
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
@@ -108,6 +117,7 @@ const RouteProject = () => {
             isCompleted={stage.isCompleted}
             isLocked={stage.isLocked}
             icon={stage.icon}
+            route={stage.routeId}
           />
         ))}
       </div>

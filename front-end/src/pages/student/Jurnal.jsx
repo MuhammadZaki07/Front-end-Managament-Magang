@@ -18,8 +18,6 @@ const Jurnal = () => {
   const [events, setEvents] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [selectedJournal, setSelectedJournal] = useState(null);
-
-  console.log(events);
   
   const fetchJurnal = async () => {
     try {
@@ -220,7 +218,7 @@ const Jurnal = () => {
           eventClick={handleEventClick}
           datesSet={handleDatesSet}
           eventContent={(arg) => (
-            <div className="text-green-600 text-sm text-center font-semibold">
+            <div className="text-green-600 text-sm text-center p-3 font-semibold">
               Mengisi
             </div>
           )}

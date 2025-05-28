@@ -19,32 +19,83 @@ const Dashboard = () => {
   localStorage.setItem("location", location.pathname);
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [rekap, setRekap] = useState([]);
+  const [cabangs, setCabangs] = useState([]);
+  
 
-  useEffect(() => {
-    const checkComplateRegistered = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/perusahaan/detail`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setTimeout(() => {
-          setCompanyData(response.data.data);
-          setLoading(false);
-        }, 1000);
-      } catch (err) {
-        console.log(err);
+  const getAllCabang = async () => {
+    try {
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      const url = `${import.meta.env.VITE_API_URL}/cabang?t=${Date.now()}`;
+
+      const res = await axios.get(url, {
+        headers: {
+          "Cache-Control": "no-store",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 200 && res.data && res.data.data) {
+        setCabangs(res.data.data);
+      } else if (res.status === 304) {
+        console.log("Data cabang belum berubah, tidak perlu update.");
+      } else {
+        console.warn("Respons tidak sesuai harapan:", res.status, res.data);
       }
-    };
+    } catch (error) {
+      console.error("Gagal mengambil data cabang:", error);
+    }
+  };
+  const checkComplateRegistered = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/perusahaan/detail`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setTimeout(() => {
+        setCompanyData(response.data.data);
+        setLoading(false);
+      }, 1000);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const getRekap = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/perusahaan/rekap`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setTimeout(() => {
+        setRekap(response.data.data);
+        setLoading(false);
+      }, 1000);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  
+  useEffect(() => {
     checkComplateRegistered();
+    getRekap();
+    getAllCabang();
   }, []);
+  
   const statsData = [
     {
       title: "Total Cabang",
-      value: "20 Cabang",
+      value: `${rekap?.total_cabang}`,
       icon: "/assets/icons/absensi/book.png",
       color: "#3B82F6",
       data: [10, 15, 12, 18, 14, 20, 22, 19, 17, 25, 21, 23],
@@ -55,14 +106,14 @@ const Dashboard = () => {
     },
     {
       title: "Total Peserta Magang",
-      value: "110",
+      value: `${rekap?.peserta?.total}`,
       icon: "/assets/icons/absensi/certificateLogo.png",
       color: "#10B981",
       data: [8, 12, 15, 20, 18, 16, 19, 17, 22, 24, 20, 21],
     },
     {
       title: "Pengisian Jurnal",
-      value: "30",
+      value: `${rekap?.total_jurnal}`,
       icon: "/assets/icons/absensi/graduate.png",
       color: "#6366F1",
       data: [3, 5, 4, 6, 2, 3, 4, 2, 5, 3, 4, 5],
@@ -103,30 +154,30 @@ const Dashboard = () => {
 
             {/* Chart Absensi */}
             <Card className="my-7">
-              <StaticAbsensiPerusahaan />
+              <StaticAbsensiPerusahaan cabangs = {cabangs} />
             </Card>
 
             {/* Chart Peserta Magang */}
             <Card>
-              <PesertaMagangChart />
+              <PesertaMagangChart cabangs = {cabangs}/>
             </Card>
           </div>
 
           {/* KANAN */}
-          <div className="flex-[3] flex flex-col gap-5">
+          <div className="flex-[3] flex flex-col gap-4">
             <Card className="mt-0">
               <div className="border-b border-slate-400/[0.5] py-3">
                 <Title className="ml-5">Statistik Cabang</Title>
               </div>
-              <CabangChart />
+              <CabangChart peserta = {rekap?.peserta} />
             </Card>
 
             <Card>
-              <StatistikJurnalChart />
+              <StatistikJurnalChart cabangs = {cabangs}/>
             </Card>
 
             <Card className="px-0 py-2">
-              <StatistikPendaftarChartMini />
+              <StatistikPendaftarChartMini cabangs = {cabangs} />
             </Card>
           </div>
         </div>

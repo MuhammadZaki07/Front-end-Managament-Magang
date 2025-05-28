@@ -1,40 +1,40 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 export default function MentorPerDivisionChart({ mentor }) {
-  const [year, setYear] = useState('2025'); // Default year
+  const [hoverIndex, setHoverIndex] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
-  // Dynamically create chart data from mentor prop
-  const chartData = mentor.map(item => ({
-    name: item.nama_divisi, // Division name
-    value: item.total_mentor, // Total mentors in the division
+  const chartData = mentor?.map(item => ({
+    name: item.nama_divisi,
+    value: item.total_mentor,
   }));
 
-  // You can use a mapping of year to mentor data if necessary in the future
-  const yearData = {
-    '2025': chartData, // Default to the data passed in mentor prop
-    '2024': chartData, // You can extend this to other years
-  };
-
-  // Colors for each division (can be dynamic or predefined)
   const colors = [
     '#2c4d8a', '#5076ba', '#7ba3e8', '#c3d4f2', '#dbe7fb', '#d1d5db',
   ];
 
-  // Get current year data (based on the selected year)
-  const currentData = yearData[year] || [];
+  const dummyData = [
+  { name: 'Divisi A', value: 5 },
+  { name: 'Divisi B', value: 3 },
+  { name: 'Divisi C', value: 4 },
+  { name: 'Divisi D', value: 2 },
+];
+  const currentData = chartData || dummyData;
 
   const total = currentData.reduce((sum, item) => sum + item.value, 0);
 
-  // Adjust the radius for the donut chart
-  const radius = 80; // Size of the donut chart
+  const radius = 70;
   const circumference = 2 * Math.PI * radius;
+  const gap = 1; 
 
   let accumulatedPercentage = 0;
   const segments = currentData.map((item, index) => {
     const percentage = item.value / total;
     const segmentLength = circumference * percentage;
-    const dashArray = `${segmentLength} ${circumference - segmentLength}`;
-    const dashOffset = -circumference * accumulatedPercentage;
+    const adjustedSegmentLength = segmentLength - gap > 0 ? segmentLength - gap : segmentLength;
+
+      const dashArray = `${adjustedSegmentLength} ${circumference - adjustedSegmentLength}`;
+      const dashOffset = -circumference * accumulatedPercentage + (gap / 2);
     accumulatedPercentage += percentage;
 
     return {
@@ -42,35 +42,51 @@ export default function MentorPerDivisionChart({ mentor }) {
       dashArray,
       dashOffset,
       color: colors[index],
-      percentage
+      percentage,
     };
   });
 
+  // Tooltip style
+  const tooltipStyle = {
+    position: 'absolute',
+    pointerEvents: 'none',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    color: 'white',
+    padding: '4px 8px',
+    borderRadius: 4,
+    fontSize: 12,
+    whiteSpace: 'nowrap',
+    transform: 'translate(-50%, -120%)',
+    top: tooltipPos.y,
+    left: tooltipPos.x,
+    transition: 'opacity 0.2s',
+    opacity: hoverIndex !== null ? 1 : 0,
+    zIndex: 1000,
+  };
+
+  // Handler to set tooltip position relative to svg container
+  const handleMouseEnter = (index, event) => {
+    setHoverIndex(index);
+    // Calculate position relative to container
+    const svgRect = event.currentTarget.ownerSVGElement.getBoundingClientRect();
+    const x = event.clientX - svgRect.left;
+    const y = event.clientY - svgRect.top;
+    setTooltipPos({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setHoverIndex(null);
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow p-4 w-full max-w-xl mx-auto">
+    <div className="bg-white rounded-lg shadow-lg border border-slate-400/[0.5] p-4 w-full max-w-xl min-h-3/5 relative hover:shadow-blue-300">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-l font-bold text-gray-800">Jumlah Mentor Per Divisi</h2>
-        
-        <div className="relative">
-          <select 
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            className="appearance-none bg-white-50 rounded-md px-3 py-1.5 pr-8 text-gray-700 focus:outline-none border border-gray-200 text-sm"
-          >
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-            <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 290">
-              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-            </svg>
-          </div>
-        </div>
       </div>
       
-      <div className="flex flex-row justify-between items-center">
+      <div className="flex flex-col-reverse items-center">
         {/* Legend */}
-        <div className="w-1/2 flex flex-col space-y-4">
+        <div className="gap-10 flex flex-row ">
           {currentData.map((division, index) => (
             <div key={index} className="flex items-center">
               <div 
@@ -83,7 +99,7 @@ export default function MentorPerDivisionChart({ mentor }) {
         </div>
         
         {/* Donut Chart */}
-        <div className="w-1/2 flex justify-end">
+        <div className="w-1/2 flex justify-end relative">
           <div className="w-48 h-48 relative">
             <svg width="100%" height="100%" viewBox="0 0 200 200">
               {segments.map((segment, index) => (
@@ -94,19 +110,31 @@ export default function MentorPerDivisionChart({ mentor }) {
                   r={radius}
                   fill="none"
                   stroke={segment.color}
-                  strokeWidth="30"
+                  strokeWidth="50"
                   strokeDasharray={segment.dashArray}
                   strokeDashoffset={segment.dashOffset}
                   transform="rotate(-90 100 100)"
+                  onMouseEnter={(e) => handleMouseEnter(index, e)}
+                  onMouseMove={(e) => handleMouseEnter(index, e)}
+                  onMouseLeave={handleMouseLeave}
+                  style={{ cursor: 'pointer' }}
                 />
               ))}
               <circle 
                 cx="100" 
                 cy="100" 
-                r="35" // Circle at the center (white space)
+                r="35" 
                 fill="white" 
               />
             </svg>
+
+            {/* Tooltip */}
+            {hoverIndex !== null && (
+              <div style={tooltipStyle}>
+                <strong>{segments[hoverIndex].name}</strong><br />
+                {segments[hoverIndex].value} mentor
+              </div>
+            )}
           </div>
         </div>
       </div>

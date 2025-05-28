@@ -97,9 +97,12 @@ const AddJurnalModal = ({ isOpen, onClose, editMode, selectedJournal, onSubmitSu
 
     const newErrors = {};
     if (!formData.title?.trim()) newErrors.title = "Judul wajib diisi.";
-    if (!description?.trim()) newErrors.description = "Deskripsi wajib diisi.";
     if (!selectedFile && !editMode) newErrors.bukti = "Bukti wajib diunggah."; // file tidak wajib saat edit
-    
+    if (!description?.trim()) {
+      newErrors.description = "Deskripsi wajib diisi.";
+    } else if (description.replace(/\s+/g, '').length < 150) {
+      newErrors.description = "Deskripsi harus minimal 150 karakter.";
+    }
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
@@ -280,9 +283,9 @@ const AddJurnalModal = ({ isOpen, onClose, editMode, selectedJournal, onSubmitSu
               onChange={(e) => setDescription(e.target.value)}
             />
             <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>Minimal Kata</span>
-              <span>
-                {description.split(/\s+/).filter(Boolean).length}/150
+              <span>Minimal Karakter</span>
+              <span className={description.replace(/\s+/g, '').length < 150 ? 'text-red-500' : 'text-green-500'}>
+                {description.replace(/\s+/g, '').length}/150
               </span>
             </div>
             {errors.description && (

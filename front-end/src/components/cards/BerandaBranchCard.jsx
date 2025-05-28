@@ -12,6 +12,7 @@ const Dashboard = () => {
   const [summary, setSummary ] = useState([]);
   const [peserta, setPeserta] = useState([]);
   const [mentor, setMentor] = useState([]);
+
   const getRekap = async () => {
     try {
       Swal.fire({

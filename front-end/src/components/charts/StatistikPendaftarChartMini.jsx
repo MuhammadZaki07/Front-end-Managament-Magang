@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-const StatistikPendaftarChartMini = () => {
+const StatistikPendaftarChartMini = ({cabangs}) => {
+  const [selectedCabangId, setSelectedCabangId] = useState(cabangs?.[0]?.id || "");
+  
   // Data untuk setiap cabang
   const dataCabangA = [
     { month: "Jan", value: 10 },
@@ -44,17 +46,21 @@ const StatistikPendaftarChartMini = () => {
     setSelectedCabang(event.target.value);
   };
 
+  
   return (
     <div className="w-full px-2 py-3">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-base font-bold text-slate-900">Statistik Pendaftar</h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-base ml-4 font-bold text-slate-900">Statistik Pendaftar</h2>
         <select
-          value={selectedCabang}
-          onChange={handleCabangChange}
-          className="px-2 py-0.5 border border-slate-300 rounded-md text-slate-500 text-xs"
+          className="text-xs border border-gray-300 rounded px-2 py-1 shadow-sm"
+          value={selectedCabangId}
+          onChange={(e) => setSelectedCabangId(e.target.value)}
         >
-          <option value="Cabang A">Cabang A</option>
-          <option value="Cabang B">Cabang B</option>
+          {cabangs.map((cabang) => (
+              <option key={cabang.id} value={cabang.id}>
+                {cabang.nama}
+              </option>
+            ))}
         </select>
       </div>
       <div className="h-60">
