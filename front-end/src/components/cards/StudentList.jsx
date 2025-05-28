@@ -35,7 +35,7 @@ const StudentsList = () => {
       </div>
 
       {/* Students List */}
-      <div className="h-55 overflow-y-auto hide-scrollbar">
+      <div className="h-80 overflow-y-auto hide-scrollbar">
         <div className="divide-y divide-gray-100">
           {students.map((student, index) => (
             <div key={index} className="flex items-center p-2 hover:bg-gray-50 transition-colors">

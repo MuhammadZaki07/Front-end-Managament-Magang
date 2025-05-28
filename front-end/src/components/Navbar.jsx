@@ -42,7 +42,7 @@ const Navbar = () => {
       <div>
         <Link to={``}>
           <img
-            src="assets/img/Logo.png"
+            src="/assets/img/Logo.png"
             alt="Logo"
             className="w-48 transition-all duration-300"
           />

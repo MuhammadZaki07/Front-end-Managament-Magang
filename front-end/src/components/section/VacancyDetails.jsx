@@ -32,10 +32,30 @@ export default function JobVacancyDetail() {
   // Default image paths
   const DEFAULT_IMAGE = "/assets/img/Cover.png";
 
+  // Default required documents (tidak bisa diubah)
+  const DEFAULT_REQUIRED_DOCUMENTS = [
+    "CV",
+    "Surat Pernyataan Diri"
+  ];
+
   const getImagePath = (job, type) => {
-    const path = job?.perusahaan?.foto?.find((f) => f.type === type)?.path ||
-                job?.cabang?.foto?.find((f) => f.type === type)?.path ||
-                "";
+    let path = "";
+    
+    // Prioritas: ambil dari cabang.foto terlebih dahulu, lalu perusahaan.foto
+    if (job?.cabang?.foto && Array.isArray(job.cabang.foto)) {
+      const foto = job.cabang.foto.find((f) => f.type === type);
+      if (foto) {
+        path = foto.path;
+      }
+    }
+    
+    // Jika tidak ditemukan di cabang, cari di perusahaan
+    if (!path && job?.perusahaan?.foto && Array.isArray(job.perusahaan.foto)) {
+      const foto = job.perusahaan.foto.find((f) => f.type === type);
+      if (foto) {
+        path = foto.path;
+      }
+    }
     
     // Jika path kosong, gunakan default image
     return path ? `${import.meta.env.VITE_API_URL_FILE}/storage/${path}` : DEFAULT_IMAGE;
@@ -47,12 +67,18 @@ export default function JobVacancyDetail() {
     company: {
       name: job.perusahaan?.nama || "-",
       location: job.perusahaan?.alamat || "-",
-      logo: getImagePath(job, "logo"),
+      logo: getImagePath(job, "profile"), // untuk logo gunakan type "profile"
       email: job.perusahaan?.email || "-",
       website: job.perusahaan?.website || "-",
       description: job.perusahaan?.deskripsi || "-",
     },
-    documents: job.dokumen_dibutuhkan || [],
+    cabang: {
+      nama: job.cabang?.nama || "-",
+      kota: job.cabang?.kota || "-",
+      provinsi: job.cabang?.provinsi || "-",
+    },
+    // Gunakan default documents alih-alih dari API
+    documents: DEFAULT_REQUIRED_DOCUMENTS,
     importantDates: {
       duration: job.durasi + " Bulan",
       Pembukaan: job.tanggal_mulai,
@@ -61,8 +87,48 @@ export default function JobVacancyDetail() {
     requirement: job.requirement?.split("\n") || [],
     jobdesc: job.jobdesc?.split("\n") || [],
     total_pendaftar: job.total_pendaftar || 0,
-    cover: getImagePath(job, "profil_cover"),
+    cover: getImagePath(job, "profil_cover"), // untuk cover gunakan type "profil_cover"
   });
+
+  // Fungsi untuk format tanggal penting
+  const getImportantDates = (job) => {
+    const { Pembukaan, Penutupan } = job.importantDates || {};
+
+    if (!Pembukaan || !Penutupan) {
+      return {
+        duration: "Tidak tersedia",
+        Pembukaan: "Tidak tersedia",
+        Penutupan: "Tidak tersedia",
+      };
+    }
+
+    const start = new Date(Pembukaan);
+    const end = new Date(Penutupan);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return {
+        duration: "Tanggal tidak valid",
+        Pembukaan: "Tanggal tidak valid",
+        Penutupan: "Tanggal tidak valid",
+      };
+    }
+
+    const duration = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+    return {
+      duration: `${duration} hari`,
+      Pembukaan: start.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+      Penutupan: end.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+    };
+  };
 
   useEffect(() => {
     const fetchJobDetail = async () => {
@@ -177,45 +243,6 @@ export default function JobVacancyDetail() {
     // If status is "belum_terdaftar" or null/undefined, allow them to apply
     setModalOpen(true);
   };
-
-  const getImportantDates = (job) => {
-    const { Pembukaan, Penutupan } = job.importantDates || {};
-
-    if (!Pembukaan || !Penutupan) {
-      return {
-        duration: "Tidak tersedia",
-        Pembukaan: "Tidak tersedia",
-        Penutupan: "Tidak tersedia",
-      };
-    }
-
-    const start = new Date(Pembukaan);
-    const end = new Date(Penutupan);
-
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return {
-        duration: "Tanggal tidak valid",
-        Pembukaan: "Tanggal tidak valid",
-        Penutupan: "Tanggal tidak valid",
-      };
-    }
-
-    const duration = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
-
-    return {
-      duration: `${duration} hari`,
-      Pembukaan: start.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }),
-      Penutupan: end.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }),
-    };
-  };
   
   const closeModal = () => setModalOpen(false);
 
@@ -224,56 +251,58 @@ export default function JobVacancyDetail() {
     e.target.src = DEFAULT_IMAGE;
   };
 
-  const RelatedJobCard = ({ job }) => (
-    <Link to={`/vacancy/${job.id}`} className="block mb-6 last:mb-0">
-      <div className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-4 pl-20 min-h-40">
-        {/* Company Logo */}
-        <div className="absolute left-0 -translate-y-1/3 -translate-x-1/4 w-24 h-20">
-          <img 
-            src={job.company.logo} 
-            alt={`${job.company.name} - Logo`} 
-            className="w-full h-full object-cover rounded-xl shadow-md"
-            onError={handleImageError}
-          />
-        </div>
-        
-        {/* Job Details */}
-        <div className="flex flex-col h-full">
-          <div className="mb-1 ml-10">
-            <h4 className="text-sm font-bold text-gray-900 mb-1">{job.company.name}</h4>
-            <div className="flex items-center gap-1 text-gray-600 mb-1">
-              <MapPin size={12} className="text-gray-400" />
-              <span className="text-xs truncate">{job.company.location}</span>
+  const RelatedJobCard = ({ job }) => {
+    // Format tanggal untuk related job
+    const relatedJobDates = getImportantDates(job);
+    
+    return (
+      <Link to={`/vacancy/${job.id}`} className="block mb-6 last:mb-0">
+        <div className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-4 pl-20 min-h-40">
+          {/* Company Logo */}
+          <div className="absolute left-0 -translate-y-1/3 -translate-x-1/4 w-24 h-20">
+            <img 
+              src={job.company.logo} 
+              alt={`${job.company.name} - Logo`} 
+              className="w-full h-full object-cover rounded-xl shadow-md"
+              onError={handleImageError}
+            />
+          </div>
+          
+          {/* Job Details */}
+          <div className="flex flex-col h-full">
+            <div className="mb-1 ml-10">
+              <h4 className="text-sm font-bold text-gray-900 mb-1">{job.company.name}</h4>
+              <div className="flex items-center gap-1 text-gray-600 mb-1">
+                <MapPin size={12} className="text-gray-400" />
+                <span className="text-xs truncate">{job.company.location}</span>
+              </div>
+              <div className="text-xs text-[#667797] mb-1">
+                {relatedJobDates.Pembukaan} - {relatedJobDates.Penutupan}
+              </div>
             </div>
-            <div className="text-xs text-gray-700 mb-1">
-              {importantDates.Pembukaan} - {importantDates.Penutupan}
+            
+            <h3 className="text-base font-bold text-gray-800 mb-2 -ml-10">{job.position}</h3>
+            
+            <div className="flex items-center text-[#667797] mt-auto">
+              <Users size={14} className="mr-2 text-gray-500" />
+              <span className="text-sm">{job.total_pendaftar || 0} Pelamar</span>
             </div>
-            {/* <div className="inline-block bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full mb-2">
-              {job.importantDates.duration}
-            </div> */}
-          </div>
-          
-          <h3 className="text-base font-bold text-gray-800 mb-2 -ml-10">{job.position}</h3>
-          
-          <div className="flex items-center text-gray-700 mt-auto">
-            <Users size={14} className="mr-2 text-gray-500" />
-            <span className="text-sm">{job.total_pendaftar || 0} Pelamar</span>
-          </div>
-          
-          <div className="mt-3 flex justify-end">
-            <button 
-              className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-lg text-xs font-medium transition-colors flex items-center"
-            >
-              VIEW VACANCY
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
+            
+            <div className="mt-3 flex justify-end">
+              <button 
+                className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-lg text-xs font-medium transition-colors flex items-center"
+              >
+                VIEW VACANCY
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </Link>
-  );
+      </Link>
+    );
+  };
 
   if (loading) {
     return (
@@ -326,7 +355,7 @@ export default function JobVacancyDetail() {
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">
                   {job.position}
                 </h1>
-                <p className="text-blue-600 font-medium mb-2">
+                <p className="text-[#667797] font-medium mb-2">
                   {job.company.name}
                 </p>
                 <p className="text-gray-600 text-sm flex items-center mb-4">
@@ -370,14 +399,14 @@ export default function JobVacancyDetail() {
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Tentang Perusahaan
               </h2>
-              <p className="text-gray-700">
+              <p className="text-[#667797]">
                 {job.company.description}
               </p>
 
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mt-6">
                 <div className="flex items-center mb-2 md:mb-0">
                   <Mail size={16} className="text-gray-500 mr-2" />
-                  <span className="text-gray-700">
+                  <span className="text-[#667797]">
                     {job.company.email}
                   </span>
                 </div>
@@ -387,7 +416,7 @@ export default function JobVacancyDetail() {
                     href={`https://${job.company.website}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-700 hover:underline"
+                    className="text-[#667797] hover:underline"
                   >
                     {job.company.website}
                   </a>
@@ -398,11 +427,28 @@ export default function JobVacancyDetail() {
             <div className="border-b border-gray-300 mb-8"></div>
 
             <div className="mb-8">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <MapPin size={20} className="text-gray-600 mr-2" />
+                Lokasi Penempatan
+              </h2>
+              <p className="text-[#667797] pl-7">
+                {job.cabang?.nama !== "-" ? job.cabang.nama : job.company.name}
+                {job.cabang?.kota !== "-" && job.cabang?.provinsi !== "-" && (
+                  <span className="ml-10">
+                    ({job.cabang.kota}, {job.cabang.provinsi})
+                  </span>
+                )}
+              </p>
+            </div>
+
+            <div className="border-b border-gray-300 mb-8"></div>
+
+            <div className="mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Dokumen Yang Dibutuhkan
               </h2>
-              <ul className="flex flex-wrap gap-8 pl-5 list-disc text-gray-700">
-                {job.documents.map((doc, index) => (
+              <ul className="flex flex-wrap gap-8 pl-5 list-disc text-[#667797]">
+                {DEFAULT_REQUIRED_DOCUMENTS.map((doc, index) => (
                   <li key={index}>{doc}</li>
                 ))}
               </ul>
@@ -416,15 +462,15 @@ export default function JobVacancyDetail() {
               </h2>
               {importantDates && (
                 <div className="pl-5">
-                  <div className="grid grid-cols-1 md:grid-cols-[200px_auto] text-gray-700 mb-2">
+                  <div className="grid grid-cols-1 md:grid-cols-[200px_auto] text-[#667797] mb-2">
                     <span className="font-medium">Durasi</span>
                     <span>: {importantDates.duration}</span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-[200px_auto] text-gray-700 mb-2">
+                  <div className="grid grid-cols-1 md:grid-cols-[200px_auto] text-[#667797] mb-2">
                     <span className="font-medium">Pembukaan</span>
                     <span>: {importantDates.Pembukaan}</span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-[200px_auto] text-gray-700 mb-2">
+                  <div className="grid grid-cols-1 md:grid-cols-[200px_auto] text-[#667797] mb-2">
                     <span className="font-medium">Penutupan</span>
                     <span>: {importantDates.Penutupan}</span>
                   </div>
@@ -443,9 +489,9 @@ export default function JobVacancyDetail() {
                 <h3 className="font-medium text-gray-800 mb-3 pl-5">
                   Persyaratan :
                 </h3>
-                <ol className="list-decimal pl-12 text-gray-700 space-y-2">
+                <ol className="list-decimal pl-12 text-[#667797] space-y-2 text-justify">
                   {job.requirement.map((req, index) => (
-                    <li key={index}>{req}</li>
+                    <li key={index} className="text-justify">{req}</li>
                   ))}
                 </ol>
               </div>
@@ -454,9 +500,9 @@ export default function JobVacancyDetail() {
                 <h3 className="font-medium text-gray-800 mb-3 pl-5">
                   Jobdesk :
                 </h3>
-                <ol className="list-decimal pl-12 text-gray-700 space-y-2">
+                <ol className="list-decimal pl-12 text-[#667797] space-y-2 text-justify">
                   {job.jobdesc.map((jobdesc, index) => (
-                    <li key={index}>{jobdesc}</li>
+                    <li key={index} className="text-justify">{jobdesc}</li>
                   ))}
                 </ol>
               </div>
