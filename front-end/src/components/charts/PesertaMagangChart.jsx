@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 
 const chartData = {
@@ -12,20 +13,49 @@ const chartData = {
   },
 };
 
-const MagangChart = () => {
+const MagangChart = ({cabangs}) => {
   const branches = Object.keys(chartData);
-  const [selectedBranch, setSelectedBranch] = useState(branches[0]);
-
+  const [pesertaMagang, setPesertaMagang] = useState([]);
+  const [selectedCabangId, setSelectedCabangId] = useState(cabangs?.[0]?.id || "");
+  // console.log(pesertaMagang);
+  
   const series = [
     {
       name: "Aktif",
-      data: chartData[selectedBranch].aktif,
+      data: chartData[selectedCabangId],
     },
     {
       name: "Alumni",
-      data: chartData[selectedBranch].alumni,
+      data: chartData[selectedCabangId],
     },
   ];
+
+  const getPesertaCabang = async () => {
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/peserta/rekap/${selectedCabangId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data.data;
+      setPesertaMagang(data)
+
+    } catch (err) {
+      console.error("Error fetching absensi:", err);
+    }
+  };
+
+
+  useEffect(() => {
+    if (selectedCabangId) {
+      getPesertaCabang();
+    }
+  }, [selectedCabangId]); 
 
   const options = {
     chart: {
@@ -69,15 +99,15 @@ const MagangChart = () => {
           Jumlah Peserta Magang Per Cabang
         </h2>
         <select
-          className="text-sm border border-gray-300 rounded px-2 py-1"
-          value={selectedBranch}
-          onChange={(e) => setSelectedBranch(e.target.value)}
+            className="border border-gray-300/[0.5] rounded-lg px-2 py-0.5 text-sm text-gray-500 z-5 focus:outline-none shadow-sm"
+          value={selectedCabangId}
+          onChange={(e) => setSelectedCabangId(e.target.value)}
         >
-          {branches.map((branch) => (
-            <option key={branch} value={branch}>
-              {branch}
-            </option>
-          ))}
+          {cabangs.map((cabang) => (
+              <option key={cabang.id} value={cabang.id}>
+                {cabang.nama}
+              </option>
+            ))}
         </select>
       </div>
       <Chart options={options} series={series} type="bar" height={370} />

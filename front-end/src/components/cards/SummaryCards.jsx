@@ -5,7 +5,7 @@ export default function SummaryCards({summary}) {
   const summaryData = [
     {
       title: 'Jumlah Admin',
-      count: summary.total_admin,
+      count: summary.total_admin || 0,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-500">
           <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
@@ -17,7 +17,7 @@ export default function SummaryCards({summary}) {
     },
     {
       title: 'Jumlah Mentor',
-      count: summary.total_mentor,
+      count: summary.total_mentor || 0,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
           <circle cx="12" cy="12" r="10"></circle>
@@ -28,7 +28,7 @@ export default function SummaryCards({summary}) {
     },
     {
       title: 'Jumlah Divisi',
-      count: summary.total_divisi,
+      count: summary.total_divisi || 0,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -42,7 +42,7 @@ export default function SummaryCards({summary}) {
     },
     {
       title: 'Jumlah Peserta Magang',
-      count: summary.total_peserta,
+      count: summary.total_peserta || 0,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
           <circle cx="12" cy="12" r="10"></circle>
@@ -57,12 +57,12 @@ export default function SummaryCards({summary}) {
   ];
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full">
       <div className="grid grid-cols-2 gap-6">
         {summaryData.map((item, index) => (
           <div 
             key={index}
-              className="bg-white rounded-xl border border-slate-400/[0.5] p-4 flex flex-col transform transition-all duration-300 hover:shadow-lg"
+              className="bg-white shadow-lg rounded-xl border border-slate-400/[0.5] p-4 flex flex-col transform transition-all duration-300 hover:shadow-blue-300"
           >
             <div className="flex items-start mb-10">
               <div className={`${item.bgColor} p-3 rounded-lg mr-3`}>

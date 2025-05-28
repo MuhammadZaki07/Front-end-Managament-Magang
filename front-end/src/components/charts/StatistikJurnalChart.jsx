@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import Chart from "react-apexcharts";
 
-const StatistikJurnalChartMini = () => {
+const StatistikJurnalChartMini = ({cabangs}) => {
+  const [selectedCabangId, setSelectedCabangId] = useState(cabangs?.[0]?.id || "");
+
   const series = [
     {
       name: "Mengisi",
@@ -60,14 +62,22 @@ const StatistikJurnalChartMini = () => {
   };
 
   return (
-    <div className="w-[320px] px-2 py-3">
+    <div className="w-full px-2 py-3">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-base font-bold text-slate-900">Statistik Jurnal</h2>
-        <button className="px-2 py-0.5 border border-slate-300 rounded-md text-slate-500 text-xs">
-          Cabang A ▼
-        </button>
+         <select
+          className="text-xs border border-gray-300 rounded px-2 py-1 shadow-sm "
+          value={selectedCabangId}
+          onChange={(e) => setSelectedCabangId(e.target.value)}
+        >
+          {cabangs.map((cabang) => (
+              <option key={cabang.id} value={cabang.id}>
+                {cabang.nama}
+              </option>
+            ))}
+        </select>
       </div>
-      <Chart options={options} series={series} type="bar" height={240} />
+      <Chart options={options} series={series} type="bar" height={260} />
     </div>
   );
 };
