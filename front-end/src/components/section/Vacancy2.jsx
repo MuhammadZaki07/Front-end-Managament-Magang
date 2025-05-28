@@ -23,18 +23,18 @@ export default function JobListingPage() {
     title: job.divisi?.nama || "-",
     divisiId: job.divisi?.id || null,
     divisiNama: job.divisi?.nama || "-",
-    company: job.perusahaan?.perusahaan?.nama || "PT. HIMIKA TEKNOLOGI INDONESIA",
-    location: job.perusahaan?.perusahaan
-      ? `${job.perusahaan.perusahaan.alamat}, ${job.perusahaan.perusahaan.kecamatan}, ${job.perusahaan.perusahaan.kota}, ${job.perusahaan.perusahaan.provinsi}`
+    company: job.perusahaan?.nama || "ppp",
+    location: job.perusahaan
+      ? `${job.perusahaan.kota}, ${job.perusahaan.provinsi}`
       : "Pekanbaru",
     posted: formatDate(job.tanggal_mulai),
     closing: formatDate(job.tanggal_selesai),
     badge: "Magang",
     applicants: job.total_pendaftar || 0,
-    image: job.perusahaan?.foto?.find(f => f.type === "profil_cover")?.path
-      ? `${import.meta.env.VITE_API_URL_FILE}/storage/${job.perusahaan?.foto?.find(f => f.type === "profil_cover")?.path}`
+    image: job.cabang?.foto?.find(f => f.type === "profil_cover")?.path
+      ? `${import.meta.env.VITE_API_URL_FILE}/storage/${job.cabang.foto.find(f => f.type === "profil_cover").path}`
       : "/assets/img/Cover.png",
-    duration: job.durasi ? `${job.durasi} Bulan` : "6 Bulan"
+    duration: job.durasi ? `${job.durasi} Bulan` : ""
   });
 
   // Fungsi untuk memformat tanggal
@@ -291,18 +291,16 @@ const groupedDivisionArray = Object.values(groupedDivisions);
                             <h4 className="text-base font-bold text-gray-900 mb-2">{job.company}</h4>
                             <div className="flex items-center gap-1 text-gray-600 mb-2">
                               <MapPin size={14} className="text-gray-400" />
-                              <span className="text-xs">{job.location}, Indonesia</span>
+                              <span className="text-xs">{job.location}</span>
                             </div>
                             <div className="text-xs text-gray-700 mb-2">
                               {job.posted} - {job.closing}
                             </div>
-                            <div className="inline-block bg-blue-600 text-white text-xs px-3 py-0.5 rounded-full mb-3">
-                              {job.duration}
-                            </div>
+                            
                           </div>
                           
-                          <h3 className="text-xl font-bold text-gray-800 mb-3 -ml-22">{job.title}</h3>
-                          
+                          <h3 className="text-sm font-bold text-gray-800 mb-3 -ml-22 mt-8">Magang di divisi {job.title}</h3>
+                         
                           <div className="flex items-center text-gray-700 mt-auto -ml-22">
                             <Users size={14} className="mr-2 text-gray-500" />
                             <span className="text-sm">{job.applicants} Pelamar</span>

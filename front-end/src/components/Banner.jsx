@@ -39,7 +39,7 @@ const Banner = ({ title, subtitle, backgroundImage,possitionIlustration,ilustrat
       </div>
 
       <motion.img
-        src={`assets/img/banner/${ilustration}.png`}
+        src={`/assets/img/banner/${ilustration}.png`}
         alt="Illustration"
         className={`absolute ${possitionIlustration}`}
         initial={{ x: 100, opacity: 0 }}
@@ -48,7 +48,7 @@ const Banner = ({ title, subtitle, backgroundImage,possitionIlustration,ilustrat
       />
 
       <motion.img
-        src="assets/img/banner/grid_banner.png"
+        src="/assets/img/banner/grid_banner.png"
         alt="Grid Banner"
         className="absolute right-6 top-80 w-28 h-17 z-10"
         initial={{ scale: 0.5, opacity: 0 }}
@@ -57,7 +57,7 @@ const Banner = ({ title, subtitle, backgroundImage,possitionIlustration,ilustrat
       />
 
       <motion.img
-        src="assets/img/banner/arrow_banner.png"
+        src="/assets/img/banner/arrow_banner.png"
         alt="Arrow Banner"
         className="absolute left-15 top-70 object-cover z-10"
         initial={{ y: 100, opacity: 0 }}

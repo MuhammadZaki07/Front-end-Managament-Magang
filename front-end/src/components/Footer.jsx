@@ -4,7 +4,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto py-14 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="flex flex-col gap-5">
           <img
-            src="assets/img/Logo.png"
+            src="/assets/img/Logo.png"
             alt="Logo Hummatech"
             className="w-44"
           />
@@ -61,7 +61,7 @@ const Footer = () => {
           <div className="mt-4 space-y-4">
             <div className="flex items-center space-x-4">
               <img
-                src="assets/img/post1.png"
+                src="/assets/img/post1.png"
                 alt="Post 1"
                 className="w-12 h-12 rounded-lg"
               />
@@ -76,7 +76,7 @@ const Footer = () => {
             </div>
             <div className="flex items-center space-x-4">
               <img
-                src="assets/img/post2.png"
+                src="/assets/img/post2.png"
                 alt="Post 2"
                 className="w-12 h-12 rounded-lg"
               />
