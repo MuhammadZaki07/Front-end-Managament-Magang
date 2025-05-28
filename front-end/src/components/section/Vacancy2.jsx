@@ -15,6 +15,7 @@ export default function JobListingPage() {
   const jobsPerPage = 8;
   const navigate = useNavigate();
   
+  console.log(jobVacancies);
   
   // Fungsi untuk mengformat data lowongan dari API
   const mapJobData = (job) => ({
@@ -22,8 +23,10 @@ export default function JobListingPage() {
     title: job.divisi?.nama || "-",
     divisiId: job.divisi?.id || null,
     divisiNama: job.divisi?.nama || "-",
-    company: job.perusahaan?.nama || "PT. HIMIKA TEKNOLOGI INDONESIA",
-    location: job.perusahaan?.alamat || "Pekanbaru",
+    company: job.perusahaan?.perusahaan?.nama || "PT. HIMIKA TEKNOLOGI INDONESIA",
+    location: job.perusahaan?.perusahaan
+      ? `${job.perusahaan.perusahaan.alamat}, ${job.perusahaan.perusahaan.kecamatan}, ${job.perusahaan.perusahaan.kota}, ${job.perusahaan.perusahaan.provinsi}`
+      : "Pekanbaru",
     posted: formatDate(job.tanggal_mulai),
     closing: formatDate(job.tanggal_selesai),
     badge: "Magang",
@@ -99,21 +102,19 @@ export default function JobListingPage() {
   }, [selectedDivisions, jobVacancies]);
 
   // Fungsi untuk mengubah filter divisi
-  const handleDivisionChange = (divisionId) => {
-    setSelectedDivisions(prev => {
-      if (prev.includes(divisionId)) {
-        return prev.filter(id => id !== divisionId);
-      } else {
-        return [...prev, divisionId];
-      }
-    });
-  };
-
-  // Fungsi untuk menerapkan filter
-  const applyFilter = () => {
-    // Filter sudah diterapkan melalui useEffect
-    // Jika dibutuhkan logika tambahan bisa ditambahkan di sini
-  };
+  const handleDivisionChange = (divisionIds) => {
+  setSelectedDivisions(prev => {
+    const allSelected = divisionIds.every(id => prev.includes(id));
+    if (allSelected) {
+      // uncheck semua
+      return prev.filter(id => !divisionIds.includes(id));
+    } else {
+      // tambahkan yang belum ada
+      const newIds = divisionIds.filter(id => !prev.includes(id));
+      return [...prev, ...newIds];
+    }
+  });
+};
 
   // Logic untuk pagination
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
@@ -131,6 +132,21 @@ export default function JobListingPage() {
     navigate(`/vacancy/${jobId}`);
   };
 
+  const groupedDivisions = divisions.reduce((acc, division) => {
+    const lowerName = division.nama.toLowerCase();
+    if (!acc[lowerName]) {
+      acc[lowerName] = {
+        nama: division.nama, // simpan versi original
+        items: [],
+      };
+    }
+    acc[lowerName].items.push(division);
+    return acc;
+  }, {});
+
+// Ubah ke array untuk render
+const groupedDivisionArray = Object.values(groupedDivisions);
+  
   return (
     <div className="bg-white-100 min-h-screen p-10">
       <div className="bg-white rounded-lg p-4 mb-6 max-w-7xl mx-auto">
@@ -163,23 +179,32 @@ export default function JobListingPage() {
                     <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse mb-2"></div>
                     <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse mb-2"></div>
                   </div>
-                ) : divisions.length > 0 ? (
+                ) : groupedDivisionArray.length > 0 ? (
                   <>
                     {/* Tampilkan 5 divisi pertama */}
-                    {divisions.slice(0, 5).map((division) => (
-                      <label key={division.id} className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                        <input 
-                          type="checkbox" 
-                          className="h-4 w-4 rounded text-blue-600" 
-                          checked={selectedDivisions.includes(division.id)}
-                          onChange={() => handleDivisionChange(division.id)}
-                        />
-                        <span className="text-sm">{division.nama}</span>
-                      </label>
-                    ))}
-                    
-                    {/* Menampilkan dropdown "Lainnya" jika ada lebih dari 5 divisi */}
-                    {divisions.length > 5 && (
+                    {groupedDivisionArray.map((group) => {
+                      const divisionIds = group.items.map(d => d.id);
+                      const division = group.items[0];
+                      const count = group.items.length;
+                      const isChecked = divisionIds.every(id => selectedDivisions.includes(id));
+
+                      return (
+                        <label key={division.id} className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
+                          <input 
+                            type="checkbox" 
+                            className="h-4 w-4 rounded text-blue-600" 
+                            checked={isChecked}
+                            onChange={() => handleDivisionChange(divisionIds)}
+                          />
+                          <span className="text-sm">
+                            {group.nama} {count > 1 ? `(${count})` : ""}
+                          </span>
+                        </label>
+                      );
+                    })}
+
+                    {/* Dropdown "Lainnya" jika ada lebih dari 5 */}
+                    {groupedDivisionArray.length > 5 && (
                       <div className="mt-1">
                         <button 
                           onClick={() => setShowMoreDivisions(!showMoreDivisions)}
@@ -188,20 +213,26 @@ export default function JobListingPage() {
                           Lainnya
                           <ChevronDown size={16} className={`ml-1 transition-transform ${showMoreDivisions ? 'rotate-180' : ''}`} />
                         </button>
-                        
+
                         {showMoreDivisions && (
                           <div className="mt-2 pl-2 border-l-2 border-gray-200">
-                            {divisions.slice(5).map((division) => (
-                              <label key={division.id} className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
-                                <input 
-                                  type="checkbox" 
-                                  className="h-4 w-4 rounded text-blue-600" 
-                                  checked={selectedDivisions.includes(division.id)}
-                                  onChange={() => handleDivisionChange(division.id)}
-                                />
-                                <span className="text-sm">{division.nama}</span>
-                              </label>
-                            ))}
+                            {groupedDivisionArray.slice(5).map((group) => {
+                              const division = group.items[0];
+                              const count = group.items.length;
+                              return (
+                                <label key={division.id} className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
+                                  <input 
+                                    type="checkbox" 
+                                    className="h-4 w-4 rounded text-blue-600" 
+                                    checked={selectedDivisions.includes(division.id)}
+                                    onChange={() => handleDivisionChange(division.id)}
+                                  />
+                                  <span className="text-sm">
+                                    {group.nama} {count > 1 ? `(${count})` : ""}
+                                  </span>
+                                </label>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
