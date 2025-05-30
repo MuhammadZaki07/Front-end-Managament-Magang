@@ -1,16 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import {
-  CalendarDays,
-  Download,
-  Search,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  ChevronDown,
-  DownloadIcon,
-  FileIcon,
-} from "lucide-react";
+import { CalendarDays, Download, Search, CheckCircle, XCircle, AlertTriangle, ChevronDown, DownloadIcon, FileIcon, } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CSVLink } from "react-csv";
@@ -41,8 +31,6 @@ export default function ApprovalTable() {
         return frontendStatus;
     }
   };
-
-
   const FileIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -59,7 +47,6 @@ export default function ApprovalTable() {
       />
     </svg>
   );
-
   const DownloadIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -76,7 +63,6 @@ export default function ApprovalTable() {
       />
     </svg>
   );
-
   const PreviewIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -99,13 +85,11 @@ export default function ApprovalTable() {
       />
     </svg>
   );
-
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedItem(null);
     document.body.classList.remove("modal-open");
   };
-
   const fetchDataPendaftaran = async () => {
     try {
       Swal.fire({
@@ -133,7 +117,6 @@ export default function ApprovalTable() {
 
     }
   };
-
   const fetchDataIzin = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/izin`, {
@@ -142,18 +125,15 @@ export default function ApprovalTable() {
         },
       });
       const izinData = response.data.data || response.data;
-
       setDataIzin(izinData);
     } catch (error) {
       console.error("Failed to fetch data izin:", error);
     }
   };
-
   useEffect(() => {
     fetchDataPendaftaran();
     fetchDataIzin();
   }, []);
-
   const handleSelectItem = (id) => {
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
@@ -161,12 +141,10 @@ export default function ApprovalTable() {
       setSelectedItems([...selectedItems, id]);
     }
   };
-
   const handleIndividualAction = async (itemId, frontendActionStatus, type) => {
     const apiActionStatus = mapFrontendStatusToApi(frontendActionStatus);
     let url = "";
     let payload = "";
-
     if (type === "pendaftaran") {
       url = `${API_BASE_URL}/magang/${itemId}`;
       payload = { status: apiActionStatus };
@@ -177,9 +155,7 @@ export default function ApprovalTable() {
       console.error("Tipe aksi individual tidak diketahui");
       return;
     }
-
     const token = localStorage.getItem("token");
-
     try {
       const response = await fetch(url, {
         method: "PUT",
@@ -190,7 +166,6 @@ export default function ApprovalTable() {
         },
         body: JSON.stringify(payload),
       });
-
       if (!response.ok) {
         const errorData = await response
           .json()
@@ -200,7 +175,6 @@ export default function ApprovalTable() {
         );
       }
 
-      // Update local state
       if (type === "pendaftaran") {
         setDataPendaftaran((prevData) =>
           prevData.map((item) =>
@@ -219,8 +193,6 @@ export default function ApprovalTable() {
           )
         );
       }
-      
-
      fetchDataPendaftaran()
      fetchDataIzin()
      setShowModal(false)
@@ -229,26 +201,21 @@ export default function ApprovalTable() {
       alert(`Gagal memperbarui status: ${error.message}`);
     }
   };
-
   const handleBulkAction = async (frontendActionStatus) => {
     if (selectedItems.length === 0) {
       setShowActionDropdown(false);
       return;
     }
-
     const apiActionStatus = mapFrontendStatusToApi(frontendActionStatus);
-
     const payload = {
       ids: selectedItems,
       status: apiActionStatus,
       status_izin: apiActionStatus,
     };
-
     const url =
       activeTab === "pendaftaran"
         ? `${API_BASE_URL}/many/magang`
         : `${API_BASE_URL}/many/izin`;
-
     try {
       await axios.put(url, payload, {
         headers: {
@@ -262,7 +229,6 @@ export default function ApprovalTable() {
       } else {
         window.location.href = "/perusahaan/approval";
       }
-
      fetchDataIzin()
      fetchDataPendaftaran()
       setSelectedItems([]);
@@ -270,7 +236,6 @@ export default function ApprovalTable() {
     } catch (error) {
       // Penanganan error yang lebih lengkap
       console.error("Terjadi kesalahan saat melakukan request API:", error);
-
       if (error.response) {
         // Jika ada response error dari server
         console.error("Status error response:", error.response.status);
@@ -282,7 +247,6 @@ export default function ApprovalTable() {
         // Jika ada error lain (misalnya masalah dalam pengaturan request)
         console.error("Pesan error:", error.message);
       }
-
       // Menampilkan alert dengan pesan error yang lebih jelas
       alert(
         `Gagal melakukan aksi massal: ${
@@ -292,7 +256,6 @@ export default function ApprovalTable() {
       setShowActionDropdown(false);
     }
   };
-
   const filteredPendaftaran = dataPendaftaran.filter((item) => {
     const matchesSearch =
       item.user &&
@@ -301,7 +264,6 @@ export default function ApprovalTable() {
           typeof value === "string" &&
           value.toLowerCase().includes(searchTerm.toLowerCase())
       );
-
     const matchesDate =
       !selectedDate ||
       (item.mulai &&
@@ -312,10 +274,8 @@ export default function ApprovalTable() {
             day: "numeric",
           })
         ));
-
     return matchesSearch && matchesDate;
   });
-
   const filteredIzin = dataIzin.filter((item) => {
     const matchesSearch = Object.values(item).some(
       (value) =>
@@ -334,7 +294,6 @@ export default function ApprovalTable() {
         ));
     return matchesSearch && matchesDate;
   });
-
   const CustomButton = React.forwardRef(({ value, onClick }, ref) => (
     <button
       className="flex items-center gap-2 bg-white text-[#344054] py-2 px-4 rounded-md shadow border border-[#667797] hover:bg-[#0069AB] hover:text-white text-sm"
@@ -352,7 +311,6 @@ export default function ApprovalTable() {
         : "Pilih Tanggal"}
     </button>
   ));
-
   const getStatusBadge = (status) => {
     switch (status) {
       case "diterima": // Frontend status
@@ -375,31 +333,24 @@ export default function ApprovalTable() {
         );
     }
   };
-
   const handleDownload = (doc) => {
     if (!doc || !doc.url) return;
-
     const baseUrl = import.meta.env.VITE_API_URL_FILE || "";
     const cleanedUrl = doc.url.includes("/storage/")
       ? doc.url.split("/storage/")[1]
       : doc.url;
-
     const downloadUrl = `${baseUrl}/storage/${cleanedUrl}`;
     const encodedUrl = encodeURI(downloadUrl);
-
     const link = document.createElement("a");
     link.href = encodedUrl;
     link.download = doc.name || "download";
     link.target = "_blank";
-
     document.body.appendChild(link);
     link.click();
-
     setTimeout(() => {
       document.body.removeChild(link);
     }, 100);
   };
-
   const handlePreview = (document) => {
     if (!document || !document.url) return;
     const cleanUrl = document.url.includes("/storage")
@@ -408,7 +359,6 @@ export default function ApprovalTable() {
     const finalUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${cleanUrl}`;
     window.open(finalUrl, "_blank");
   };
-
   const DocumentItem = ({ document, onDownload, onPreview }) => {
     return (
       <div className="border border-gray-200 rounded-lg p-2 mb-2 w-full">
@@ -443,7 +393,6 @@ export default function ApprovalTable() {
       </div>
     );
   };
-
   const InputLabel = ({ label, value }) => (
     <div>
       <label className="block text-gray-600 text-xs mb-1">{label}</label>
@@ -455,8 +404,6 @@ export default function ApprovalTable() {
       />
     </div>
   );
-  // if (loading) return  <Loading />;
-
   return (
     <div className="w-full">
       <div className="bg-white rounded-xl border border-gray-200 shadow-md overflow-hidden">
@@ -514,9 +461,7 @@ export default function ApprovalTable() {
               </CSVLink>
             </div>
           </div>
-
           <div className="border-b border-gray-200 my-5" />
-
           <div className="flex flex-wrap justify-between items-center gap-3">
             <div className="flex gap-2">
               <button
@@ -564,8 +509,6 @@ export default function ApprovalTable() {
               </div>
             </div>
           </div>
-
-          {/* Bulk Action Controls */}
           {selectedItems.length > 0 && (
             <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg mt-4">
               <div className="text-sm text-blue-700">
@@ -609,16 +552,13 @@ export default function ApprovalTable() {
             </div>
           )}
         </div>
-
         {/* Table for Pendaftaran */}
         {activeTab === "pendaftaran" && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-[#667085]">
                 <tr>
-                  <th className="px-6 py-3 text-left">
-                    {/* Checkbox select all bisa ditambahkan kembali jika diperlukan */}
-                  </th>
+                  <th className="px-6 py-3 text-left"></th>
                   <th className="px-6 py-3 text-left">Nama</th>
                   <th className="px-6 py-3 text-left">Jurusan</th>
                   <th className="px-6 py-3 text-left">Masa Magang</th>
@@ -686,7 +626,6 @@ export default function ApprovalTable() {
                     </td>
                   </tr>
                 ))}
-
                 {filteredPendaftaran.length === 0 && (
                   <tr>
                     <td
@@ -701,15 +640,12 @@ export default function ApprovalTable() {
             </table>
           </div>
         )}
-
         {activeTab === "izin" && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-[#667085]">
                 <tr>
-                  <th className="px-6 py-3 text-left">
-                    {/* Checkbox select all */}
-                  </th>
+                  <th className="px-6 py-3 text-left"></th>
                   <th className="px-6 py-3 text-left">Nama</th>
                   <th className="px-6 py-3 text-left">Sekolah</th>
                   <th className="px-6 py-3 text-left">Tanggal Izin</th>
@@ -777,19 +713,6 @@ export default function ApprovalTable() {
                         Lihat Detail{" "}
                       </button>
                     </td>{" "}
-                    {/* <td className="px-6 py-4">
-                      <div className="flex justify-center gap-2">
-                        <button className="p-1.5 rounded-full text-green-600 hover:bg-green-50" onClick={() => handleIndividualAction(item.id, "approved", "izin")}>
-                          <CheckCircle size={18} />
-                        </button>
-                        <button className="p-1.5 rounded-full text-red-600 hover:bg-red-50" onClick={() => handleIndividualAction(item.id, "rejected", "izin")}>
-                          <XCircle size={18} />
-                        </button>
-                        <button className="p-1.5 rounded-full text-yellow-600 hover:bg-yellow-50" onClick={() => handleIndividualAction(item.id, "blocked", "izin")}>
-                          <AlertTriangle size={18} />
-                        </button>
-                      </div>
-                    </td> */}
                   </tr>
                 ))}
                 {filteredIzin.length === 0 && (

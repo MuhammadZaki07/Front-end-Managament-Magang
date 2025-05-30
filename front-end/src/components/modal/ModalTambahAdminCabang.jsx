@@ -258,22 +258,22 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
       <div className="fixed inset-0 bg-black opacity-50" onClick={onClose}></div>
       <div className="bg-white rounded-lg w-full max-w-md mx-4 relative z-10 shadow-lg">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+        <div className="flex justify-between items-center p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">
             {isEditMode ? "Edit Admin" : "Tambah Admin"}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4" encType="multipart/form-data">
+        <form onSubmit={handleSubmit} className="p-4 space-y-3" encType="multipart/form-data">
           {/* Nama */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Masukkan Nama
             </label>
             <input
@@ -294,7 +294,7 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Masukkan Email
             </label>
             <input
@@ -315,7 +315,7 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Password {isEditMode && <span className="text-xs text-gray-500">(Kosongkan jika tidak diubah)</span>}
             </label>
             <input
@@ -336,7 +336,7 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
 
           {/* Foto Admin */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Foto Admin
             </label>
             <div className="flex">
@@ -364,7 +364,7 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
 
           {/* Foto Cover */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Foto Cover
             </label>
             <div className="flex">
@@ -392,7 +392,7 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
 
           {/* Nomor HP */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Masukkan Nomor HP
             </label>
             <input
@@ -412,7 +412,7 @@ const ModalTambahAdminCabang = ({ isOpen, onClose, branchToEdit, onSucces }) => 
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-3 pt-3">
             <button
               type="button"
               onClick={onClose}

@@ -1,325 +1,656 @@
 import React, { useState, useEffect } from "react";
-import { CalendarDays, Download, Search, CheckCircle, Clock, FileText, AlertTriangle } from "lucide-react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { CSVLink } from "react-csv";
-import axios from "axios";
-import Swal from "sweetalert2";
+import { 
+  CalendarDays, 
+  Download, 
+  Filter, 
+  CheckCircle, 
+  Clock, 
+  FileText, 
+  AlertTriangle, 
+  Search, 
+  ChevronDown,
+  X 
+} from "lucide-react";
 
 export default function AbsensiTable() {
-  const [searchTerm, setSearchTerm] = useState("");
+  // State management
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedStartDate, setSelectedStartDate] = useState(null);
+  const [selectedEndDate, setSelectedEndDate] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedMetode, setSelectedMetode] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   
-  // Get token from localStorage or props (adjust based on your auth implementation)
-  const token = localStorage.getItem("token"); // Adjust this based on your auth implementation
+  // Get token from localStorage with safe access
+  const token = typeof window !== 'undefined' ? localStorage?.getItem("token") : null;
 
-  const fetchAbsensi = async () => {
+  // API endpoints
+  const API_URL = import.meta?.env?.VITE_API_URL || "http://localhost:3000/api";
+  const FILE_URL = import.meta?.env?.VITE_API_URL_FILE || "http://localhost:3000";
+
+  // Data filtering logic
+  const filteredData = data.filter(item => {
+    // Filter by status
+    const matchesStatus = !selectedStatus || item.status === selectedStatus;
+    
+    // Filter by metode
+    const matchesMetode = !selectedMetode || 
+      item.metode.toLowerCase().includes(selectedMetode.toLowerCase());
+    
+    // Filter by search term (nama siswa)
+    const matchesSearch = !searchTerm || 
+      item.nama.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter by single date
+    if (selectedDate && !selectedStartDate && !selectedEndDate) {
+      const itemDate = new Date(item.tanggal);
+      const filterDate = new Date(selectedDate);
+      const sameDate = itemDate.toDateString() === filterDate.toDateString();
+      return matchesStatus && matchesMetode && matchesSearch && sameDate;
+    }
+    
+    // Filter by date range
+    if (selectedStartDate && selectedEndDate) {
+      const itemDate = new Date(item.tanggal);
+      const startDate = new Date(selectedStartDate);
+      const endDate = new Date(selectedEndDate);
+      const inRange = itemDate >= startDate && itemDate <= endDate;
+      return matchesStatus && matchesMetode && matchesSearch && inRange;
+    }
+    
+    return matchesStatus && matchesMetode && matchesSearch;
+  });
+
+  // Statistics calculations
+  const statistics = {
+    totalAbsensi: data.length,
+    totalHadir: data.filter(item => item.status === "Hadir").length,
+    totalAlpha: data.filter(item => item.status === "Alpha").length,
+    totalIzinSakit: data.filter(item => 
+      item.status === "Izin" || item.status === "Sakit"
+    ).length,
+  };
+
+  // Helper functions
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const getFilterInfo = () => {
+    let filterInfo = [];
+    
+    if (selectedDate) {
+      filterInfo.push(`Tanggal: ${formatDate(selectedDate)}`);
+    }
+    
+    if (selectedStartDate && selectedEndDate) {
+      filterInfo.push(`Periode: ${formatDate(selectedStartDate)} - ${formatDate(selectedEndDate)}`);
+    }
+    
+    if (selectedStatus) {
+      filterInfo.push(`Status: ${selectedStatus}`);
+    }
+    
+    if (selectedMetode) {
+      filterInfo.push(`Metode: ${selectedMetode}`);
+    }
+    
+    if (searchTerm) {
+      filterInfo.push(`Pencarian: "${searchTerm}"`);
+    }
+    
+    return filterInfo.length > 0 
+      ? `<p><strong>Filter yang Diterapkan:</strong> ${filterInfo.join(', ')}</p>`
+      : '';
+  };
+
+  // Helper functions for PDF generation
+  const generatePDF = () => {
     try {
-      Swal.fire({
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank');
+      
+      // Generate HTML content for PDF
+      const htmlContent = generatePrintableHTML();
+      
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      // Wait for content to load then trigger print
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 250);
+      };
+      
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      alert('Gagal mengexport PDF. Silakan coba lagi.');
+    }
+  };
+
+  const generatePrintableHTML = () => {
+    const currentDate = new Date().toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Data Absensi - ${currentDate}</title>
+        <style>
+          body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            font-size: 12px;
+          }
+          .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+          }
+          .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+          }
+          .stat-item {
+            text-align: center;
+          }
+          .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+          }
+          table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px;
+          }
+          th, td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left; 
+          }
+          th { 
+            background-color: #f2f2f2; 
+            font-weight: bold;
+          }
+          .status-hadir { color: #16a34a; font-weight: bold; }
+          .status-terlambat { color: #f59e0b; font-weight: bold; }
+          .status-izin { color: #f97316; font-weight: bold; }
+          .status-sakit { color: #f97316; font-weight: bold; }
+          .status-alpha { color: #dc2626; font-weight: bold; }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+          }
+          @media print {
+            body { margin: 0; }
+            .header { page-break-after: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>LAPORAN DATA ABSENSI</h1>
+          <p>Tanggal Cetak: ${currentDate}</p>
+          ${getFilterInfo()}
+        </div>
+        
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-value">${statistics.totalAbsensi}</div>
+            <div>Total Absensi</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" style="color: #16a34a;">${statistics.totalHadir}</div>
+            <div>Total Hadir</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" style="color: #f97316;">${statistics.totalIzinSakit}</div>
+            <div>Total Izin/Sakit</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" style="color: #dc2626;">${statistics.totalAlpha}</div>
+            <div>Total Alpha</div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama Siswa</th>
+              <th>Tanggal</th>
+              <th>Jam Masuk</th>
+              <th>Istirahat</th>
+              <th>Kembali</th>
+              <th>Pulang</th>
+              <th>Metode</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredData.map((item, index) => `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${item.nama}</td>
+                <td>${formatDate(item.tanggal)}</td>
+                <td>${item.jam_masuk}</td>
+                <td>${item.jam_istirahat}</td>
+                <td>${item.jam_kembali}</td>
+                <td>${item.jam_pulang}</td>
+                <td>${item.metode}</td>
+                <td class="status-${item.status.toLowerCase()}">${item.status}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <div class="footer">
+          <p>Total ${filteredData.length} data dari ${data.length} data absensi</p>
+          <p>Dokumen ini digenerate otomatis oleh sistem pada ${new Date().toLocaleString('id-ID')}</p>
+        </div>
+      </body>
+      </html>
+    `;
+  };
+
+  const showLoadingAlert = () => {
+    if (typeof window !== 'undefined' && window.Swal) {
+      window.Swal.fire({
         title: 'Memuat data...',
         allowOutsideClick: false,
         allowEscapeKey: false,
         showConfirmButton: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
+        didOpen: () => window.Swal.showLoading()
       });
+    }
+  };
+
+  const closeAlert = () => {
+    if (typeof window !== 'undefined' && window.Swal) {
+      window.Swal.close();
+    }
+  };
+
+  const getProfileImage = (peserta) => {
+    const profilePhoto = peserta.foto?.find(f => f.type === 'profile');
+    return profilePhoto 
+      ? `${FILE_URL}/storage/${profilePhoto.path}`
+      : "/api/placeholder/40/40";
+  };
+
+  const mapKehadiranData = (peserta) => {
+    if (!peserta.kehadiran || !Array.isArray(peserta.kehadiran)) return [];
+    
+    return peserta.kehadiran.map(item => ({
+      id: `kehadiran-${item.id}`,
+      tanggal: item.tanggal,
+      jam_masuk: item.jam_masuk || "-",
+      jam_istirahat: item.jam_istirahat || "-",
+      jam_kembali: item.jam_kembali || "-",
+      jam_pulang: item.jam_pulang || "-",
+      metode: item.metode || "-",
+      status: item.status_kehadiran === 0 ? "Hadir" : "Terlambat",
+      status_kehadiran: item.status_kehadiran === 0 ? "Hadir" : "Terlambat",
+      nama: peserta.nama || "Unknown",
+      image: getProfileImage(peserta)
+    }));
+  };
+
+  const mapAbsensiData = (peserta) => {
+    if (!peserta.absensi || !Array.isArray(peserta.absensi)) return [];
+    
+    return peserta.absensi.map(item => ({
+      id: `absensi-${item.id}`,
+      tanggal: item.tanggal,
+      jam_masuk: "-",
+      jam_istirahat: "-",
+      jam_kembali: "-",
+      jam_pulang: "-",
+      metode: "-",
+      status: item.status === "sakit" ? "Sakit" : 
+              item.status === "izin" ? "Izin" : "Alpha",
+      status_kehadiran: item.status,
+      nama: peserta.nama || "Unknown",
+      image: getProfileImage(peserta)
+    }));
+  };
+
+  // Main data fetching function
+  const fetchAbsensi = async () => {
+    try {
+      showLoadingAlert();
       setLoading(true);
       
-      // First, get kehadiran data (replace URL with actual endpoint)
-      const kehadiranResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/kehadiran-peserta-cabang`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      
-      console.log("Kehadiran response:", kehadiranResponse.data);
-      
-      // Alternative: If both data come from single API endpoint
-      // If the API you showed (/kehadiran-peserta-cabang) returns both kehadiran and absensi
-      const responseData = kehadiranResponse.data.data || [];
-      
-      let combinedData = [];
-      
-      responseData.forEach(peserta => {
-        // Process kehadiran
-        if (peserta.kehadiran && Array.isArray(peserta.kehadiran)) {
-          peserta.kehadiran.forEach(item => {
-            combinedData.push({
-              id: `kehadiran-${item.id}`,
-              tanggal: item.tanggal,
-              jam_masuk: item.jam_masuk || "-",
-              jam_istirahat: item.jam_istirahat || "-",
-              jam_kembali: item.jam_kembali || "-",
-              jam_pulang: item.jam_pulang || "-",
-              metode: item.metode || "-",
-              status: item.status_kehadiran === 0 ? "Hadir" : "Terlambat",
-              status_kehadiran: item.status_kehadiran === 0 ? "Hadir" : "Terlambat",
-              nama: peserta.nama || "Unknown",
-              image: peserta.foto?.find(f => f.type === 'profile')?.path 
-                ? `${import.meta.env.VITE_API_URL_FILE}/storage/${peserta.foto.find(f => f.type === 'profile').path}`
-                : "/api/placeholder/40/40"
-            });
-          });
-        }
-        
-        // Process absensi
-        if (peserta.absensi && Array.isArray(peserta.absensi)) {
-          peserta.absensi.forEach(item => {
-            combinedData.push({
-              id: `absensi-${item.id}`,
-              tanggal: item.tanggal,
-              jam_masuk: "-",
-              jam_istirahat: "-",
-              jam_kembali: "-",
-              jam_pulang: "-",
-              metode: "-",
-              status: item.status === "sakit" ? "Sakit" : item.status === "izin" ? "Izin" : "Alpha",
-              status_kehadiran: item.status,
-              nama: peserta.nama || "Unknown",
-              image: peserta.foto?.find(f => f.type === 'profile')?.path 
-                ? `${import.meta.env.VITE_API_URL_FILE}/storage/${peserta.foto.find(f => f.type === 'profile').path}`
-                : "/api/placeholder/40/40"
-            });
-          });
-        }
+      const response = await fetch(`${API_URL}/kehadiran-peserta-cabang`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       
-      // Sort data by date (newest first)
+      const result = await response.json();
+      console.log("Kehadiran response:", result);
+      
+      const responseData = result.data || [];
+      let combinedData = [];
+      
+      // Process data from each peserta
+      responseData.forEach(peserta => {
+        const kehadiranData = mapKehadiranData(peserta);
+        const absensiData = mapAbsensiData(peserta);
+        
+        combinedData = [...combinedData, ...kehadiranData, ...absensiData];
+      });
+      
+      // Sort by date (newest first)
       combinedData.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
       
       console.log("Combined data:", combinedData);
       setData(combinedData);
-      Swal.close();
+      
     } catch (error) {
       console.error("Failed to fetch attendance data:", error);
       setData([]);
     } finally {
       setLoading(false);
+      closeAlert();
     }
   };
 
+  // Filter options
+  const statusOptions = [...new Set(data.map(item => item.status))];
+  const metodeOptions = [...new Set(
+    data.map(item => item.metode).filter(metode => metode !== "-")
+  )];
+
+  // Event handlers
+  const clearFilters = () => {
+    setSelectedStatus("");
+    setSelectedMetode("");
+    setSelectedDate(null);
+    setSelectedStartDate(null);
+    setSelectedEndDate(null);
+    setSearchTerm("");
+  };
+
+  const handleDateChange = (e) => {
+    setSelectedDate(e.target.value);
+    // Clear date range when single date is selected
+    if (e.target.value) {
+      setSelectedStartDate(null);
+      setSelectedEndDate(null);
+    }
+  };
+
+  const handleStartDateChange = (e) => {
+    setSelectedStartDate(e.target.value);
+    // Clear single date when range is selected
+    if (e.target.value) {
+      setSelectedDate(null);
+    }
+  };
+
+  const handleEndDateChange = (e) => {
+    setSelectedEndDate(e.target.value);
+    // Clear single date when range is selected
+    if (e.target.value) {
+      setSelectedDate(null);
+    }
+  };
+
+  const toggleFilter = () => {
+    setShowFilter(!showFilter);
+  };
+
+  const handleExport = () => {
+    if (filteredData.length === 0) {
+      alert('Tidak ada data untuk diexport');
+      return;
+    }
+    generatePDF();
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case "Hadir":
+        return "bg-green-100 text-green-800";
+      case "Terlambat":
+        return "bg-yellow-100 text-yellow-800";
+      case "Izin":
+      case "Sakit":
+        return "bg-amber-100 text-amber-800";
+      default:
+        return "bg-red-100 text-red-800";
+    }
+  };
+
+  // Effects
   useEffect(() => {
     fetchAbsensi();
   }, []);
 
-  const CustomButton = React.forwardRef(({ value, onClick }, ref) => (
-    <button
-      className="flex items-center gap-2 bg-white border-gray-200 text-[#344054] py-2 px-4 rounded-md shadow border border-[#667797] hover:bg-[#0069AB] hover:text-white text-sm"
-      onClick={onClick}
-      ref={ref}
-      type="button"
-    >
-      <CalendarDays size={16} />
-      {value
-        ? new Date(value).toLocaleDateString("id-ID", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
-        : "Pilih Tanggal"}
-    </button>
-  ));
+  // Render components
+  const StatCard = ({ title, value, icon: Icon, color }) => (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-gray-500 text-sm mb-1">{title}</p>
+          <span className={`text-3xl font-bold text-${color}-600`}>{value}</span>
+          <p className="text-gray-400 text-xs mt-1">kali</p>
+        </div>
+        <Icon size={32} className={`text-${color}-600`} />
+      </div>
+    </div>
+  );
 
-  // Count statistics
-  const totalHadir = data.filter(item => item.status === "Hadir").length;
-  const totalAlpha = data.filter(item => item.status === "Alpha").length;
-  const totalIzinSakit = data.filter(item => item.status === "Izin" || item.status === "Sakit").length;
-  const totalAbsensi = data.length;
+  const FilterSection = () => (
+    showFilter && (
+      <div className="flex justify-end mb-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 text-[#344054] rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Semua Status</option>
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
 
-  // Filter data based on search term and selected date
-  const filteredData = data.filter(item => {
-    const matchesSearch = item.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.metode.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // If no date is selected, show all entries
-    if (!selectedDate) return matchesSearch;
-    
-    // Compare with actual date
-    const itemDate = new Date(item.tanggal);
-    const filterDate = new Date(selectedDate);
-    const sameDate = itemDate.toDateString() === filterDate.toDateString();
-    
-    return matchesSearch && sameDate;
-  });
+          <select
+            value={selectedMetode}
+            onChange={(e) => setSelectedMetode(e.target.value)}
+            className="px-3 py-2 text-sm border text-[#344054] border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Semua Metode</option>
+            {metodeOptions.map((metode) => (
+              <option key={metode} value={metode}>
+                {metode}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    )
+  );
+
+  const TableHeader = () => (
+    <thead className="bg-gray-50">
+      <tr>
+        {["No", "Siswa", "Tanggal", "Jam Masuk", "Istirahat", "Kembali", "Pulang", "Metode", "Status"].map((header) => (
+          <th 
+            key={header}
+            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            {header}
+          </th>
+        ))}
+      </tr>
+    </thead>
+  );
+
+  const TableRow = ({ item, index }) => (
+    <tr key={item.id} className="hover:bg-gray-50">
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {index + 1}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 h-10 w-10">
+            <img
+              className="h-10 w-10 rounded-full"
+              src={item.image}
+              alt={item.nama}
+            />
+          </div>
+          <div className="ml-4">
+            <div className="text-sm font-medium text-gray-900">
+              {item.nama}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {formatDate(item.tanggal)}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {item.jam_masuk}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {item.jam_istirahat}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {item.jam_kembali}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {item.jam_pulang}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {item.metode}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span
+          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(item.status)}`}
+        >
+          {item.status}
+        </span>
+      </td>
+    </tr>
+  );
 
   return (
     <div className="w-full">
-      {/* Stats Cards */}
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {/* Total Absensi Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-blue-100 p-2 rounded-md">
-              <Clock size={18} className="text-blue-600" />
-            </span>
-            <span className="font-semibold text-blue-600">{totalAbsensi} kali</span>
-          </div>
-          <p className="text-gray-500">Total Absensi</p>
-          <div className="absolute bottom-0 right-0 left-0 h-1/3 opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 30" className="h-full w-full">
-              <path 
-                d="M0,30 L3,28 L6,29 L9,26 L12,27 L15,25 L18,26 L21,24 L24,25 L27,22 L30,23 L33,21 L36,22 L39,20 L42,21 L45,18 L48,19 L51,16 L54,17 L57,14 L60,15 L63,12 L66,13 L69,10 L72,11 L75,8 L78,9 L81,6 L84,7 L87,4 L90,5 L93,2 L96,3 L100,0 L100,30 Z" 
-                fill="url(#blue-gradient)" 
-                strokeWidth="2"
-                stroke="#3B82F6" 
-              />
-              <defs>
-                <linearGradient id="blue-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#3B82F6" />
-                  <stop offset="100%" stopColor="#93C5FD" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-        </div>
-
-        {/* Total Hadir Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-green-100 p-2 rounded-md">
-              <CheckCircle size={18} className="text-green-600" />
-            </span>
-            <span className="font-semibold text-green-600">{totalHadir} kali</span>
-          </div>
-          <p className="text-gray-500">Total Hadir</p>
-          <div className="absolute bottom-0 right-0 left-0 h-1/3 opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 30" className="h-full w-full">
-              <path 
-                d="M0,30 L3,28 L6,29 L9,26 L12,27 L15,25 L18,26 L21,24 L24,25 L27,22 L30,23 L33,21 L36,22 L39,20 L42,21 L45,18 L48,19 L51,16 L54,17 L57,14 L60,15 L63,12 L66,13 L69,10 L72,11 L75,8 L78,9 L81,6 L84,7 L87,4 L90,5 L93,2 L96,3 L100,0 L100,30 Z" 
-                fill="url(#green-gradient)" 
-                strokeWidth="2"
-                stroke="#10B981" 
-              />
-              <defs>
-                <linearGradient id="green-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#10B981" />
-                  <stop offset="100%" stopColor="#6EE7B7" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-        </div>
-
-        {/* Total Izin/Sakit Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-amber-100 p-2 rounded-md">
-              <FileText size={18} className="text-amber-600" />
-            </span>
-            <span className="font-semibold text-amber-600">{totalIzinSakit} kali</span>
-          </div>
-          <p className="text-gray-500">Total Izin/Sakit</p>
-          <div className="absolute bottom-0 right-0 left-0 h-1/3 opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 30" className="h-full w-full">
-              <path 
-                d="M0,30 L3,28 L6,29 L9,26 L12,27 L15,25 L18,26 L21,24 L24,25 L27,22 L30,23 L33,21 L36,22 L39,20 L42,21 L45,18 L48,19 L51,16 L54,17 L57,14 L60,15 L63,12 L66,13 L69,10 L72,11 L75,8 L78,9 L81,6 L84,7 L87,4 L90,5 L93,2 L96,3 L100,0 L100,30 Z" 
-                fill="url(#amber-gradient)" 
-                strokeWidth="2"
-                stroke="#F59E0B" 
-              />
-              <defs>
-                <linearGradient id="amber-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#F59E0B" />
-                  <stop offset="100%" stopColor="#FCD34D" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-        </div>
-
-        {/* Total Alpha Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-red-100 p-2 rounded-md">
-              <AlertTriangle size={18} className="text-red-600" />
-            </span>
-            <span className="font-semibold text-red-600">{totalAlpha} kali</span>
-          </div>
-          <p className="text-gray-500">Total Alpa</p>
-          <div className="absolute bottom-0 right-0 left-0 h-1/3 opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 30" className="h-full w-full">
-              <path 
-                d="M0,30 L3,28 L6,29 L9,26 L12,27 L15,25 L18,26 L21,24 L24,25 L27,22 L30,23 L33,21 L36,22 L39,20 L42,21 L45,18 L48,19 L51,16 L54,17 L57,14 L60,15 L63,12 L66,13 L69,10 L72,11 L75,8 L78,9 L81,6 L84,7 L87,4 L90,5 L93,2 L96,3 L100,0 L100,30 Z" 
-                fill="url(#red-gradient)" 
-                strokeWidth="2"
-                stroke="#EF4444" 
-              />
-              <defs>
-                <linearGradient id="red-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#EF4444" />
-                  <stop offset="100%" stopColor="#FCA5A5" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-        </div>
+        <StatCard 
+          title="Total Absensi" 
+          value={statistics.totalAbsensi} 
+          icon={Clock} 
+          color="blue" 
+        />
+        <StatCard 
+          title="Total Hadir" 
+          value={statistics.totalHadir} 
+          icon={CheckCircle} 
+          color="green" 
+        />
+        <StatCard 
+          title="Total Izin/Sakit" 
+          value={statistics.totalIzinSakit} 
+          icon={FileText} 
+          color="amber" 
+        />
+        <StatCard 
+          title="Total Alpa" 
+          value={statistics.totalAlpha} 
+          icon={AlertTriangle} 
+          color="red" 
+        />
       </div>
 
+      {/* Main Table Container */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-md overflow-hidden">
         <div className="p-6">
-          {/* Header */}
+          {/* Header Section */}
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-xl font-semibold text-[#1D2939]">Data Absensi</h2>
-              <p className="text-[#667085] text-sm mt-1">Kelola data absensi dengan lebih fleksibel!</p>
+              <p className="text-[#667085] text-sm mt-1">
+                Kelola data absensi dengan lebih fleksibel!
+              </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <DatePicker
-                selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
-                customInput={<CustomButton />}
-                dateFormat="dd MMMM yyyy"
-                showPopperArrow={false}
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <input
+                type="date"
+                value={selectedDate || ''}
+                onChange={handleDateChange}
+                className="flex items-center gap-2 bg-white border-gray-200 text-[#344054] py-2 px-4 rounded-md shadow border border-[#667797] hover:bg-[#0069AB] hover:text-white text-sm transition-colors"
+                title="Filter berdasarkan tanggal tertentu"
               />
-              <CSVLink
-                data={filteredData}
-                filename="data_absensi.csv"
-                headers={[
-                  { label: "Nama", key: "nama" },
-                  { label: "Tanggal", key: "tanggal" },
-                  { label: "Jam Masuk", key: "jam_masuk" },
-                  { label: "Istirahat", key: "jam_istirahat" },
-                  { label: "Kembali", key: "jam_kembali" },
-                  { label: "Pulang", key: "jam_pulang" },
-                  { label: "Metode", key: "metode" },
-                  { label: "Status", key: "status" },
-                ]}
+              
+              <button 
+                onClick={handleExport}
+                disabled={filteredData.length === 0}
+                className={`flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg text-sm shadow-sm transition-colors ${
+                  filteredData.length === 0 
+                    ? 'text-gray-400 bg-gray-100 cursor-not-allowed' 
+                    : 'text-[#344054] hover:bg-[#0069AB] hover:text-white'
+                }`}
+                title={filteredData.length === 0 ? 'Tidak ada data untuk diexport' : 'Export data ke PDF'}
               >
-                <button className="flex items-center gap-2 border border-gray-300 text-[#344054] px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-[#0069AB] hover:text-white">
-                  <Download size={16} />
-                  Export
-                </button>
-              </CSVLink>
+                <Download size={16} />
+                Export PDF
+              </button>
+              
+              <button
+                onClick={toggleFilter}
+                className={`flex items-center gap-2 border border-gray-300 text-[#344054] px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-[#0069AB] hover:text-white transition-colors ${
+                  showFilter ? 'bg-[#0069AB] text-white' : ''
+                }`}
+                title="Tampilkan/sembunyikan filter lanjutan"
+              >
+                <Filter size={16} />
+                Filter
+                <ChevronDown 
+                  size={16} 
+                  className={`transition-transform ${showFilter ? 'rotate-180' : ''}`} 
+                />
+              </button>
             </div>
           </div>
 
           <div className="border-b border-gray-200 my-5" />
 
-          <div className="flex justify-end items-center">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <span className="absolute left-3 top-2.5 text-gray-400">
-                <Search size={16} />
-              </span>
-            </div>
-          </div>
+          {/* Filter Section */}
+          <FilterSection />
         </div>
 
-        {/* Table */}
+        {/* Table Section */}
         <div className="overflow-x-auto">
           {loading ? (
             <div className="text-center py-10">
@@ -327,115 +658,47 @@ export default function AbsensiTable() {
             </div>
           ) : (
             <table className="w-full min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    No
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Siswa
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tanggal
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Jam Masuk
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Istirahat
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Kembali
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pulang
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Metode
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
+              <TableHeader />
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredData.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {index + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <img
-                            className="h-10 w-10 rounded-full"
-                            src={item.image}
-                            alt={item.nama}
-                          />
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {item.nama}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(item.tanggal).toLocaleDateString("id-ID", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.jam_masuk}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.jam_istirahat}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.jam_kembali}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.jam_pulang}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.metode}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          item.status === "Hadir"
-                            ? "bg-green-100 text-green-800"
-                            : item.status === "Terlambat"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : item.status === "Izin" || item.status === "Sakit"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {item.status}
-                      </span>
-                    </td>
-                  </tr>
+                  <TableRow key={item.id} item={item} index={index} />
                 ))}
               </tbody>
             </table>
           )}
         </div>
         
-        {/* Empty state */}
+        {/* Empty State */}
         {!loading && filteredData.length === 0 && (
-          <div className="text-center py-10">
-            <p className="text-gray-500">No data found</p>
+          <div className="text-center py-16">
+            <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <Search size={32} className="text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada data ditemukan</h3>
+            <p className="text-gray-500 mb-4">
+              {data.length === 0 
+                ? "Belum ada data absensi yang tersedia"
+                : "Coba ubah filter atau kata kunci pencarian Anda"
+              }
+            </p>
+            {(selectedStatus || selectedMetode || selectedDate || selectedStartDate || selectedEndDate || searchTerm) && (
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+              >
+                <X size={16} />
+                Hapus Semua Filter
+              </button>
+            )}
           </div>
         )}
         
-        {/* Information about total rows */}
+        {/* Footer Information */}
         <div className="bg-white px-4 py-3 flex items-center border-t border-gray-200 sm:px-6">
           <div>
             <p className="text-sm text-gray-700">
-              Menampilkan <span className="font-medium">{filteredData.length}</span> data dari total <span className="font-medium">{data.length}</span> data absensi
+              Menampilkan <span className="font-medium">{filteredData.length}</span> data 
+              dari total <span className="font-medium">{data.length}</span> data absensi
             </p>
           </div>
         </div>
