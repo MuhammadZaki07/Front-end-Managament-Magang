@@ -76,7 +76,7 @@ export default function JobListingPage() {
       const jobs = data.data
         .map(mapJobData)
         .sort((a, b) => new Date(b.posted) - new Date(a.posted)) // Sort by latest date
-        .slice(0, 4); // Take only the first 3 latest jobs
+        .slice(0, 3); // Take only the first 3 latest jobs
       setJobVacancies(jobs);
       
       // Extract unique divisions
@@ -123,11 +123,6 @@ export default function JobListingPage() {
     fetchJobs();
   }, [fetchJobs]);
 
-  // Reset to first page when filter changes - not needed for 3 items only
-  // useEffect(() => {
-  //   setCurrentPage(1);
-  // }, [selectedDivisions]);
-
   // Event handlers
   const handleDivisionChange = useCallback((divisionId) => {
     setSelectedDivisions(prev => {
@@ -138,15 +133,6 @@ export default function JobListingPage() {
       }
     });
   }, []);
-
-  // Since we only show 3 jobs, we don't need goToPage function
-  // const goToPage = useCallback((pageNumber) => {
-  //   const validPage = Math.max(1, Math.min(pageNumber, totalPages));
-  //   setCurrentPage(validPage);
-  //   
-  //   // Scroll to top when changing pages
-  //   window.scrollTo({ top: 0, behavior: 'smooth' });
-  // }, [totalPages]);
 
   const handleViewDetail = useCallback((jobId) => {
     if (!jobId) {
@@ -162,9 +148,9 @@ export default function JobListingPage() {
 
   // Render loading skeleton
   const renderLoadingSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="relative bg-white rounded-xl shadow-sm border border-gray-100 p-6 pl-24 min-h-56 max-w-[400px] mx-auto">
+        <div key={i} className="relative bg-white rounded-xl shadow-sm border border-gray-100 p-6 pl-24 min-h-56 max-w-sm mx-auto">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/4 w-32 h-28 bg-gray-200 animate-pulse rounded-xl" />
           <div className="flex flex-col h-full">
             <div className="mb-1 ml-8">
@@ -224,7 +210,7 @@ export default function JobListingPage() {
 
   // Render job card
   const renderJobCard = (job) => (
-    <article key={job.id} className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-2 pl-20 min-h-56 max-w-[400px] mx-auto">
+    <article key={job.id} className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-2 pl-20 min-h-56 max-w-sm mx-auto">
       {/* Company Image */}
       <div className="absolute left-0 top-1/4 -translate-y-1/2 -translate-x-1/4 w-32 h-28">
         <img 
@@ -291,11 +277,6 @@ export default function JobListingPage() {
     
   );
 
-  // Render pagination - not needed for 3 items only
-  // const renderPagination = () => {
-  //   return null;
-  // };
-
   return (
     <div className="flex-1">
       {loading && renderLoadingSkeleton()}
@@ -304,7 +285,7 @@ export default function JobListingPage() {
       
       {!loading && !error && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentJobs.length > 0 ? (
               currentJobs.map(renderJobCard)
             ) : (
