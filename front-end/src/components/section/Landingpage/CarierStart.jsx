@@ -12,7 +12,7 @@ export default function JobListingPage() {
   const [divisions, setDivisions] = useState([]);
   const [selectedDivisions, setSelectedDivisions] = useState([]);
   
-  const jobsPerPage = 3; // Show only 3 latest jobs
+  const jobsPerPage = 3;
   const navigate = useNavigate();
 
   // Utility functions
@@ -34,7 +34,7 @@ export default function JobListingPage() {
     }
   }, []);
 
-  // Data mapping function
+  // Data mapping function dengan perbaikan sorting
   const mapJobData = useCallback((job) => {
     const defaultImage = "/assets/img/Cover.png";
     const coverPhoto = job.perusahaan?.foto?.find(f => f.type === "profil_cover");
@@ -54,36 +54,72 @@ export default function JobListingPage() {
       badge: "Magang",
       applicants: job.total_pendaftar || 0,
       image: imageUrl,
-      duration: job.durasi ? `${job.durasi} Bulan` : "6 Bulan"
+      duration: job.durasi ? `${job.durasi} Bulan` : "6 Bulan",
+      // Tambahan untuk debugging dan sorting yang akurat
+      rawPostedDate: job.tanggal_mulai,
+      rawClosingDate: job.tanggal_selesai,
+      createdAt: job.created_at || job.tanggal_mulai, // Gunakan created_at jika ada
+      updatedAt: job.updated_at
     };
   }, [formatDate]);
 
-  // Fetch jobs data
+  // Fetch jobs data dengan perbaikan sorting
   const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       
+      console.log('Fetching jobs data...'); // Debug log
+      
       const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/lowongan-all`,
-        { timeout: 10000 } // 10 second timeout
+        `${import.meta.env.VITE_API_URL}/lowongan-all`
       );
       
       if (!data?.data || !Array.isArray(data.data)) {
         throw new Error('Format data tidak valid');
       }
       
-      const jobs = data.data
-        .map(mapJobData)
-        .sort((a, b) => new Date(b.posted) - new Date(a.posted)) // Sort by latest date
-        .slice(0, 3); // Take only the first 3 latest jobs
-      setJobVacancies(jobs);
+      console.log('Raw data received:', data.data.length, 'jobs'); // Debug log
+      
+      // Map data terlebih dahulu
+      const mappedJobs = data.data.map(mapJobData);
+      
+      console.log('Mapped jobs:', mappedJobs); // Debug log
+      
+      // Sorting berdasarkan multiple criteria untuk memastikan data terbaru
+      const sortedJobs = mappedJobs.sort((a, b) => {
+        // 1. Prioritas utama: created_at atau updated_at (jika ada)
+        if (a.createdAt && b.createdAt) {
+          const dateA = new Date(a.createdAt);
+          const dateB = new Date(b.createdAt);
+          if (dateB - dateA !== 0) return dateB - dateA;
+        }
+        
+        // 2. Fallback: gunakan tanggal_mulai
+        if (a.rawPostedDate && b.rawPostedDate) {
+          const dateA = new Date(a.rawPostedDate);
+          const dateB = new Date(b.rawPostedDate);
+          if (dateB - dateA !== 0) return dateB - dateA;
+        }
+        
+        // 3. Fallback terakhir: ID (asumsi ID yang lebih besar = data lebih baru)
+        return b.id - a.id;
+      });
+      
+      console.log('Sorted jobs (showing first 5):', sortedJobs.slice(0, 5)); // Debug log
+      
+      // Ambil 3 terbaru
+      const latestJobs = sortedJobs.slice(0, 3);
+      
+      console.log('Latest 3 jobs selected:', latestJobs); // Debug log
+      
+      setJobVacancies(latestJobs);
       
       // Extract unique divisions
       const uniqueDivisions = [];
       const divisionIds = new Set();
       
-      jobs.forEach(job => {
+      latestJobs.forEach(job => {
         if (job.divisiId && !divisionIds.has(job.divisiId)) {
           divisionIds.add(job.divisiId);
           uniqueDivisions.push({
@@ -115,7 +151,6 @@ export default function JobListingPage() {
     return jobVacancies.filter(job => selectedDivisions.includes(job.divisiId));
   }, [selectedDivisions, jobVacancies]);
 
-  // Since we only show 3 jobs, no pagination needed
   const currentJobs = filteredJobs;
 
   // Effects
@@ -162,7 +197,7 @@ export default function JobListingPage() {
             <div className="h-5 bg-gray-200 rounded w-full animate-pulse mb-3" />
             <div className="h-3 bg-gray-200 rounded w-1/3 animate-pulse mt-auto" />
             <div className="mt-4 flex justify-end">
-              <div className="h-8 bg-gray-200 rounded w-28 animate-pulse" />
+              <div className="h-8 bg-gray-200 rounded w-28 anime-pulse" />
             </div>
           </div>
         </div>
@@ -208,9 +243,16 @@ export default function JobListingPage() {
     </div>
   );
 
-  // Render job card
+  // Render job card dengan debug info
   const renderJobCard = (job) => (
     <article key={job.id} className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-2 pl-20 min-h-56 max-w-sm mx-auto">
+      {/* Debug info - hapus setelah debugging selesai
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-2 right-2 bg-red-100 text-red-800 text-xs p-1 rounded">
+          ID: {job.id} | Created: {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A'}
+        </div>
+      )} */}
+      
       {/* Company Image */}
       <div className="absolute left-0 top-1/4 -translate-y-1/2 -translate-x-1/4 w-32 h-28">
         <img 
@@ -272,13 +314,28 @@ export default function JobListingPage() {
           </button>
         </div>
       </div>
-      
     </article>
-    
   );
 
   return (
     <div className="flex-1">
+      {/* Debug panel - hapus setelah debugging selesai
+      {process.env.NODE_ENV === 'development' && !loading && (
+        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <h4 className="font-semibold text-yellow-800">Debug Info:</h4>
+          <p className="text-sm text-yellow-700">
+            Total jobs loaded: {jobVacancies.length} | 
+            Filtered jobs: {filteredJobs.length} | 
+            Current jobs displayed: {currentJobs.length}
+          </p>
+          {jobVacancies.length > 0 && (
+            <div className="mt-2 text-xs text-yellow-600">
+              Jobs order: {jobVacancies.map(job => `#${job.id}`).join(', ')}
+            </div>
+          )}
+        </div>
+      )}
+       */}
       {loading && renderLoadingSkeleton()}
       
       {error && !loading && renderError()}
