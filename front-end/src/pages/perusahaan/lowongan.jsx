@@ -10,8 +10,10 @@ import Swal from "sweetalert2";
 export default function Lowongan() {
   const [sortStatus, setSortStatus] = useState("All");
   const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedJobDetail, setSelectedJobDetail] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [lowongan, setLowongan] = useState([]);
   const [editingData, setEditingData] = useState(null);
 
@@ -34,9 +36,83 @@ export default function Lowongan() {
       setLowongan(res.data.data);
       Swal.close();
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching data:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal memuat data lowongan'
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const GetJobDetail = async (jobId) => {
+    try {
+      setDetailLoading(true);
+      console.log(`Fetching detail for job ID: ${jobId}`); // Debug log
+      
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/lowongan/${jobId}/detail`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      
+      console.log("Detail response:", res.data); // Debug log
+      
+      // Check if response has the expected structure
+      if (res.data && res.data.data) {
+        setSelectedJobDetail(res.data.data);
+      } else {
+        // If detail endpoint doesn't exist or returns different structure,
+        // fallback to using the basic job data from the list
+        const basicJob = lowongan.find(job => job.id === jobId);
+        setSelectedJobDetail(basicJob);
+        console.log("Using basic job data as fallback:", basicJob);
+      }
+    } catch (error) {
+      console.log("Error fetching job detail:", error);
+      
+      // Check if it's a 404 error (endpoint doesn't exist)
+      if (error.response && error.response.status === 404) {
+        console.log("Detail endpoint not found, using basic job data");
+        const basicJob = lowongan.find(job => job.id === jobId);
+        setSelectedJobDetail(basicJob);
+      } else {
+        // Show error for other types of errors
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal',
+          text: 'Gagal memuat detail lowongan'
+        });
+        
+        // Still set basic job data as fallback
+        const basicJob = lowongan.find(job => job.id === jobId);
+        setSelectedJobDetail(basicJob);
+      }
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  // Function untuk update status job di list tanpa fetch ulang semua data
+  const updateJobStatus = (jobId, newStatus) => {
+    setLowongan(prevLowongan => 
+      prevLowongan.map(job => 
+        job.id === jobId 
+          ? { ...job, status: newStatus }
+          : job
+      )
+    );
+
+    // Update selectedJob jika itu yang sedang dipilih
+    if (selectedJob && selectedJob.id === jobId) {
+      setSelectedJob(prevJob => ({ ...prevJob, status: newStatus }));
+    }
+
+    // Update selectedJobDetail jika ada
+    if (selectedJobDetail && selectedJobDetail.id === jobId) {
+      setSelectedJobDetail(prevDetail => ({ ...prevDetail, status: newStatus }));
     }
   };
 
@@ -88,22 +164,53 @@ export default function Lowongan() {
       ? lowongan
       : lowongan.filter((job) => job.status === Number(sortStatus));
 
-  const handleChevronClick = (jobId) => {
+  const handleChevronClick = async (jobId) => {
     if (selectedJob && selectedJob.id === jobId) {
+      // Close detail if clicking same job
       setSelectedJob(null);
+      setSelectedJobDetail(null);
     } else {
+      // Find job from list and set it immediately
       const job = lowongan.find((job) => job.id === jobId);
       setSelectedJob(job);
+      
+      // Set basic job data first, then fetch detailed data
+      setSelectedJobDetail(job);
+      
+      // Fetch detailed data
+      await GetJobDetail(jobId);
     }
   };
 
   const handleEditJob = (job) => {
-    setEditingData(job);
+    // Use detailed data if available, otherwise use basic data
+    setEditingData(selectedJobDetail || job);
     setShowModal(true);
   };
 
   const handleCloseDetail = () => {
     setSelectedJob(null);
+    setSelectedJobDetail(null);
+  };
+
+  const handleModalSuccess = () => {
+    GetData();
+    // If detail is open, refresh detail data
+    if (selectedJob) {
+      GetJobDetail(selectedJob.id);
+    }
+  };
+
+  // Function untuk handle success dari JobDetail dengan update status
+  const handleJobDetailSuccess = () => {
+    // Jika ada selectedJob, berarti ada job yang statusnya berubah
+    if (selectedJob) {
+      // Update status di list menjadi 0 (selesai)
+      updateJobStatus(selectedJob.id, 0);
+    }
+    
+    // Tetap panggil GetData untuk sinkronisasi dengan server (optional)
+    // GetData();
   };
 
   if (loading) return <Loading />;
@@ -239,7 +346,7 @@ export default function Lowongan() {
                         </td>
                         <td className="p-3">
                           <div className={`font-medium text-gray-900 ${selectedJob ? 'text-xs' : 'text-sm'}`}>
-                            {job.cabang.nama}
+                            {job.cabang?.nama || 'Cabang tidak tersedia'}
                           </div>
                         </td>
                         <td className={`p-3 ${selectedJob ? 'hidden lg:table-cell' : ''}`}>
@@ -248,7 +355,9 @@ export default function Lowongan() {
                           </span>
                         </td>
                         <td className={`p-3 ${selectedJob ? 'text-xs' : 'text-sm'} text-black max-w-xs truncate ${selectedJob ? 'hidden xl:table-cell' : ''}`}>
-                          {job.perusahaan.alamat}
+                          {job.cabang?.provinsi && job.cabang?.kota 
+                            ? `${job.cabang.kota}, ${job.cabang.provinsi}` 
+                            : 'Alamat tidak tersedia'}
                         </td>
                         <td className="p-3">
                           <div className="flex items-center">
@@ -281,13 +390,14 @@ export default function Lowongan() {
                                   ? "bg-blue-100 text-blue-600"
                                   : "text-gray-400 hover:text-blue-600"
                               }`}
+                              disabled={detailLoading}
                             >
                               <ChevronRight
                                 className={`${selectedJob ? 'w-3 h-3' : 'w-4 h-4'} transition-transform duration-200 ${
                                   selectedJob && selectedJob.id === job.id
                                     ? "rotate-90"
                                     : ""
-                                }`}
+                                } ${detailLoading ? 'animate-spin' : ''}`}
                               />
                             </button>
                           </div>
@@ -320,10 +430,11 @@ export default function Lowongan() {
             <div className="w-1/3 min-w-0">
               <div className="sticky top-6">
                 <JobDetail
-                  job={selectedJob}
+                  job={selectedJobDetail || selectedJob} // Use detailed data if available
                   onClose={handleCloseDetail}
                   onEdit={() => handleEditJob(selectedJob)}
-                  onSucces={() => GetData()}
+                  onSucces={handleJobDetailSuccess} // Update function untuk handle status change
+                  loading={detailLoading}
                 />
               </div>
             </div>
@@ -335,7 +446,7 @@ export default function Lowongan() {
           showModal={showModal}
           setShowModal={setShowModal}
           editingData={editingData}
-          onSucces={() => GetData()}
+          onSucces={handleModalSuccess}
         />
       </div>
     </div>

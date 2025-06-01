@@ -9,7 +9,6 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [loadingDivisi, setLoadingDivisi] = useState(false); // Loading state untuk divisi
-  const [checkingDuplicate, setCheckingDuplicate] = useState(false); // Loading state untuk pengecekan duplikasi
 
   const [formData, setFormData] = useState({
     tanggal_mulai: "",
@@ -36,8 +35,8 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
       setFormData({
         tanggal_mulai,
         tanggal_selesai,
-        id_cabang,
-        id_divisi,
+        id_cabang: parseInt(id_cabang) || "", // Convert to int
+        id_divisi: parseInt(id_divisi) || "", // Convert to int
         max_kuota,
         requirement,
         jobdesc,
@@ -45,7 +44,7 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
 
       // Load divisi untuk cabang yang sedang diedit
       if (id_cabang) {
-        GetDivisiByBranch(id_cabang);
+        GetDivisiByBranch(parseInt(id_cabang)); // Convert to int
       }
     } else {
       setFormData({
@@ -115,7 +114,9 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
 
     setLoadingDivisi(true);
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/divisi/cabang/${cabangId}`, {
+      // Pastikan cabangId adalah integer
+      const id = parseInt(cabangId);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/divisi/cabang/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setDivisi(res.data.data);
@@ -134,105 +135,7 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     }
   };
 
-  // Fungsi untuk mengecek apakah ada lowongan yang sedang berlangsung untuk cabang dan divisi yang sama
-  const checkActiveLowongan = async (cabangId, divisiId) => {
-    if (!cabangId || !divisiId) {
-      setErrors(prev => ({ ...prev, id_divisi: "" }));
-      return true; // Skip validation jika salah satu kosong
-    }
-
-    setCheckingDuplicate(true);
-    try {
-      console.log('Checking duplicate for cabang:', cabangId, 'divisi:', divisiId);
-      
-      // Ambil semua data lowongan
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/lowongan`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      
-      const lowonganList = res.data.data || res.data; // Sesuaikan dengan struktur response API
-      console.log('Lowongan list:', lowonganList);
-      
-      // Cek apakah ada lowongan yang masih berlangsung (status = 1) untuk cabang dan divisi yang sama
-      const activeLowongan = lowonganList.find(lowongan => {
-        console.log('Checking lowongan:', lowongan);
-        
-        // Skip jika sedang edit dan ini adalah record yang sama
-        if (editingData && lowongan.id === editingData.id) {
-          console.log('Skipping same record during edit');
-          return false;
-        }
-        
-        // Ambil ID cabang dan divisi dari nested object atau property langsung
-        let lowonganCabangId, lowonganDivisiId;
-        
-        if (lowongan.cabang && lowongan.cabang.id) {
-          lowonganCabangId = lowongan.cabang.id.toString();
-        } else if (lowongan.id_cabang) {
-          lowonganCabangId = lowongan.id_cabang.toString();
-        }
-        
-        if (lowongan.divisi && lowongan.divisi.id) {
-          lowonganDivisiId = lowongan.divisi.id.toString();
-        } else if (lowongan.id_divisi) {
-          lowonganDivisiId = lowongan.id_divisi.toString();
-        }
-        
-        const inputCabangId = cabangId.toString();
-        const inputDivisiId = divisiId.toString();
-        
-        console.log('Comparing:', {
-          lowonganCabangId,
-          lowonganDivisiId,
-          inputCabangId,
-          inputDivisiId,
-          status: lowongan.status,
-          cabangObject: lowongan.cabang,
-          divisiObject: lowongan.divisi
-        });
-        
-        // Cek apakah cabang dan divisi sama
-        const isSameBranchDivision = 
-          lowonganCabangId === inputCabangId && 
-          lowonganDivisiId === inputDivisiId;
-        
-        if (!isSameBranchDivision) {
-          console.log('Different branch/division, skipping');
-          return false;
-        }
-        
-        // Cek apakah lowongan masih berlangsung (status = 1)
-        // status 1 = berlangsung, status 0 = selesai/tutup
-        const isActive = lowongan.status === 1 || lowongan.status === "1";
-        
-        console.log('Same branch/division found with status:', lowongan.status, 'isActive:', isActive);
-        
-        return isActive;
-      });
-      
-      console.log('Active lowongan found:', activeLowongan);
-      
-      if (activeLowongan) {
-        const errorMessage = "Sudah ada lowongan yang sedang berlangsung untuk cabang dan divisi ini. Lowongan baru hanya bisa dibuat jika status lowongan sebelumnya sudah selesai.";
-        setErrors(prev => ({ 
-          ...prev, 
-          id_divisi: errorMessage
-        }));
-        return false;
-      } else {
-        setErrors(prev => ({ ...prev, id_divisi: "" }));
-        return true;
-      }
-    } catch (error) {
-      console.error('Error checking active lowongan:', error);
-      // Jika gagal mengambil data, tampilkan error dan tidak allow submit
-      const errorMessage = "Gagal memvalidasi data lowongan. Silakan coba lagi.";
-      setErrors(prev => ({ ...prev, id_divisi: errorMessage }));
-      return false;
-    } finally {
-      setCheckingDuplicate(false);
-    }
-  };
+  // Hapus fungsi GetDivisi yang lama karena tidak digunakan lagi
 
   useEffect(() => {
     GetCabang();
@@ -243,29 +146,23 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     
     // Jika yang berubah adalah cabang, reset divisi dan load divisi baru
     if (name === "id_cabang") {
+      const cabangId = parseInt(value) || "";
       setFormData(prev => ({ 
         ...prev, 
-        [name]: value,
+        [name]: cabangId,
         id_divisi: "" // Reset divisi saat cabang berubah
       }));
       
       // Load divisi berdasarkan cabang yang dipilih
-      GetDivisiByBranch(value);
-      
-      // Clear error divisi karena divisi direset
-      setErrors(prev => ({ ...prev, id_divisi: "" }));
-    } else if (name === "id_divisi") {
-      setFormData(prev => ({ ...prev, [name]: value }));
-      
-      // Check untuk duplikasi lowongan aktif setelah state di-update
-      if (value && formData.id_cabang) {
-        // Gunakan setTimeout untuk memastikan state sudah terupdate
-        setTimeout(() => {
-          checkActiveLowongan(formData.id_cabang, value);
-        }, 100);
+      if (cabangId) {
+        GetDivisiByBranch(cabangId);
       } else {
-        setErrors(prev => ({ ...prev, id_divisi: "" }));
+        setDivisi([]);
       }
+    } else if (name === "id_divisi") {
+      // Convert divisi ID to integer
+      const divisiId = parseInt(value) || "";
+      setFormData(prev => ({ ...prev, [name]: divisiId }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -274,7 +171,7 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
 
     if (name === "max_kuota" && (isNaN(value) || parseInt(value) <= 0)) {
       setErrors(prev => ({ ...prev, [name]: "Kuota harus berupa angka positif" }));
-    } else if (name !== "id_divisi") { // Skip clear error untuk id_divisi karena akan dihandle di checkActiveLowongan
+    } else {
       setErrors(prev => ({ ...prev, [name]: "" }));
     }
   };
@@ -309,12 +206,8 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
       }
     });
 
-    // Merge dengan existing errors (termasuk error duplikasi)
-    const allErrors = { ...errors, ...newErrors };
-    setErrors(allErrors);
-    
-    // Return false jika ada error apapun
-    return Object.values(allErrors).every(err => !err);
+    setErrors(prev => ({ ...prev, ...newErrors }));
+    return Object.values({ ...errors, ...newErrors }).every(err => !err);
   };
 
   const handleBlur = (e) => {
@@ -332,28 +225,12 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     Object.keys(formData).forEach(k => { touchedAll[k] = true; });
     setTouched(touchedAll);
 
-    // Validasi form terlebih dahulu
     if (!validateForm()) {
       // Show validation error alert
       Swal.fire({
         icon: 'error',
         title: 'Validasi Gagal',
         text: 'Silakan periksa kembali form isian Anda',
-        confirmButtonColor: '#3085d6'
-      });
-      return;
-    }
-
-    // Lakukan pengecekan final untuk duplikasi sebelum submit
-    console.log('Final duplicate check before submit');
-    const isDuplicateValid = await checkActiveLowongan(formData.id_cabang, formData.id_divisi);
-    
-    if (!isDuplicateValid) {
-      console.log('Duplicate validation failed, stopping submit');
-      Swal.fire({
-        icon: 'error',
-        title: 'Validasi Gagal',
-        text: 'Sudah ada lowongan yang sedang berlangsung untuk cabang dan divisi yang dipilih. Lowongan baru hanya bisa dibuat jika status lowongan sebelumnya sudah selesai.',
         confirmButtonColor: '#3085d6'
       });
       return;
@@ -374,18 +251,22 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     });
 
     try {
-      const url = editingData
-        ? `${import.meta.env.VITE_API_URL}/lowongan/${editingData.id}`
+      // Pastikan ID adalah integer untuk URL
+      const editId = editingData ? parseInt(editingData.id) : null;
+      
+      const url = editId
+        ? `${import.meta.env.VITE_API_URL}/lowongan/${editId}`
         : `${import.meta.env.VITE_API_URL}/lowongan`;
 
       const method = editingData ? "put" : "post";
 
       const payload = {
         ...formData,
+        // Pastikan semua ID dalam payload adalah integer
+        id_cabang: parseInt(formData.id_cabang),
+        id_divisi: parseInt(formData.id_divisi),
         max_kuota: parseInt(formData.max_kuota),
       };
-
-      console.log('Submitting payload:', payload);
 
       await axios({
         method,
@@ -421,7 +302,7 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
       setShowModal(false);
       onSucces();
     } catch (err) {
-      console.error('Submit error:', err);
+      console.error(err);
       
       // Close loading indicator
       Swal.close();
@@ -507,12 +388,11 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
                 value={formData.id_divisi}
                 onChange={handleValue}
                 onBlur={handleBlur}
-                disabled={!formData.id_cabang || loadingDivisi || checkingDuplicate}
-                className={`w-full border ${errors.id_divisi && touched.id_divisi ? "border-red-500" : "border-gray-300"} rounded-md py-2 px-3 text-xs bg-white ${(!formData.id_cabang || loadingDivisi || checkingDuplicate) ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                disabled={!formData.id_cabang || loadingDivisi}
+                className={`w-full border ${errors.id_divisi && touched.id_divisi ? "border-red-500" : "border-gray-300"} rounded-md py-2 px-3 text-xs bg-white ${(!formData.id_cabang || loadingDivisi) ? 'bg-gray-100 cursor-not-allowed' : ''}`}
               >
                 <option value="">
-                  {checkingDuplicate ? "Memvalidasi..." :
-                   loadingDivisi ? "Memuat divisi..." : 
+                  {loadingDivisi ? "Memuat divisi..." : 
                    !formData.id_cabang ? "Pilih cabang" : 
                    "Pilih Divisi"}
                 </option>
@@ -573,16 +453,16 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
               type="button" 
               onClick={handleClose} 
               className="bg-red-500 text-white px-5 py-3 rounded-md text-xs"
-              disabled={loading || checkingDuplicate}
+              disabled={loading}
             >
               Batal
             </button>
             <button 
               type="submit" 
               className="bg-blue-600 text-white px-5 py-3 rounded-md text-xs"
-              disabled={loading || checkingDuplicate || Object.values(errors).some(err => err)}
+              disabled={loading}
             >
-              {loading ? 'Menyimpan...' : checkingDuplicate ? 'Memvalidasi...' : 'Simpan'}
+              {loading ? 'Menyimpan...' : 'Simpan'}
             </button>
           </div>
         </form>
