@@ -14,10 +14,12 @@ export default function MentorPerDivisionChart({ mentor }) {
   ];
 
   const dummyData = [
-  { name: 'Divisi A', value: 5 },
-  { name: 'Divisi B', value: 3 },
-  { name: 'Divisi C', value: 4 },
-  { name: 'Divisi D', value: 2 },
+  { name: 'UI/UX', value: 5 },
+  { name: 'Mobile developer', value: 3 },
+  { name: 'Fullstack web developer', value: 4 },
+  { name: 'Data Science', value: 2 },
+  { name: 'DevOps', value: 6 },
+  { name: 'QA Testing', value: 3 },
 ];
   const currentData = chartData || dummyData;
 
@@ -79,27 +81,38 @@ export default function MentorPerDivisionChart({ mentor }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg border border-slate-400/[0.5] p-4 w-full max-w-xl min-h-3/5 relative hover:shadow-blue-300">
+    <div className="bg-white rounded-lg shadow-lg border border-slate-400/[0.5] p-4 w-fit min-w-96 relative hover:shadow-blue-300">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-l font-bold text-gray-800">Jumlah Mentor Per Divisi</h2>
       </div>
       
-      <div className="flex flex-col-reverse items-center">
-        {/* Legend */}
-        <div className="gap-10 flex flex-row ">
-          {currentData.map((division, index) => (
-            <div key={index} className="flex items-center">
+      <div className="flex flex-col items-center gap-6">
+        {/* Legend - 3 columns grid with borders */}
+        <div className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border border-gray-300 rounded-lg overflow-hidden">
+            {currentData.map((division, index) => (
               <div 
-                className="w-3 h-3 mr-2 rounded-full" 
-                style={{ backgroundColor: colors[index] }}
-              />
-              <span className="text-gray-600 text-sm">{division.name}</span>
-            </div>
-          ))}
+                key={index} 
+                className="flex items-center min-w-0 p-3 border-r border-b border-gray-300 last:border-r-0 lg:nth-child-3n:border-r-0 sm:nth-child-2n:border-r-0 sm:last:border-r-0"
+                style={{
+                  borderRight: (index + 1) % 3 === 0 ? 'none' : '1px solid #d1d5db',
+                  borderBottom: index >= currentData.length - (currentData.length % 3 || 3) ? 'none' : '1px solid #d1d5db'
+                }}
+              >
+                <div 
+                  className="w-3 h-3 mr-3 rounded-full flex-shrink-0" 
+                  style={{ backgroundColor: colors[index] }}
+                />
+                <span className="text-gray-600 text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                  {division.name}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
         
         {/* Donut Chart */}
-        <div className="w-1/2 flex justify-end relative">
+        <div className="flex justify-center relative">
           <div className="w-48 h-48 relative">
             <svg width="100%" height="100%" viewBox="0 0 200 200">
               {segments.map((segment, index) => (
