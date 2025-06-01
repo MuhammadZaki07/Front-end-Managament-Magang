@@ -12,13 +12,17 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2"; // Import SweetAlert2
+import Swal from "sweetalert2";
 
 const JobDetail = ({ job, onClose, onEdit, onSucces, loading }) => {
   // State untuk tracking job data lokal
   const [jobData, setJobData] = useState(() => {
     return Array.isArray(job) ? job[0] : job;
   });
+
+  // State untuk handle image load error
+  const [profileImageError, setProfileImageError] = useState(false);
+  const [coverImageError, setCoverImageError] = useState(false);
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -37,7 +41,30 @@ const JobDetail = ({ job, onClose, onEdit, onSucces, loading }) => {
   useEffect(() => {
     const newJobData = Array.isArray(job) ? job[0] : job;
     setJobData(newJobData);
+    // Reset image error states when job data changes
+    setProfileImageError(false);
+    setCoverImageError(false);
   }, [job]);
+
+  // Debug useEffect untuk image troubleshooting
+  useEffect(() => {
+    if (jobData) {
+      console.log('=== JobDetail Image Debug ===');
+      console.log('jobData.cabang:', jobData.cabang);
+      console.log('profilePhotoUrl:', jobData.cabang?.profilePhotoUrl);
+      console.log('coverPhotoUrl:', jobData.cabang?.coverPhotoUrl);
+      console.log('foto array:', jobData.cabang?.foto);
+      
+      if (jobData.cabang?.foto) {
+        console.log('Available photo types:', jobData.cabang.foto.map(f => ({ type: f.type, path: f.path })));
+      }
+      
+      console.log('Final URLs:');
+      console.log('- Cover:', getCabangCoverPhoto());
+      console.log('- Profile:', getCabangProfilePhoto());
+      console.log('==============================');
+    }
+  }, [jobData]);
 
   // Debug log untuk melihat struktur job yang diterima
   console.log("JobDetail received job:", job);
@@ -131,9 +158,23 @@ const JobDetail = ({ job, onClose, onEdit, onSucces, loading }) => {
     onClose && onClose();
   };
 
-  // Simplified edit function - no SweetAlert
+  // Fixed edit function - format data properly
   const handleEditClick = () => {
-    onEdit && onEdit(jobData);
+    // Format data sesuai dengan yang diharapkan AddJobModal
+    const editData = {
+      id: jobData.id,
+      tanggal_mulai: jobData.tanggal_mulai,
+      tanggal_selesai: jobData.tanggal_selesai,
+      id_cabang: jobData.id_cabang || jobData.cabang?.id,
+      id_divisi: jobData.id_divisi || jobData.divisi?.id,
+      max_kuota: jobData.max_kuota,
+      requirement: jobData.requirement || '',
+      jobdesc: jobData.jobdesc || ''
+    };
+    
+    console.log('Sending edit data:', editData);
+    console.log('Original jobData:', jobData);
+    onEdit && onEdit(editData);
   };
 
   // Format tanggal untuk durasi lowongan
@@ -203,12 +244,146 @@ const JobDetail = ({ job, onClose, onEdit, onSucces, loading }) => {
     return jobData.cabang?.bidang_usaha || jobData.perusahaan?.perusahaan?.bidang_usaha || 'Bidang usaha tidak tersedia';
   };
 
+  // Helper function untuk mendapatkan foto cover cabang - FIXED VERSION
+  const getCabangCoverPhoto = () => {
+    // Prioritas 1: Gunakan URL yang sudah diproses dari parent
+    if (jobData.cabang?.coverPhotoUrl) {
+      console.log('Using processed cover URL:', jobData.cabang.coverPhotoUrl);
+      return jobData.cabang.coverPhotoUrl;
+    }
+    
+    // Prioritas 2: Proses dari array foto
+    if (jobData.cabang?.foto && Array.isArray(jobData.cabang.foto)) {
+      const coverPhoto = jobData.cabang.foto.find(f => f.type === 'profil_cover');
+      if (coverPhoto && coverPhoto.path) {
+        const url = `${import.meta.env.VITE_API_URL}/storage/${coverPhoto.path}`;
+        console.log('Processing cover URL from array:', url);
+        return url;
+      }
+    }
+    
+    console.log('No cover photo found, using default');
+    return null;
+  };
+
+  // Helper function untuk mendapatkan foto profile cabang - FIXED VERSION
+  const getCabangProfilePhoto = () => {
+    // Prioritas 1: Gunakan URL yang sudah diproses dari parent
+    if (jobData.cabang?.profilePhotoUrl) {
+      console.log('Using processed profile URL:', jobData.cabang.profilePhotoUrl);
+      return jobData.cabang.profilePhotoUrl;
+    }
+    
+    // Prioritas 2: Proses dari array foto
+    if (jobData.cabang?.foto && Array.isArray(jobData.cabang.foto)) {
+      const profilePhoto = jobData.cabang.foto.find(f => f.type === 'profile');
+      if (profilePhoto && profilePhoto.path) {
+        const url = `${import.meta.env.VITE_API_URL}/storage/${profilePhoto.path}`;
+        console.log('Processing profile URL from array:', url);
+        return url;
+      }
+    }
+    
+    console.log('No profile photo found');
+    return null;
+  };
+
   // Simplified website click handler - no SweetAlert
   const handleWebsiteClick = (e) => {
     e.preventDefault();
     const website = getWebsite();
     const url = website.startsWith("http") ? website : `https://${website}`;
     window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // Function to format requirement text into numbered list
+  const formatRequirementList = (requirement) => {
+    if (!requirement) return null;
+    
+    // Split by new lines and filter out empty lines
+    const lines = requirement.split('\n').filter(line => line.trim() !== '');
+    
+    if (lines.length === 0) return null;
+    
+    // If only one line, show without numbering
+    if (lines.length === 1) {
+      return <p className="text-xs text-gray-600">{lines[0].trim()}</p>;
+    }
+    
+    // Multiple lines, create numbered list
+    return (
+      <ol className="text-xs text-gray-600 space-y-1 list-none">
+        {lines.map((line, index) => (
+          <li key={index} className="flex">
+            <span className="mr-2 font-medium text-blue-600 min-w-[1.2rem]">
+              {index + 1}.
+            </span>
+            <span className="flex-1">{line.trim()}</span>
+          </li>
+        ))}
+      </ol>
+    );
+  };
+
+  // Function to format job description into numbered list
+  const formatJobdescList = (jobdesc) => {
+    if (!jobdesc) return null;
+    
+    // Split by new lines and filter out empty lines
+    const lines = jobdesc.split('\n').filter(line => line.trim() !== '');
+    
+    if (lines.length === 0) return null;
+    
+    // If only one line, show without numbering
+    if (lines.length === 1) {
+      return <p className="text-xs text-gray-600">{lines[0].trim()}</p>;
+    }
+    
+    // Multiple lines, create numbered list
+    return (
+      <ol className="text-xs text-gray-600 space-y-1 list-none">
+        {lines.map((line, index) => (
+          <li key={index} className="flex">
+            <span className="mr-2 font-medium text-blue-600 min-w-[1.2rem]">
+              {index + 1}.
+            </span>
+            <span className="flex-1">{line.trim()}</span>
+          </li>
+        ))}
+      </ol>
+    );
+  };
+
+  // Handler untuk error loading cover image - IMPROVED VERSION
+  const handleCoverImageError = (e) => {
+    console.error('Cover image failed to load:', e.target.src);
+    console.log('Cover image error details:', {
+      src: e.target.src,
+      naturalWidth: e.target.naturalWidth,
+      naturalHeight: e.target.naturalHeight,
+      complete: e.target.complete
+    });
+    
+    if (!coverImageError) {
+      setCoverImageError(true);
+      e.target.src = '/assets/img/Container.png'; // Fallback ke default
+    }
+  };
+
+  // Handler untuk error loading profile image - IMPROVED VERSION
+  const handleProfileImageError = (e) => {
+    console.error('Profile image failed to load:', e.target.src);
+    console.log('Profile image error details:', {
+      src: e.target.src,
+      naturalWidth: e.target.naturalWidth,
+      naturalHeight: e.target.naturalHeight,
+      complete: e.target.complete
+    });
+    
+    if (!profileImageError) {
+      setProfileImageError(true);
+      // Jangan langsung hide, biarkan fallback icon yang tampil
+    }
   };
 
   return (
@@ -232,15 +407,34 @@ const JobDetail = ({ job, onClose, onEdit, onSucces, loading }) => {
           </div>
 
           <div className="mb-4 relative">
+            {/* Cover Image - IMPROVED VERSION */}
             <img
-              src="/assets/img/Container.png"
-              alt={getCompanyName()}
+              src={getCabangCoverPhoto() || '/assets/img/Container.png'}
+              alt={getCabangName()}
               className="w-full h-32 object-cover rounded-lg"
+              onError={handleCoverImageError}
+              onLoad={() => console.log('Cover image loaded successfully:', getCabangCoverPhoto())}
             />
+            
+            {/* Profile Image Container - IMPROVED VERSION */}
             <div className="relative -mt-8 flex justify-center">
               <div className="w-16 h-16 bg-white rounded-full p-1 shadow-md">
                 <div className="w-full h-full rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
-                  <Building className="text-blue-500 w-8 h-8" />
+                  {/* Profile Image */}
+                  {getCabangProfilePhoto() && !profileImageError && (
+                    <img
+                      src={getCabangProfilePhoto()}
+                      alt={getCabangName()}
+                      className="w-full h-full object-cover rounded-full"
+                      onError={handleProfileImageError}
+                      onLoad={() => console.log('Profile image loaded successfully:', getCabangProfilePhoto())}
+                    />
+                  )}
+                  
+                  {/* Building Icon - shown when no profile image or image error */}
+                  {(!getCabangProfilePhoto() || profileImageError) && (
+                    <Building className="text-blue-500 w-8 h-8" />
+                  )}
                 </div>
               </div>
             </div>
@@ -309,23 +503,19 @@ const JobDetail = ({ job, onClose, onEdit, onSucces, loading }) => {
               </div>
             )}
 
-            {/* Requirements */}
+            {/* Requirements - Updated with numbered list */}
             {jobData.requirement && (
               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                 <h5 className="text-sm font-medium text-gray-700 mb-2">Persyaratan:</h5>
-                <p className="text-xs text-gray-600 whitespace-pre-wrap">
-                  {jobData.requirement}
-                </p>
+                {formatRequirementList(jobData.requirement)}
               </div>
             )}
 
-            {/* Job Description */}
+            {/* Job Description - Updated with numbered list */}
             {jobData.jobdesc && (
               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                 <h5 className="text-sm font-medium text-gray-700 mb-2">Job Desk:</h5>
-                <p className="text-xs text-gray-600 whitespace-pre-wrap">
-                  {jobData.jobdesc}
-                </p>
+                {formatJobdescList(jobData.jobdesc)}
               </div>
             )}
           </div>

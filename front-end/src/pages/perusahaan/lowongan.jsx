@@ -19,6 +19,7 @@ export default function Lowongan() {
 
   const GetData = async () => {
     try {
+      setLoading(true);
       Swal.fire({
         title: 'Memuat data...',
         allowOutsideClick: false,
@@ -28,99 +29,154 @@ export default function Lowongan() {
           Swal.showLoading();
         }
       });
+      
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/lowongan`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      setLowongan(res.data.data);
+      
+      setLowongan(res.data.data || []);
       Swal.close();
     } catch (error) {
-      console.log("Error fetching data:", error);
+      console.error("Error fetching data:", error);
       Swal.fire({
         icon: 'error',
         title: 'Gagal',
         text: 'Gagal memuat data lowongan'
       });
+      setLowongan([]);
     } finally {
       setLoading(false);
     }
   };
 
   const GetJobDetail = async (jobId) => {
-    try {
-      setDetailLoading(true);
-      console.log(`Fetching detail for job ID: ${jobId}`); // Debug log
+  try {
+    setDetailLoading(true);
+    console.log(`Fetching detail for job ID: ${jobId}`);
+    
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/lowongan/${jobId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    
+    console.log("Detail response:", res.data);
+    
+    if (res.data && res.data.data && res.data.data.length > 0) {
+      const jobDetailData = res.data.data[0]; // Ambil data pertama dari array
       
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/lowongan/${jobId}/detail`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+      // Process cabang photos
+      if (jobDetailData.cabang && jobDetailData.cabang.foto && Array.isArray(jobDetailData.cabang.foto)) {
+        const cabangFotos = jobDetailData.cabang.foto;
+        const profilePhoto = cabangFotos.find(foto => foto.type === 'profile');
+        const coverPhoto = cabangFotos.find(foto => foto.type === 'profil_cover');
+        
+        // Gunakan VITE_API_URL sebagai base URL dan tambahkan /storage/
+        const baseURL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+        
+        jobDetailData.cabang.profilePhotoUrl = profilePhoto ? 
+          `${baseURL}/storage/${profilePhoto.path}` : null;
+        jobDetailData.cabang.coverPhotoUrl = coverPhoto ? 
+          `${baseURL}/storage/${coverPhoto.path}` : null;
+        
+        console.log("Cabang photos processed:", {
+          profilePhoto: jobDetailData.cabang.profilePhotoUrl,
+          coverPhoto: jobDetailData.cabang.coverPhotoUrl
+        });
+      }
+      
+      // Process perusahaan photos
+      if (jobDetailData.perusahaan && jobDetailData.perusahaan.foto && Array.isArray(jobDetailData.perusahaan.foto)) {
+        const perusahaanFotos = jobDetailData.perusahaan.foto;
+        const profilePhoto = perusahaanFotos.find(foto => foto.type === 'profile');
+        const coverPhoto = perusahaanFotos.find(foto => foto.type === 'profil_cover');
+        
+        const baseURL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+        
+        jobDetailData.perusahaan.profilePhotoUrl = profilePhoto ? 
+          `${baseURL}/storage/${profilePhoto.path}` : null;
+        jobDetailData.perusahaan.coverPhotoUrl = coverPhoto ? 
+          `${baseURL}/storage/${coverPhoto.path}` : null;
+        
+        console.log("Perusahaan photos processed:", {
+          profilePhoto: jobDetailData.perusahaan.profilePhotoUrl,
+          coverPhoto: jobDetailData.perusahaan.coverPhotoUrl
+        });
+      }
+      
+      // Process divisi photos
+      if (jobDetailData.divisi && jobDetailData.divisi.foto && Array.isArray(jobDetailData.divisi.foto)) {
+        const divisiFotos = jobDetailData.divisi.foto;
+        const coverPhoto = divisiFotos.find(foto => foto.type === 'foto_cover');
+        
+        const baseURL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+        
+        jobDetailData.divisi.coverPhotoUrl = coverPhoto ? 
+          `${baseURL}/storage/${coverPhoto.path}` : null;
+        
+        console.log("Divisi photos processed:", {
+          coverPhoto: jobDetailData.divisi.coverPhotoUrl
+        });
+      }
+      
+      setSelectedJobDetail(jobDetailData);
+    } else {
+      // Fallback to basic job data
+      const basicJob = lowongan.find(job => job.id === jobId);
+      setSelectedJobDetail(basicJob || null);
+      console.log("Using basic job data as fallback:", basicJob);
+    }
+  } catch (error) {
+    console.error("Error fetching job detail:", error);
+    
+    if (error.response && error.response.status === 404) {
+      console.log("Detail endpoint not found, using basic job data");
+      const basicJob = lowongan.find(job => job.id === jobId);
+      setSelectedJobDetail(basicJob || null);
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal memuat detail lowongan'
       });
       
-      console.log("Detail response:", res.data); // Debug log
-      
-      // Check if response has the expected structure
-      if (res.data && res.data.data) {
-        setSelectedJobDetail(res.data.data);
-      } else {
-        // If detail endpoint doesn't exist or returns different structure,
-        // fallback to using the basic job data from the list
-        const basicJob = lowongan.find(job => job.id === jobId);
-        setSelectedJobDetail(basicJob);
-        console.log("Using basic job data as fallback:", basicJob);
-      }
-    } catch (error) {
-      console.log("Error fetching job detail:", error);
-      
-      // Check if it's a 404 error (endpoint doesn't exist)
-      if (error.response && error.response.status === 404) {
-        console.log("Detail endpoint not found, using basic job data");
-        const basicJob = lowongan.find(job => job.id === jobId);
-        setSelectedJobDetail(basicJob);
-      } else {
-        // Show error for other types of errors
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal',
-          text: 'Gagal memuat detail lowongan'
-        });
-        
-        // Still set basic job data as fallback
-        const basicJob = lowongan.find(job => job.id === jobId);
-        setSelectedJobDetail(basicJob);
-      }
-    } finally {
-      setDetailLoading(false);
+      const basicJob = lowongan.find(job => job.id === jobId);
+      setSelectedJobDetail(basicJob || null);
     }
-  };
+  } finally {
+    setDetailLoading(false);
+  }
+};
 
-  // Function untuk update status job di list tanpa fetch ulang semua data
-  const updateJobStatus = (jobId, newStatus) => {
+  // Function to update job in list without refetching all data
+  const updateJobInList = (jobId, updatedJobData) => {
     setLowongan(prevLowongan => 
       prevLowongan.map(job => 
         job.id === jobId 
-          ? { ...job, status: newStatus }
+          ? { ...job, ...updatedJobData }
           : job
       )
     );
 
-    // Update selectedJob jika itu yang sedang dipilih
+    // Update selectedJob if it's currently selected
     if (selectedJob && selectedJob.id === jobId) {
-      setSelectedJob(prevJob => ({ ...prevJob, status: newStatus }));
+      setSelectedJob(prevJob => ({ ...prevJob, ...updatedJobData }));
     }
 
-    // Update selectedJobDetail jika ada
+    // Update selectedJobDetail if available
     if (selectedJobDetail && selectedJobDetail.id === jobId) {
-      setSelectedJobDetail(prevDetail => ({ ...prevDetail, status: newStatus }));
+      setSelectedJobDetail(prevDetail => ({ ...prevDetail, ...updatedJobData }));
     }
   };
 
+  // Calculate summary statistics
   const { totalLowonganBerlangsung, totalLowonganSelesai } = lowongan.reduce(
     (acc, job) => {
-      if (job.status == true) {
+      if (job.status === 1 || job.status === true) {
         acc.totalLowonganBerlangsung += 1;
-      } else if (job.status == false) {
+      } else if (job.status === 0 || job.status === false) {
         acc.totalLowonganSelesai += 1;
       }
       return acc;
@@ -159,10 +215,12 @@ export default function Lowongan() {
     },
   ];
 
-  const filteredData =
-    sortStatus === "All"
-      ? lowongan
-      : lowongan.filter((job) => job.status === Number(sortStatus));
+  const filteredData = sortStatus === "All"
+    ? lowongan
+    : lowongan.filter((job) => {
+        const statusValue = sortStatus === "1" ? 1 : 0;
+        return job.status === statusValue;
+      });
 
   const handleChevronClick = async (jobId) => {
     if (selectedJob && selectedJob.id === jobId) {
@@ -172,13 +230,13 @@ export default function Lowongan() {
     } else {
       // Find job from list and set it immediately
       const job = lowongan.find((job) => job.id === jobId);
-      setSelectedJob(job);
-      
-      // Set basic job data first, then fetch detailed data
-      setSelectedJobDetail(job);
-      
-      // Fetch detailed data
-      await GetJobDetail(jobId);
+      if (job) {
+        setSelectedJob(job);
+        setSelectedJobDetail(job);
+        
+        // Fetch detailed data
+        await GetJobDetail(jobId);
+      }
     }
   };
 
@@ -193,24 +251,39 @@ export default function Lowongan() {
     setSelectedJobDetail(null);
   };
 
-  const handleModalSuccess = () => {
-    GetData();
-    // If detail is open, refresh detail data
+  const handleModalSuccess = (updatedJobData = null) => {
+    // If data is passed from modal, update directly without refetch
+    if (updatedJobData && editingData) {
+      updateJobInList(editingData.id, updatedJobData);
+    } else {
+      // Fallback: refetch data if no data is passed
+      GetData();
+    }
+    
+    // Refresh detail if currently open
     if (selectedJob) {
       GetJobDetail(selectedJob.id);
     }
+    
+    // Reset modal state
+    setShowModal(false);
+    setEditingData(null);
   };
 
-  // Function untuk handle success dari JobDetail dengan update status
-  const handleJobDetailSuccess = () => {
-    // Jika ada selectedJob, berarti ada job yang statusnya berubah
+  // Handle success from JobDetail with data update
+  const handleJobDetailSuccess = (updatedData = null) => {
     if (selectedJob) {
-      // Update status di list menjadi 0 (selesai)
-      updateJobStatus(selectedJob.id, 0);
+      // If there's updatedData from JobDetail component, use it
+      // Otherwise, default update status to 0 (finished)
+      const dataToUpdate = updatedData || { status: 0 };
+      
+      updateJobInList(selectedJob.id, dataToUpdate);
     }
-    
-    // Tetap panggil GetData untuk sinkronisasi dengan server (optional)
-    // GetData();
+  };
+
+  const handleAddNewJob = () => {
+    setEditingData(null);
+    setShowModal(true);
   };
 
   if (loading) return <Loading />;
@@ -280,7 +353,7 @@ export default function Lowongan() {
                   </div>
                   <div className="flex items-center space-x-3">
                     <button
-                      onClick={() => setShowModal(true)}
+                      onClick={handleAddNewJob}
                       className="bg-white text-blue-600 hover:bg-blue-50 transition-all duration-200 border border-blue-200 rounded-lg px-4 py-2.5 text-sm font-medium flex items-center shadow-sm hover:shadow-md"
                     >
                       <Plus className="w-4 h-4 mr-2" />
@@ -313,7 +386,7 @@ export default function Lowongan() {
                         No
                       </th>
                       <th className="text-left p-4 text-sm font-semibold text-blue-900">
-                       Cabang
+                        Cabang
                       </th>
                       <th className="text-left p-4 text-sm font-semibold text-blue-900">
                         Divisi
@@ -430,10 +503,10 @@ export default function Lowongan() {
             <div className="w-1/3 min-w-0">
               <div className="sticky top-6">
                 <JobDetail
-                  job={selectedJobDetail || selectedJob} // Use detailed data if available
+                  job={selectedJobDetail || selectedJob}
                   onClose={handleCloseDetail}
                   onEdit={() => handleEditJob(selectedJob)}
-                  onSucces={handleJobDetailSuccess} // Update function untuk handle status change
+                  onSucces={handleJobDetailSuccess}
                   loading={detailLoading}
                 />
               </div>

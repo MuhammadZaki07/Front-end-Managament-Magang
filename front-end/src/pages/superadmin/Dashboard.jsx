@@ -1,14 +1,5 @@
 import React from "react";
-import Calendar from "../../components/Calendar";
-import GreetingsBox from "../../components/cards/GreetingsBox";
-import AssignmentsTable from "../../components/cards/AssignmentsTable";
-import RecommendedSection from "../../components/cards/RecommendedSection";
-import ActivityChart from "../../components/charts/ActivityChart";
-import EventsSection from "../../components/cards/EventSection";
-import TahapCard from "../../components/cards/TahapCards";
 import Card from "../../components/cards/Card";
-import Title from "../../components/Title";
-import StudentsList from "../../components/cards/StudentList";
 import CardsSuperadmin from "../../components/cards/CardsSuperadmin";
 import StatistikPeserta from "../../components/charts/StatistikPeserta";
 import ChartLowongan from "../../components/charts/ChartLowongan";
@@ -25,7 +16,7 @@ const MentorDashboard = () => {
         <CardsSuperadmin />
       </div>
       
-      <div className="flex w-full gap-2 items-stretch h-full">
+      <div className="flex w-full gap-2 items-start h-full mb-6">
         <div className="flex-[8] w-60 flex flex-col gap-2 h-[450px]">
           <div className="flex-1 h-15">
             <StatistikPeserta />
@@ -37,13 +28,14 @@ const MentorDashboard = () => {
           </div>
         </div>
         
-        {/* Kalender + Events Section di Kanan */}
-        <div className="flex-[1] flex flex-col gap-5 h-[450px] mt-5">
-          <Card className="px-1 py-1 flex-1 h-full">
+        {/* Chart Lowongan dan DivisiTerdata dalam satu kolom full height */}
+        <div className="flex-[1] flex flex-col gap-2 h-[450px]">
+          <Card className="px-1 py-1 flex-1">
             <ChartLowongan />
           </Card>
         </div>
       </div>
+      
       <div className="flex w-full gap-2 items-stretch h-full">
         <div className="flex-[6] w-60 flex flex-col gap-2 h-[350px]">
           <div className="flex-1 h-15">
@@ -61,9 +53,9 @@ const MentorDashboard = () => {
           </div>
         </div>
         
-        {/* Kalender + Events Section di Kanan */}
-         <div className="flex-[1] flex flex-col gap-5 h-[350px] mt-5">
-          <Card className="px-1 py-1 flex-1 h-full">
+        {/* DivisiTerdata di bawah ChartLowongan dalam kolom yang sama */}
+        <div className="flex-[1] flex flex-col gap-2 h-[350px]">
+          <Card className="px-1 py-1 flex-1">
             <DivisiTerdata />
           </Card>
         </div>
