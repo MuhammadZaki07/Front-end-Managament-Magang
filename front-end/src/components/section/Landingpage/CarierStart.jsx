@@ -34,32 +34,37 @@ export default function JobListingPage() {
     }
   }, []);
 
-  // Data mapping function dengan perbaikan sorting
+  // Data mapping function - DIPERBAIKI sesuai struktur API
   const mapJobData = useCallback((job) => {
     const defaultImage = "/assets/img/Cover.png";
-    const coverPhoto = job.perusahaan?.foto?.find(f => f.type === "profil_cover");
+    
+    // Cari foto dengan type "profil_cover" dari array foto
+    const coverPhoto = job.foto?.find(f => f.type === "profil_cover");
     const imageUrl = coverPhoto?.path 
       ? `${import.meta.env.VITE_API_URL_FILE}/storage/${coverPhoto.path}`
       : defaultImage;
 
     return {
       id: job.id,
-      title: job.divisi?.nama || "Posisi Tidak Tersedia",
-      divisiId: job.divisi?.id || null,
-      divisiNama: job.divisi?.nama || "Divisi Tidak Tersedia",
-      company: job.perusahaan?.nama || "PT. HIMIKA TEKNOLOGI INDONESIA",
-      location: job.perusahaan?.alamat || "Pekanbaru",
+      // Sesuaikan dengan struktur API yang flat
+      title: job.divisi || "Posisi Tidak Tersedia", // langsung string, bukan job.divisi.nama
+      divisiId: job.id, // gunakan job.id sebagai divisiId karena tidak ada divisi.id
+      divisiNama: job.divisi || "Divisi Tidak Tersedia", // langsung string
+      company: job.perusahaan || "PT. HIMIKA TEKNOLOGI INDONESIA", // langsung string
+      location: `${job.kota || "Pekanbaru"}, ${job.provinsi || "Riau"}`, // gabungkan kota dan provinsi
       posted: formatDate(job.tanggal_mulai),
       closing: formatDate(job.tanggal_selesai),
       badge: "Magang",
       applicants: job.total_pendaftar || 0,
       image: imageUrl,
-      duration: job.durasi ? `${job.durasi} Bulan` : "6 Bulan",
+      duration: "6 Bulan", // default duration karena tidak ada field durasi di API
       // Tambahan untuk debugging dan sorting yang akurat
       rawPostedDate: job.tanggal_mulai,
       rawClosingDate: job.tanggal_selesai,
-      createdAt: job.created_at || job.tanggal_mulai, // Gunakan created_at jika ada
-      updatedAt: job.updated_at
+      createdAt: job.created_at || job.tanggal_mulai,
+      updatedAt: job.updated_at,
+      maxKuota: job.max_kuota,
+      status: job.status
     };
   }, [formatDate]);
 
@@ -80,14 +85,18 @@ export default function JobListingPage() {
       }
       
       console.log('Raw data received:', data.data.length, 'jobs'); // Debug log
+      console.log('Sample raw data:', data.data[0]); // Debug log untuk melihat struktur
       
       // Map data terlebih dahulu
       const mappedJobs = data.data.map(mapJobData);
       
       console.log('Mapped jobs:', mappedJobs); // Debug log
       
+      // Filter hanya job yang aktif (status = 1)
+      const activeJobs = mappedJobs.filter(job => job.status === 1);
+      
       // Sorting berdasarkan multiple criteria untuk memastikan data terbaru
-      const sortedJobs = mappedJobs.sort((a, b) => {
+      const sortedJobs = activeJobs.sort((a, b) => {
         // 1. Prioritas utama: created_at atau updated_at (jika ada)
         if (a.createdAt && b.createdAt) {
           const dateA = new Date(a.createdAt);
@@ -115,13 +124,13 @@ export default function JobListingPage() {
       
       setJobVacancies(latestJobs);
       
-      // Extract unique divisions
+      // Extract unique divisions - DIPERBAIKI
       const uniqueDivisions = [];
-      const divisionIds = new Set();
+      const divisionNames = new Set();
       
       latestJobs.forEach(job => {
-        if (job.divisiId && !divisionIds.has(job.divisiId)) {
-          divisionIds.add(job.divisiId);
+        if (job.divisiNama && !divisionNames.has(job.divisiNama)) {
+          divisionNames.add(job.divisiNama);
           uniqueDivisions.push({
             id: job.divisiId,
             nama: job.divisiNama
@@ -246,10 +255,10 @@ export default function JobListingPage() {
   // Render job card dengan debug info
   const renderJobCard = (job) => (
     <article key={job.id} className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-2 pl-20 min-h-56 max-w-sm mx-auto">
-      {/* Debug info - hapus setelah debugging selesai
+      {/* Debug info - bisa dihapus setelah debugging selesai
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-2 right-2 bg-red-100 text-red-800 text-xs p-1 rounded">
-          ID: {job.id} | Created: {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A'}
+          ID: {job.id} | Status: {job.status}
         </div>
       )} */}
       
@@ -272,7 +281,7 @@ export default function JobListingPage() {
           <h4 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2">{job.company}</h4>
           <div className="flex items-center gap-1 text-gray-600 mb-2">
             <MapPin size={12} className="text-gray-400 flex-shrink-0" aria-hidden="true" />
-            <span className="text-xs">{job.location}, Indonesia</span>
+            <span className="text-xs">{job.location}</span>
           </div>
           <div className="text-xs text-gray-700 mb-2">
             <time dateTime={job.posted}>{job.posted}</time> - <time dateTime={job.closing}>{job.closing}</time>
@@ -319,7 +328,7 @@ export default function JobListingPage() {
 
   return (
     <div className="flex-1">
-      {/* Debug panel - hapus setelah debugging selesai
+      {/* Debug panel - bisa dihapus setelah debugging selesai
       {process.env.NODE_ENV === 'development' && !loading && (
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <h4 className="font-semibold text-yellow-800">Debug Info:</h4>
@@ -330,12 +339,12 @@ export default function JobListingPage() {
           </p>
           {jobVacancies.length > 0 && (
             <div className="mt-2 text-xs text-yellow-600">
-              Jobs order: {jobVacancies.map(job => `#${job.id}`).join(', ')}
+              Jobs order: {jobVacancies.map(job => `#${job.id}(${job.company})`).join(', ')}
             </div>
           )}
         </div>
-      )}
-       */}
+      )} */}
+      
       {loading && renderLoadingSkeleton()}
       
       {error && !loading && renderError()}

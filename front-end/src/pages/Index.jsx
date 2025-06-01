@@ -76,7 +76,7 @@ const Index = () => {
   </h2>
   <CarierStart />
   <div className="flex justify-center mt-8">
-              <Button icon="bi-arrow-right" onClick={() => window.location.href = '/partners'}>
+              <Button icon="bi-arrow-right" onClick={() => window.location.href = '/vacancy'}>
                 Lihat semua lowongan
               </Button>
             </div>

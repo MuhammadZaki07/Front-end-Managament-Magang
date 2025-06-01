@@ -61,8 +61,8 @@ export default function ApprovalTable() {
           setDivisiOptions(divisiList);
         }
 
-        // Status dummy
-        setStatusOptions(["Aktif", "Alumni"]);
+        // Update status options untuk include "Belum Aktif"
+        setStatusOptions(["Belum Aktif", "Aktif", "Alumni"]);
 
         Swal.close();
         setLoading(false); // PERBAIKAN: Set loading false setelah data berhasil diambil

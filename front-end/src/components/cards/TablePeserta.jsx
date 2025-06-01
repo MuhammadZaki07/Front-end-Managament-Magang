@@ -9,10 +9,10 @@ export default function TablePendaftaran({
   selectedStatus,
 }) {
   
-  // PERBAIKAN: Akses berkas dari item.berkas (langsung dari item, bukan dari item.user)
+  // Akses foto dari item.foto (data sudah flat)
   const getProfilePhoto = (item) => {
-    const berkasArr = item?.berkas;
-    const profile = berkasArr?.find((f) => f.type === "profile");
+    const fotoArr = item?.foto;
+    const profile = fotoArr?.find((f) => f.type === "profile");
     return profile
       ? `${import.meta.env.VITE_API_URL_FILE}/storage/${profile.path}`
       : "/Cover.png";
@@ -21,10 +21,12 @@ export default function TablePendaftaran({
   // Fungsi bantu untuk status warna
   const getStatusColor = (status) => {
     switch (status) {
-      case "Peserta Aktif":
+      case "Aktif":
         return "text-[#16A34A]";
       case "Alumni":
         return "text-[#0069AB]";
+      case "Belum Aktif":
+        return "text-[#F59E0B]";
       default:
         return "text-gray-700";
     }
@@ -41,19 +43,64 @@ export default function TablePendaftaran({
     // Validasi apakah tanggal valid
     if (!mulaiDate.isValid() || !selesaiDate.isValid()) return "Alumni";
 
-    return today.isBefore(selesaiDate.add(1, "day")) &&
-      today.isAfter(mulaiDate.subtract(1, "day"))
-      ? "Aktif"
-      : "Alumni";
+    // Jika belum sampai tanggal mulai magang
+    if (today.isBefore(mulaiDate, 'day')) {
+      return "Belum Aktif";
+    }
+    
+    // Jika sudah melewati tanggal selesai magang
+    if (today.isAfter(selesaiDate, 'day')) {
+      return "Alumni";
+    }
+    
+    // Jika dalam periode magang (mulai <= today <= selesai)
+    return "Aktif";
   };
 
-  // Filter data sesuai inputan - PERBAIKAN: Akses data langsung dari item (bukan dari item.user)
+  // Render status badge dengan warna yang sesuai
+  const renderStatusBadge = (status) => {
+    switch (status) {
+      case "Aktif":
+        return (
+          <span className="bg-green-100 text-green-800 px-4 py-1.5 rounded text-xs font-semibold">
+            Aktif
+          </span>
+        );
+      case "Belum Aktif":
+        return (
+          <span className="bg-yellow-100 text-yellow-800 px-4 py-1.5 rounded text-xs font-semibold">
+            Belum Aktif
+          </span>
+        );
+      case "Alumni":
+        return (
+          <span className="bg-blue-100 text-blue-800 px-4 py-1.5 rounded text-xs font-semibold">
+            Alumni
+          </span>
+        );
+      default:
+        return (
+          <span className="bg-gray-100 text-gray-800 px-4 py-1.5 rounded text-xs font-semibold">
+            {status}
+          </span>
+        );
+    }
+  };
+
+  // Filter data - akses langsung dari item (BUKAN item.user)
   const filteredData = data.filter((item) => {
-    // Validasi struktur data - sekarang properties ada langsung di item
+    // Validasi struktur data - properties langsung di item
     if (!item || !item.nama) {
       console.warn("Item tidak memiliki nama:", item);
       return false;
     }
+    
+    // Debug log untuk melihat nilai setiap filter
+    console.log("Filtering item:", item.nama);
+    console.log("searchTerm:", searchTerm);
+    console.log("selectedDate:", selectedDate);
+    console.log("selectedDivisi:", selectedDivisi);
+    console.log("selectedStatus:", selectedStatus);
     
     const isMatchSearch = searchTerm
       ? (item.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -70,10 +117,19 @@ export default function TablePendaftaran({
       ? item.divisi === selectedDivisi
       : true;
 
+    const currentStatus = getStatusMagang(item.mulai_magang, item.selesai_magang);
     const isMatchStatus = selectedStatus
-      ? getStatusMagang(item.mulai_magang, item.selesai_magang) ===
-        selectedStatus
+      ? currentStatus === selectedStatus
       : true;
+
+    console.log("Filter results:", {
+      isMatchSearch,
+      isMatchDate,
+      isMatchDivisi,
+      isMatchStatus,
+      currentStatus,
+      selectedStatus
+    });
 
     return isMatchSearch && isMatchDate && isMatchDivisi && isMatchStatus;
   });
@@ -86,6 +142,7 @@ export default function TablePendaftaran({
 
   console.log("Data yang diterima di table:", data);
   console.log("Data setelah filter:", filteredData);
+  console.log("Filter params:", { searchTerm, selectedDate, selectedDivisi, selectedStatus });
 
   return (
     <div className="w-full overflow-x-auto">
@@ -133,15 +190,7 @@ export default function TablePendaftaran({
                   <td className="px-3 py-3">{item.email || "-"}</td>
                   <td className="px-3 py-3">
                     <span className="text-sm font-medium">
-                      {statusMagang === "Aktif" ? (
-                        <span className="bg-green-100 text-green-800 px-4 py-1.5 rounded text-xs font-semibold">
-                          Aktif
-                        </span>
-                      ) : (
-                        <span className="text-blue-800 px-4 py-1.5 rounded text-xs font-semibold">
-                          Alumni
-                        </span>
-                      )}
+                      {renderStatusBadge(statusMagang)}
                     </span>
                   </td>
                   <td className="px-3 py-3">{item.sekolah || "-"}</td>

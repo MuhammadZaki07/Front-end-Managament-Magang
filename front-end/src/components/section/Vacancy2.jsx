@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MapPin, Users, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+// import { useNavigate } from 'react-router-dom'; // Uncomment jika menggunakan React Router
 
 export default function JobListingPage() {
+  // const navigate = useNavigate(); // Uncomment jika menggunakan React Router
   const [filterOpen, setFilterOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [jobVacancies, setJobVacancies] = useState([]);
@@ -18,28 +20,25 @@ export default function JobListingPage() {
   
   console.log('Job Vacancies:', jobVacancies);
   
-  // Fungsi untuk mengformat data lowongan dari API
+  // Fungsi untuk mengformat data lowongan dari API - DIPERBAIKI
   const mapJobData = (job) => ({
     id: job.id,
-    title: job.divisi?.nama || "-",
-    divisiId: job.divisi?.id || null,
-    divisiNama: job.divisi?.nama || "-",
-    company: job.perusahaan?.nama || "Company Name",
-    location: job.cabang
-      ? `${job.cabang.kota}, ${job.cabang.provinsi}`
-      : job.perusahaan
-      ? `${job.perusahaan.kota}, ${job.perusahaan.provinsi}`
-      : "Pekanbaru",
+    title: job.divisi || "-",
+    divisiId: job.id, // Menggunakan job.id sebagai divisiId karena divisi tidak memiliki ID terpisah
+    divisiNama: job.divisi || "-",
+    company: job.perusahaan || "Company Name",
+    location: `${job.kota}, ${job.provinsi}`,
     posted: formatDate(job.tanggal_mulai),
     closing: formatDate(job.tanggal_selesai),
     badge: "Magang",
     applicants: job.total_pendaftar || 0,
-    image: job.cabang?.foto?.find(f => f.type === "profil_cover")?.path
-      ? `${API_FILE_URL}/storage/${job.cabang.foto.find(f => f.type === "profil_cover").path}`
+    // Perbaikan untuk mengambil foto profil_cover
+    image: job.foto?.find(f => f.type === "profil_cover")?.path
+      ? `${API_FILE_URL}/storage/${job.foto.find(f => f.type === "profil_cover").path}`
       : "/assets/img/Cover.png",
-    duration: job.durasi ? `${job.durasi} Bulan` : "",
-    createdAt: job.created_at,
-    updatedAt: job.updated_at
+    duration: job.durasi ? `${job.durasi} Bulan` : "", // Durasi mungkin tidak ada di response
+    createdAt: job.created_at || job.tanggal_mulai, // Fallback ke tanggal_mulai jika created_at tidak ada
+    updatedAt: job.updated_at || job.tanggal_selesai // Fallback ke tanggal_selesai jika updated_at tidak ada
   });
 
   // Fungsi untuk memformat tanggal
@@ -80,21 +79,21 @@ export default function JobListingPage() {
       
       const data = await response.json();
       
-      // Urutkan berdasarkan tanggal terbaru
+      // Urutkan berdasarkan tanggal terbaru - DIPERBAIKI
       const sortedJobs = (data?.data || [])
-        .sort((a, b) => new Date(b.created_at || b.tanggal_mulai) - new Date(a.created_at || a.tanggal_mulai))
+        .sort((a, b) => new Date(b.tanggal_mulai) - new Date(a.tanggal_mulai))
         .map(mapJobData);
       
       setJobVacancies(sortedJobs);
       setFilteredJobs(sortedJobs);
       
-      // Ekstrak divisi unik dari data lowongan
+      // Ekstrak divisi unik dari data lowongan - DIPERBAIKI
       const uniqueDivisions = [];
-      const divisionIds = new Set();
+      const divisionNames = new Set();
       
       sortedJobs.forEach(job => {
-        if (job.divisiId && !divisionIds.has(job.divisiId)) {
-          divisionIds.add(job.divisiId);
+        if (job.divisiNama && !divisionNames.has(job.divisiNama)) {
+          divisionNames.add(job.divisiNama);
           uniqueDivisions.push({
             id: job.divisiId,
             nama: job.divisiNama
@@ -167,8 +166,6 @@ export default function JobListingPage() {
     setCurrentPage(1);
   }, [selectedDivisions, jobVacancies]);
 
-
-
   // Fungsi untuk mengubah filter divisi
   const handleDivisionChange = (divisionIds) => {
     const idsArray = Array.isArray(divisionIds) ? divisionIds : [divisionIds];
@@ -197,7 +194,15 @@ export default function JobListingPage() {
 
   // Fungsi untuk melihat detail lowongan
   const handleViewDetail = (jobId) => {
+    // Opsi 1: Menggunakan React Router (Recommended)
     // navigate(`/vacancy/${jobId}`);
+    
+    // Opsi 2: Menggunakan window.location
+    window.location.href = `/vacancy/${jobId}`;
+    
+    // Opsi 3: Buka di tab baru
+    // window.open(`/vacancy/${jobId}`, '_blank');
+    
     console.log(`Navigating to vacancy detail: ${jobId}`);
   };
 

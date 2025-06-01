@@ -14,7 +14,7 @@ import {
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-const JobDetail = ({ job, onClose, onEdit,onSucces }) => {
+const JobDetail = ({ job, onClose, onEdit, onSucces }) => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   console.log(job);
   
@@ -32,6 +32,7 @@ const JobDetail = ({ job, onClose, onEdit,onSucces }) => {
   }, [onClose]);
 
   if (!job) return null;
+  
   const handleTutupClick = () => {
     setShowConfirmationModal(true);
   };
@@ -59,7 +60,8 @@ const JobDetail = ({ job, onClose, onEdit,onSucces }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-lg h-fit sticky top-4 w-1/3">
+    // HAPUS w-1/3 dari sini - biarkan parent yang mengatur width
+    <div className="bg-white rounded-xl p-6 shadow-lg h-fit w-full">
       {/* Main Content */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Detail Lowongan</h2>
@@ -109,21 +111,10 @@ const JobDetail = ({ job, onClose, onEdit,onSucces }) => {
                   : "bg-emerald-100 text-emerald-500"
               }`}
             >
-              {job.status === 0 ? "Selsai" : "Berlangsung"}
+              {job.status === 0 ? "Selesai" : "Berlangsung"}
             </span>
           </div>
         </div>
-
-        <div className="flex items-center mb-3">
-          <div className="flex items-center gap-2 w-1/2">
-            <div className="w-5 h-5 text-blue-500">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <span className="text-sm text-gray-500">Durasi Lowongan:</span>
-          </div>
-          <div className="w-1/2 text-sm font-medium">{job.durasi} Bulan</div>
-        </div>
-
         <div className="flex items-center mb-3">
           <div className="flex items-center gap-2 w-1/2">
             <div className="w-5 h-5 text-blue-500">
