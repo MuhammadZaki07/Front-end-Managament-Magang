@@ -8,6 +8,7 @@ import ModalDelete from "../../components/modal/ModalDeleteAdminCabang";
 import Loading from "../../components/cards/Loading";
 import DataNotAvaliable from "../DataNotAvaliable";
 import Swal from "sweetalert2";
+
 export default function MentorBranchCard() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,8 +21,10 @@ export default function MentorBranchCard() {
   const [loading, setLoading] = useState(true);
   const [branches, setBranches] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [userRole, setUserRole] = useState(null); // State untuk menyimpan role user
   const itemsPerPage = 12;
   const [selectedDivision, setSelectedDivision] = useState("All");
+  
   const filteredBranches = Array.isArray(branches)
     ? selectedDivision === "All"
       ? branches
@@ -29,6 +32,7 @@ export default function MentorBranchCard() {
           (branch) => String(branch.divisi.id) === String(selectedDivision)
         )
     : [];
+  
   const {namaCabang} = useParams();
   const pageCount = Math.ceil(filteredBranches.length / itemsPerPage);
   const displayedBranches = filteredBranches.slice(
@@ -36,17 +40,66 @@ export default function MentorBranchCard() {
     (currentPage + 1) * itemsPerPage
   );
 
+  // Fungsi untuk mendapatkan role user dari token atau API
+  const getUserRole = () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        // Decode JWT token untuk mendapatkan role
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log("Token payload:", payload); // Debug
+        
+        // Coba berbagai kemungkinan key untuk role
+        const role = payload.role || 
+                     payload.user_role || 
+                     payload.userRole ||
+                     payload.type ||
+                     payload.account_type ||
+                     null;
+        
+        console.log("Role dari token:", role); // Debug
+        return role;
+      }
+    } catch (error) {
+      console.error("Error decoding token:", error);
+    }
+    return null;
+  };
+
+  // Alternatif: Jika role disimpan langsung di localStorage
+  const getUserRoleFromStorage = () => {
+    return localStorage.getItem("userRole") || 
+           localStorage.getItem("role") ||
+           localStorage.getItem("user_type") ||
+           localStorage.getItem("account_type") ||
+           localStorage.getItem("roleType");
+  };
+
+  // Fungsi untuk determine role secara real-time
+  const determineUserRole = () => {
+    // Cek token terlebih dahulu
+    const tokenRole = getUserRole();
+    if (tokenRole) return tokenRole;
+    
+    // Fallback ke localStorage
+    const storageRole = getUserRoleFromStorage();
+    if (storageRole) return storageRole;
+    
+    return null;
+  };
+
   const fetchMentors = async () => {
     try {
       Swal.fire({
-                title: 'Memuat data...',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                  Swal.showLoading();
-                }
-              });
+        title: 'Memuat data...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/mentor`,
         {
@@ -55,6 +108,7 @@ export default function MentorBranchCard() {
           },
         }
       );
+      
       setBranches(Array.isArray(response.data?.data) ? response.data.data : []);
       setLoading(false);
       Swal.close();
@@ -84,6 +138,21 @@ export default function MentorBranchCard() {
   };
 
   useEffect(() => {
+    // Set user role saat component mount dengan lebih detail
+    const tokenRole = getUserRole();
+    const storageRole = getUserRoleFromStorage();
+    
+    console.log("=== SETTING USER ROLE ===");
+    console.log("Token role:", tokenRole);
+    console.log("Storage role:", storageRole);
+    
+    // Prioritas: token role > storage role
+    const finalRole = tokenRole || storageRole;
+    console.log("Final role:", finalRole);
+    console.log("========================");
+    
+    setUserRole(finalRole);
+    
     fetchDivisions();
     fetchMentors();
   }, []);
@@ -97,13 +166,41 @@ export default function MentorBranchCard() {
     setCurrentPage(event.selected);
   };
 
-  // Simplified handleViewDetail function
+  // Modified handleViewDetail function dengan logika role-based routing yang diperbaiki
   const handleViewDetail = (mentorId) => {
     if (!mentorId) {
       console.error("ID Mentor tidak valid");
       return;
     }
-    navigate(`/perusahaan/cabang/${namaCabang}/mentor/${mentorId}`);
+
+    // Determine role secara real-time (tidak bergantung pada state)
+    const currentRole = determineUserRole();
+    
+    console.log("=== DEBUG ROLE INFO ===");
+    console.log("userRole dari state:", userRole);
+    console.log("currentRole real-time:", currentRole);
+    console.log("typeof currentRole:", typeof currentRole);
+    console.log("namaCabang:", namaCabang);
+    console.log("=====================");
+
+    // Logika routing berdasarkan role user dengan pengecekan yang lebih lengkap
+    if (currentRole === "perusahaan" || currentRole === "company") {
+      console.log("Navigasi ke route perusahaan");
+      navigate(`/perusahaan/cabang/${namaCabang}/mentor/${mentorId}`);
+    } else if (
+      currentRole === "admin" || 
+      currentRole === "branch_admin" || 
+      currentRole === "admin_cabang" ||
+      currentRole === "Admin" ||
+      currentRole === "ADMIN"
+    ) {
+      console.log("Navigasi ke route admin");
+      navigate(`/admin/mentor/${mentorId}`);
+    } else {
+      console.warn("Role tidak dikenali:", currentRole, "menggunakan route admin sebagai default");
+      // Ubah default ke admin route
+      navigate(`/admin/mentor/${mentorId}`);
+    }
   };
 
   const handleOpenDeleteModal = (branchId) => {
@@ -217,7 +314,6 @@ export default function MentorBranchCard() {
                   </p>
                   <div className="flex justify-center mt-2">
                     <div className="border border-[#D5DBE7] rounded p-2 w-full flex justify-between items-center space-x-2">
-                      {/* Simplified button with direct navigation */}
                       <button
                         onClick={() => handleViewDetail(branch.id)}
                         className="text-blue-500 border border-blue-500 rounded px-3 py-1 text-xs hover:bg-blue-50"

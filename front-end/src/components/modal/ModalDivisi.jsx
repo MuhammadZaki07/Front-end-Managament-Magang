@@ -176,7 +176,7 @@ const ModalDivisi = ({ showModal, setShowModal, editingDivision = null, onSucces
   if (!showModal) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-[999] ">
       <div className="absolute inset-0 bg-black opacity-50" onClick={() => setShowModal(false)}></div>
       <div className="bg-white rounded-lg w-full max-w-md mx-4 z-50">
         <div className="p-6">

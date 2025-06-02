@@ -66,7 +66,7 @@ const StatisticsCard = ({ peserta }) => {
   }];
 
   return (
-    <div className="bg-white-200 bg-white border border-slate-400/[0.5] rounded-xl p-6 mb-6 hover:shadow-blue-300 shadow-lg">
+    <div className="bg-white-200 bg-white border border-slate-400/[0.5] rounded-xl p-6 mb-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-medium">Peserta Per Divisi</h2>
       </div>
