@@ -120,7 +120,7 @@ const MyPartner = () => {
             <img 
               src={company.profileImage} 
               alt={company.name}
-              className="w-20 h-20 object-contain mb-2 cursor-pointer transform transition-transform hover:scale-105"
+              className="w-30 h-30 object-contain mb-2 cursor-pointer transform transition-transform hover:scale-105"
               onError={(e) => {
                 console.error("Image failed to load:", company.profileImage);
                 e.target.src = "/api/placeholder/40/40";

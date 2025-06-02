@@ -17,20 +17,37 @@ const companies = [
     location: "Bandung, Jawa Barat",
     logoUrl: "/assets/img/Profil.png",
   },
+  {
+    name: "PT Digital Inovasi Terbaru",
+    location: "Jakarta, DKI Jakarta",
+    logoUrl: "/assets/img/Profil.png",
+  },
+  {
+    name: "CV Teknologi Masa Depan",
+    location: "Surabaya, Jawa Timur",
+    logoUrl: "/assets/img/Profil.png",
+  },
 ];
 
 const CabongTerdaftar = () => {
   return (
     <div className="bg-white mt-6 rounded-xl h-full flex flex-col">
       <div className="flex justify-between items-center p-4 border-b border-gray-100">
-        <h2 className="text-xs font-bold text-gray-800">Cabong Terdaftar</h2>
+        <h2 className="text-xs font-bold text-gray-800">Cabang Terdaftar</h2>
         <div className="flex items-center gap-2 text-xs text-gray-600">
           <span>Terbaru</span>
           <ChevronDown className="w-4 h-4" />
         </div>
       </div>
-      <div className="flex-1 p-4" style={{ maxHeight: "900px" }}>
-        <div className="space-y-3">
+      <div className="flex-1 p-4">
+        <div 
+          className="space-y-3 overflow-y-auto scrollbar-hide"
+          style={{ 
+            maxHeight: 'calc(3 * 75px)', // Tinggi untuk 3 item (setiap item sekitar 68px termasuk padding)
+            scrollbarWidth: 'none', // Firefox
+            msOverflowStyle: 'none' // IE/Edge
+          }}
+        >
           {companies.map((company, index) => (
             <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
               <div className="flex items-center gap-3">
@@ -53,6 +70,12 @@ const CabongTerdaftar = () => {
           ))}
         </div>
       </div>
+      
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 };

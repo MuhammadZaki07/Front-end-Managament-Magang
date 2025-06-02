@@ -2,26 +2,42 @@ import React from 'react';
 import { MoreHorizontal } from 'lucide-react';
 
 const students = [
-  { 
-    name: "PT Nusantara Digital Teknologi", 
-    location: "Bandung, Jawa Barat", 
-    project: "Pre Mini Project",
+  {
+     name: "PT Nusantara Digital Teknologi",
+     location: "Bandung, Jawa Barat",
+     project: "Pre Mini Project",
     participants: "125 peserta magang",
     logoUrl: "/assets/img/Profil.png"
   },
-  { 
-    name: "CV Harmoni Rasa Nusantara", 
-    location: "Denpasar, Bali", 
-    project: "Pre Mini Project", 
-    progress: 55,
+  {
+     name: "CV Harmoni Rasa Nusantara",
+     location: "Denpasar, Bali",
+     project: "Pre Mini Project",
+     progress: 55,
     participants: "125 peserta magang",
     logoUrl: "/assets/img/Profil.png"
   },
-  { 
-    name: "PT Sinar Logistik Mandiri", 
-    location: "Surabaya, Jawa Timur", 
-    project: "Pre Mini Project", 
-    progress: 68,
+  {
+     name: "PT Sinar Logistik Mandiri",
+     location: "Surabaya, Jawa Timur",
+     project: "Pre Mini Project",
+     progress: 68,
+    participants: "125 peserta magang",
+    logoUrl: "/assets/img/Profil.png"
+  },
+  {
+     name: "PT Sinar Logistik Mandiri",
+     location: "Surabaya, Jawa Timur",
+     project: "Pre Mini Project",
+     progress: 68,
+    participants: "125 peserta magang",
+    logoUrl: "/assets/img/Profil.png"
+  },
+  {
+     name: "PT Teknologi Maju Bersama",
+     location: "Jakarta, DKI Jakarta",
+     project: "Pre Mini Project",
+     progress: 80,
     participants: "125 peserta magang",
     logoUrl: "/assets/img/Profil.png"
   },
@@ -36,16 +52,23 @@ const AssignmentsCards = () => {
           See All
         </a>
       </div>
-      
-      <div className="flex-1 p-6" style={{ maxHeight: '900px' }}>
-        <div className="space-y-6">
+             
+      <div className="flex-1 p-6">
+        <div 
+          className="space-y-6 overflow-y-auto scrollbar-hide" 
+          style={{ 
+            maxHeight: 'calc(3 * 113px)', // Tinggi untuk 3 item (setiap item sekitar 92px termasuk padding)
+            scrollbarWidth: 'none', // Firefox
+            msOverflowStyle: 'none' // IE/Edge
+          }}
+        >
           {students.map((student, index) => (
             <div key={index} className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gray-900 rounded-2xl overflow-hidden flex-shrink-0">
-                  <img 
-                    src={student.logoUrl} 
-                    alt={`${student.name} logo`}
+                  <img
+                     src={student.logoUrl}
+                     alt={`${student.name} logo`}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -61,7 +84,7 @@ const AssignmentsCards = () => {
                   </p>
                 </div>
               </div>
-              
+                             
               <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <MoreHorizontal className="w-5 h-5 text-gray-400" />
               </button>
@@ -69,6 +92,12 @@ const AssignmentsCards = () => {
           ))}
         </div>
       </div>
+      
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 };
