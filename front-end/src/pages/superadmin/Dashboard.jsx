@@ -16,46 +16,50 @@ const MentorDashboard = () => {
         <CardsSuperadmin />
       </div>
       
-      <div className="flex w-full gap-2 items-start h-full mb-6">
-        <div className="flex-[8] w-60 flex flex-col gap-2 h-[450px]">
-          <div className="flex-1 h-15">
-            <StatistikPeserta />
+      {/* Layout utama dengan 3 kolom */}
+      <div className="flex w-full gap-2 h-full">
+        {/* Kolom kiri - 2 baris cards */}
+        <div className="flex-[12] flex flex-col gap-2">
+          {/* Baris pertama */}
+          <div className="flex gap-2 h-[450px] mb-6">
+            <div className="flex-[8] w-60 flex flex-col gap-2">
+              <div className="flex-1 h-15">
+                <StatistikPeserta />
+              </div>
+            </div>
+            <div className="flex-[4] w-60 flex flex-col gap-2">
+              <div className="flex-1 h-20">
+                <Perusahaanterdaftar />
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex-[4] w-60 flex flex-col gap-2 h-[450px]">
-          <div className="flex-1 h-20">
-            <Perusahaanterdaftar />
+          
+          {/* Baris kedua */}
+          <div className="flex gap-2 h-[363px]">
+            <div className="flex-[6] w-60 flex flex-col gap-2">
+              <div className="flex-1 h-15">
+                <PesertaAksiChart />
+              </div>
+            </div>
+            <div className="flex-[3] w-60 flex flex-col gap-2 -mt-2">
+              <div className="flex-1 h-15">
+                <CabangTerdaftar />
+              </div>
+            </div>
+            <div className="flex-[4] w-60 flex flex-col gap-2 -mt-2">
+              <div className="flex-1 h-20">
+                <StatistikPeserta />
+              </div>
+            </div>
           </div>
         </div>
         
-        {/* Chart Lowongan dan DivisiTerdata dalam satu kolom full height */}
-        <div className="flex-[1] flex flex-col gap-2 h-[450px]">
-          <Card className="px-1 py-1 flex-1">
+        {/* Kolom kanan - Chart Lowongan dan DivisiTerdata full height */}
+        <div className="flex-[1] flex flex-col gap-2 mt-3">
+          <Card className="px-1 py-1 h-[350px]">
             <ChartLowongan />
           </Card>
-        </div>
-      </div>
-      
-      <div className="flex w-full gap-2 items-stretch h-full">
-        <div className="flex-[6] w-60 flex flex-col gap-2 h-[350px]">
-          <div className="flex-1 h-15">
-            <PesertaAksiChart />
-          </div>
-        </div>
-        <div className="flex-[3] w-60 flex flex-col gap-2 h-[350px]">
-          <div className="flex-1 h-15">
-            <CabangTerdaftar />
-          </div>
-        </div>
-        <div className="flex-[4] w-60 flex flex-col gap-2 h-[350px]">
-          <div className="flex-1 h-20">
-            <StatistikPeserta />
-          </div>
-        </div>
-        
-        {/* DivisiTerdata di bawah ChartLowongan dalam kolom yang sama */}
-        <div className="flex-[1] flex flex-col gap-2 h-[350px]">
-          <Card className="px-1 py-1 flex-1">
+          <Card className="px-1 py-1 h-[472px]">
             <DivisiTerdata />
           </Card>
         </div>
