@@ -1,11 +1,104 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 export default function LowonganChart() {
-  const percentage = 84;
-  const radius = 60;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
+  
+  useEffect(() => {
+    // Function to initialize chart
+    const initChart = () => {
+      if (window.ApexCharts && chartRef.current && !chartInstance.current) {
+        const options = {
+          series: [84],
+          chart: {
+            type: 'radialBar',
+            offsetY: -20,
+            sparkline: {
+              enabled: true
+            }
+          },
+          plotOptions: {
+            radialBar: {
+              startAngle: -90,
+              endAngle: 90,
+              track: {
+                background: "#A5B4FC",
+                strokeWidth: '97%',
+                margin: 5,
+                dropShadow: {
+                  enabled: true,
+                  top: 2,
+                  left: 0,
+                  color: '#444',
+                  opacity: 1,
+                  blur: 2
+                }
+              },
+              dataLabels: {
+                name: {
+                  show: false
+                },
+                value: {
+                  offsetY: -2,
+                  fontSize: '22px',
+                  fontWeight: 'bold',
+                  color: '#1F2937',
+                  formatter: function (val) {
+                    return parseInt(val) + "%";
+                  }
+                }
+              }
+            }
+          },
+          grid: {
+            padding: {
+              top: -10
+            }
+          },
+          fill: {
+            type: 'gradient',
+            gradient: {
+              shade: 'light',
+              shadeIntensity: 0.4,
+              inverseColors: false,
+              opacityFrom: 1,
+              opacityTo: 1,
+              stops: [0, 50, 53, 91]
+            }
+          },
+          colors: ['#4338CA'],
+          labels: ['Lowongan Aktif']
+        };
+
+        chartInstance.current = new window.ApexCharts(chartRef.current, options);
+        chartInstance.current.render();
+      }
+    };
+
+    // Check if ApexCharts is already loaded
+    if (window.ApexCharts) {
+      initChart();
+    } else {
+      // Check if script is already being loaded
+      const existingScript = document.querySelector('script[src*="apexcharts"]');
+      if (existingScript) {
+        existingScript.addEventListener('load', initChart);
+      } else {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.44.0/apexcharts.min.js';
+        script.addEventListener('load', initChart);
+        document.head.appendChild(script);
+      }
+    }
+
+    // Cleanup function
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+        chartInstance.current = null;
+      }
+    };
+  }, []); // Empty dependency array to run only once
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6">
@@ -16,31 +109,9 @@ export default function LowonganChart() {
           <p className="text-sm text-gray-500">Kelola lowongan</p>
         </div>
 
-        {/* Semi-Circle Chart */}
-        <div className="flex justify-center mb-6">
-          <div className="relative">
-            <svg width="200" height="120" viewBox="0 0 200 120">
-              {/* Background Semi-Circle - Light Blue */}
-              <path
-                d="M 20 100 A 80 80 0 0 1 180 100"
-                stroke="#A5B4FC"
-                strokeWidth="24"
-                fill="none"
-              />
-              {/* Active Semi-Circle (84%) - Dark Blue */}
-              <path
-                d="M 20 100 A 80 80 0 0 1 148 34"
-                stroke="#4338CA"
-                strokeWidth="24"
-                fill="none"
-                className="transition-all duration-1000 ease-out"
-              />
-            </svg>
-            {/* Center Text */}
-            <div className="absolute inset-0 flex items-center justify-center mt-4">
-              <span className="text-3xl font-bold text-gray-900">{percentage}%</span>
-            </div>
-          </div>
+        {/* ApexCharts Semi-Circle Chart */}
+        <div className="flex justify-center">
+          <div ref={chartRef} style={{width: '200px', height: '120px'}}></div>
         </div>
 
         {/* Legend */}
