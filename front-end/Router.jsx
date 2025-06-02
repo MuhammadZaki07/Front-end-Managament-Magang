@@ -78,6 +78,7 @@ import SuperadminLayout from "./src/layout/SuperadminLayout";
 import DashboardSuperadmin from "./src/pages/superadmin/Dashboard";
 import MitraDetails from "./src/components/section/MitraDetails";
 import StatusProvider from "./src/pages/student/StatusContext";
+import DataPerusahaan from "./src/pages/superadmin/DataPerusahaan";
 
 
 export const router = createBrowserRouter([
@@ -407,6 +408,10 @@ export const router = createBrowserRouter([
     {
       path: "dashboard",
       element: <DashboardSuperadmin/>
+    },
+    {
+      path: "DataPerusahaan",
+      element: <DataPerusahaan/>
     }
   ]
 },

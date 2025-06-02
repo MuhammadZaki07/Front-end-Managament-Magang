@@ -172,15 +172,22 @@ const SuperadminLayout = () => {
               to="/superadmin/dashboard" 
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-black hover:text-sky-800 hover:bg-sky-50 transition-all duration-300 ease-in-out"
             >
-              <LayoutDashboard size={16} />
+              
               <span className="text-sm font-medium">Dashboard</span>
             </Link>
             <Link 
-              to="/superadmin/management" 
+              to="/superadmin/DataPerusahaan" 
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-black hover:text-sky-800 hover:bg-sky-50 transition-all duration-300 ease-in-out"
             >
-              <Building2 size={16} />
+              
               <span className="text-sm font-medium">Manajemen Perusahaan</span>
+            </Link>
+            <Link 
+              to="/superadmin/post" 
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-black hover:text-sky-800 hover:bg-sky-50 transition-all duration-300 ease-in-out"
+            >
+              
+              <span className="text-sm font-medium">Create Post</span>
             </Link>
           </div>
 
