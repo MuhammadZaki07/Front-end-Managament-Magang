@@ -71,7 +71,8 @@ const StudentLayout = () => {
         if (response.status === 200) {
           localStorage.removeItem("token");
           sessionStorage.removeItem("token");
-          
+          sessionStorage.removeItem('internshipStatus');
+          sessionStorage.removeItem('profileComplete');
           // Show success message before redirect
           await Swal.fire({
             title: 'Logout Berhasil!',

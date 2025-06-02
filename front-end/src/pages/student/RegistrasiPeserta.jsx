@@ -112,6 +112,7 @@ export default function StudentRegistrationForm() {
       // Handle success
       console.log("Form submitted successfully:", response.data);
       setShowSuccessModal(true); // Menampilkan modal sukses setelah berhasil
+      sessionStorage.setItem("profileComplete", JSON.stringify(true));
     } catch (error) {
       console.error("Error submitting form:", error);
       if (error.response) {

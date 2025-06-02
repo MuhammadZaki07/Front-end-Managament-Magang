@@ -38,15 +38,15 @@ export const StatusProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const savedProfileComplete = localStorage.getItem("profileComplete");
-    const savedInternshipStatus = localStorage.getItem("internshipStatus");
+    const savedProfileComplete = sessionStorage.getItem("profileComplete");
+    const savedInternshipStatus = sessionStorage.getItem("internshipStatus");
 
     if (savedProfileComplete && savedInternshipStatus) {
         setProfileComplete(JSON.parse(savedProfileComplete));
         setInternshipStatus(JSON.parse(savedInternshipStatus));
-        setUserLoading(false); // langsung set loading selesai
+        setUserLoading(false);
     } else {
-        fetchUserData(); // hanya request jika tidak ada di localStorage
+        fetchUserData(); 
     }
 }, [token]);
 

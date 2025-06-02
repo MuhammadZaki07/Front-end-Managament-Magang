@@ -1,4 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import axios from "axios";
+
 import AlertVerification from "../../components/AlertVerification";
 import Calendar from "../../components/Calendar";
 import ChartStats from "../../components/charts/ChartStats";
@@ -7,48 +10,17 @@ import StaticJurnal from "../../components/charts/StaticJurnal";
 import Title from "../../components/Title";
 import RevisionCard from "../../components/cards/RevisionCard";
 import ProjectStats from "../../components/charts/ProjectStats";
-import PresentationHistory from "../../components/cards/PresentationCard";
-import { Link, useLocation } from "react-router-dom";
 import PresentationCard from "../../components/cards/PresentationCard";
 import RiwayatProject from "../../components/cards/RiwayatProject";
 import ProjectBerjalan from "../../components/cards/ProjectBerjalan";
+
 import { StatusContext } from "./StatusContext";
-import axios from "axios";
 
 const Dashboard = () => {
   const location = useLocation();
   localStorage.setItem("location", location.pathname);
 
-  const {
-      profileComplete,
-      internshipStatus,
-      userLoading,
-    } = useContext(StatusContext);
-  const [status, setStaus] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const chcekDataStatus = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/complete/peserta`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setStaus(res.data.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    chcekDataStatus();
-  }, []);
-
+  const { profileComplete, internshipStatus, userLoading } = useContext(StatusContext);
   const statsData = [
     {
       title: "Total Absensi",
@@ -113,9 +85,7 @@ const Dashboard = () => {
     },
   ];
 
-  // Loading state
   if (userLoading) {
-  if (loading)
     return (
       <div className="h-screen">
         <div className="w-full h-14 bg-slate-300 border border-slate-200 rounded-lg flex justify-between py-1 px-3 items-center mb-4 animate-pulse">
@@ -124,11 +94,8 @@ const Dashboard = () => {
         </div>
       </div>
     );
-    
-  // PERBAIKAN: Cek magangStatus dengan lebih fleksibel
-  
-  
-  // PERBAIKAN: Cek status peserta dengan lebih fleksibel  
+  }
+
   if (!profileComplete) {
     return (
       <div className="w-full">
@@ -139,7 +106,7 @@ const Dashboard = () => {
       </div>
     );
   }
-  
+
   if (!internshipStatus) {
     return (
       <div className="w-full mt-10">
@@ -152,7 +119,7 @@ const Dashboard = () => {
       </div>
     );
   }
-  // Dashboard utama - hanya muncul jika magangStatus dan status keduanya true
+
   return (
     <div className="w-full">
       <div className="flex w-full gap-5">
@@ -161,102 +128,64 @@ const Dashboard = () => {
             <div className="grid grid-cols-4 gap-3">
               {statsData.map((item, index) => (
                 <ChartStats
+                  key={index}
                   icon={item.icon}
                   value={item.value}
                   color={item.color}
                   title={item.title}
-                  key={index + 1}
                   seriesData={item.data}
                 />
               ))}
             </div>
           </Card>
+
           <Card className="my-7">
             <StaticJurnal />
           </Card>
+
           <Card>
-            <RiwayatProject/>
+            <RiwayatProject />
+          </Card>
+
+          <Card>
+            <div className="flex justify-between items-center mb-4">
+              <Title className="ml-3">Riwayat Presentasi</Title>
+              <Link to="#" className="text-blue-500 text-sm mr-3">
+                See All
+              </Link>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {presentations.map((item, index) => (
+                <PresentationCard key={index} item={item} />
+              ))}
+            </div>
           </Card>
         </div>
+
         <div className="flex-[3] flex-col gap-5">
-          <div className="flex items-center p-3 bg-white rounded-lg shadow-sm">
-            <div className="flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full mr-4 overflow-hidden">
-              <img src={dataMagangBerlangsung.logo} alt="Company Logo" className="w-full h-full object-cover" />
+          <div className="bg-white w-full rounded-lg py-3 text-blue-400 text-sm text-center">
+            Anda Sedang magang di Perusahaan Informatika Divisi Frontend Developer
+          </div>
+
+          <Calendar />
+
+          <Card className="mt-3">
+            <Title className="ml-1">Revisi</Title>
+            <div className="flex flex-col">
+              {dataRevision.map((item, i) => (
+                <RevisionCard key={i} desc={item.desc} title={item.title} />
+              ))}
             </div>
-            <div>
-              <h2 className="text-[#0069AB] font-bold text-lg">MAGANG BERLANGSUNG</h2>
-              <h3 className="text-black font-semibold text-sm">{dataMagangBerlangsung.companyName}</h3>
-              <p className="text-black text-sm">{dataMagangBerlangsung.position}</p>
-  return (
-    <div className="w-full">
-      {status === "false" ? (
-        <>
-          <AlertVerification />
-          <div className="w-xl mx-auto h-screen">
-            <img src="/assets/svg/Forms.svg" alt="Forms.svg" />
-          </div>
-        </>
-      ) : (
-        <div className="flex w-full gap-5">
-          <div className="flex-[8] w-full">
-            <Card className="mt-0">
-              <div className="grid grid-cols-4 gap-3">
-                {statsData.map((item, index) => (
-                  <ChartStats
-                    icon={item.icon}
-                    value={item.value}
-                    color={item.color}
-                    title={item.title}
-                    key={index + 1}
-                    seriesData={item.data}
-                  />
-                ))}
-              </div>
-            </Card>
-            <Card className="my-7">
-              <StaticJurnal />
-            </Card>
-            <Card>
-              <div className="flex justify-between items-center mb-4">
-                <Title className="ml-3">Riwayat Presentasi</Title>
-                <Link to={`#`} className="text-blue-500 text-sm mr-3">
-                  See All
-                </Link>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {presentations.map((item, index) => (
-                  <PresentationCard key={index} item={item} />
-                ))}
-              </div>
-            </Card>
-          </div>
-          <div className="flex-[3] flex-col gap-5">
-            <div className="bg-white w-full rounded-lg py-3 text-blue-400 text-sm text-center">
-              Anda Sedang magang di Perusahaan Informatika Divisi Frontend
-              Developer
+          </Card>
+
+          <Card className="px-0 py-2 mb-3">
+            <div className="border-b border-slate-400/[0.5] py-3">
+              <Title className="ml-5">My Progress</Title>
             </div>
-            <Calendar />
-            <Card className="mt-3">
-              <Title className="ml-1">Revisi</Title>
-              <div className="flex flex-col">
-                {dataRevision.map((item, i) => (
-                  <RevisionCard
-                    key={i + 1}
-                    desc={item.desc}
-                    title={item.title}
-                  />
-                ))}
-              </div>
-            </Card>
-            <Card className="px-0 py-2 mb-3">
-              <div className="border-b border-slate-400/[0.5] py-3">
-                <Title className="ml-5">My Progress</Title>
-              </div>
-              <ProjectStats />
-            </Card>
-          </div>
+            <ProjectStats />
+          </Card>
         </div>
-      )}
+      </div>
     </div>
   );
 };
