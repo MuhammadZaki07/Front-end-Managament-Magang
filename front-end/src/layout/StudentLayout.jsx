@@ -1,69 +1,28 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../contexts/AuthContext";
+import { useState, useEffect, useContext, useCallback } from "react";
 import axios from "axios";
 import Swal from "sweetalert2"; // Import SweetAlert2
+import { StatusContext } from "../pages/student/StatusContext";
+import { AuthContext } from "../contexts/AuthContext";
 
 const StudentLayout = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
   const [isPresentasiOpen, setIsPresentasiOpen] = useState(false);
   const { role, token } = useContext(AuthContext);
-  const [profileComplete, setProfileComplete] = useState(false);
-  const [approvalStatus, setApprovalStatus] = useState(false);
-  const [internshipStatus, setInternshipStatus] = useState("menunggu"); // Default status is "menunggu"
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
+  const {
+    profileComplete,
+    internshipStatus,
+    userLoading,
+  } = useContext(StatusContext);
 
-  const checkProfileStatus = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/complete/peserta`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      // Handle string "true"/"false" conversion to boolean
-      setProfileComplete(res.data.data === "true" || res.data.data === true);
-      console.log("Profile complete status:", res.data.data);
-    } catch (error) {
-      console.log("Profile status check error:", error);
-      setProfileComplete(false);
-    }
-  };
-
-  const checkApprovalStatus = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/complete/magang`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      // Pastikan data diproses dengan benar
-      const isApproved = res.data.data === "true" || res.data.data === true;
-      console.log("Internship status response:", res.data);
-      
-      // Set both approval boolean and internship status string
-      setApprovalStatus(isApproved);
-      // Jika disetujui, maka status internshipnya "diterima"
-      setInternshipStatus(isApproved ? "diterima" : "menunggu");
-    } catch (error) {
-      console.log("Approval status check error:", error);
-      setApprovalStatus(false);
-      setInternshipStatus("menunggu");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
+  console.log(profileComplete);
+  
+  const handleLogout = useCallback( async () => {
     // Show SweetAlert confirmation dialog
     const result = await Swal.fire({
       title: 'Konfirmasi Logout',
@@ -141,29 +100,19 @@ const StudentLayout = () => {
         });
       }
     }
-  };
+  }, [navigate]);
 
   const sidebarMenus = [
     { icon: "bi-grid", label: "Dashboard", link: "dashboard" },
     { icon: "bi-calendar4-week", label: "Absensi", link: "absensi" },
     { icon: "bi-clipboard2-minus", label: "Jurnal", link: "jurnal" },
     { icon: "bi-mortarboard", label: "Jadwal Presentasi", link: "presentasi" },
-    // { icon: "bi-mortarboard", label: "Jadwal Presentasi 2", link: "presentasi2" },
     { icon: "bi-pin-map", label: "Riwayat Presentasi", link: "riwayat-presentasi" },
     { icon: "bi bi-cast", label: "Route Project", link: "route-project" },
     { icon: "bi bi-list-check", label: "Piket", link: "piket" },
   ];
 
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await checkProfileStatus();
-      await checkApprovalStatus();
-    };
-    
-    fetchData();
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -182,6 +131,12 @@ const StudentLayout = () => {
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
+  
+  useEffect(() => {
+    if (!userLoading) {
+      setLoading(false);
+    }
+  }, [userLoading]);
 
   useEffect(() => {
     if ((role && role !== "peserta") || !token) {
@@ -227,20 +182,21 @@ const StudentLayout = () => {
               // 2. Internship status is not "diterima" (except Dashboard is always accessible)
               const isDisabled =
                 (!profileComplete && menu.label !== "Dashboard") || 
-                (internshipStatus !== "diterima" && menu.label !== "Dashboard");
+                (!internshipStatus && menu.label !== "Dashboard");
               
               // Show appropriate message on hover based on disable reason
               let disableReason = "";
-              if (!profileComplete) {
-                disableReason = "Lengkapi profil Anda terlebih dahulu";
-              } else if (internshipStatus === "menunggu") {
-                disableReason = "Menunggu persetujuan perusahaan";
-              } else if (internshipStatus === "ditolak") {
-                disableReason = "Pendaftaran magang Anda ditolak";
-              } else {
-                disableReason = "Belum terdaftar magang";
+              if (menu.label !== "Dashboard") {
+                if (!profileComplete) {
+                  disableReason = "Lengkapi profil Anda terlebih dahulu";
+                } else if (internshipStatus === "menunggu") {
+                  disableReason = "Menunggu persetujuan perusahaan";
+                } else if (internshipStatus === "ditolak") {
+                  disableReason = "Pendaftaran magang Anda ditolak";
+                } else {
+                  disableReason = "Belum terdaftar magang";
+                }
               }
-
               return (
                 <Link
                   to={isDisabled ? "#" : `/peserta/${menu.link}`}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import AlertVerification from "../../components/AlertVerification";
 import Calendar from "../../components/Calendar";
 import ChartStats from "../../components/charts/ChartStats";
@@ -11,62 +11,17 @@ import { Link, useLocation } from "react-router-dom";
 import PresentationCard from "../../components/cards/PresentationCard";
 import RiwayatProject from "../../components/cards/RiwayatProject";
 import ProjectBerjalan from "../../components/cards/ProjectBerjalan";
-import axios from "axios";
+import { StatusContext } from "./StatusContext";
 
 const Dashboard = () => {
   const location = useLocation();
   localStorage.setItem("location", location.pathname);
-  const [status, setStatus] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [magangStatus, setMagangStatus] = useState(null);
 
-  const checkDataStatus = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/complete/peserta`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setStatus(res.data.data);
-      console.log('Profile complete status:', res.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const checkMagangStatus = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/complete/magang`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      // PERBAIKAN: Ambil data langsung, bukan status
-      setMagangStatus(res.data.data);
-      console.log('Internship status:', res.data.data);
-      console.log('Internship status type:', typeof res.data.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    checkDataStatus();
-    checkMagangStatus();
-  }, []);
-
-  // Debug logs
-  console.log('Current magangStatus:', magangStatus, typeof magangStatus);
-  console.log('Current status:', status, typeof status);
-  console.log('Current loading:', loading);
+  const {
+      profileComplete,
+      internshipStatus,
+      userLoading,
+    } = useContext(StatusContext);
 
   const statsData = [
     {
@@ -139,7 +94,7 @@ const Dashboard = () => {
   ];
 
   // Loading state
-  if (loading) {
+  if (userLoading) {
     return (
       <div className="h-screen">
         <div className="w-full h-14 bg-slate-300 border border-slate-200 rounded-lg flex justify-between py-1 px-3 items-center mb-4 animate-pulse">
@@ -151,7 +106,21 @@ const Dashboard = () => {
   }
     
   // PERBAIKAN: Cek magangStatus dengan lebih fleksibel
-  if (magangStatus === "false" || magangStatus === false) {
+  
+  
+  // PERBAIKAN: Cek status peserta dengan lebih fleksibel  
+  if (!profileComplete) {
+    return (
+      <div className="w-full">
+        <AlertVerification />
+        <div className="w-xl mx-auto h-screen">
+          <img src="/assets/svg/Forms.svg" alt="Forms.svg" />
+        </div>
+      </div>
+    );
+  }
+  
+  if (!internshipStatus) {
     return (
       <div className="w-full mt-10">
         <div className="w-xl mx-auto flex flex-col items-center justify-center">
@@ -163,19 +132,6 @@ const Dashboard = () => {
       </div>
     );
   }
-  
-  // PERBAIKAN: Cek status peserta dengan lebih fleksibel  
-  if (status === "false" || status === false) {
-    return (
-      <div className="w-full">
-        <AlertVerification />
-        <div className="w-xl mx-auto h-screen">
-          <img src="/assets/svg/Forms.svg" alt="Forms.svg" />
-        </div>
-      </div>
-    );
-  }
-  
   // Dashboard utama - hanya muncul jika magangStatus dan status keduanya true
   return (
     <div className="w-full">

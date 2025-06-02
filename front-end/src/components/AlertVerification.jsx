@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AlertVerification = () => {
+  const navigate = useNavigate();
   const [isPerusahaan, setIsPerusahaan] = useState(false);
 
   useEffect(() => {
@@ -14,9 +16,9 @@ const AlertVerification = () => {
 
   const handleVerificationClick = () => {
     if (isPerusahaan) {
-      window.location.href = "http://localhost:5173/perusahaan/settings";
+       navigate("/perusahaan/settings");
     } else {
-      window.location.href = "http://localhost:5173/peserta/settings";
+       navigate("/peserta/settings");
     }
   };
 

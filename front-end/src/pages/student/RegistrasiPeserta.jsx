@@ -21,17 +21,9 @@ export default function StudentRegistrationForm() {
     cv: null,
     cvFileName: "",
   });
-  // const [provinces, setProvinces] = useState([]);
   const [previewUrl, setPreviewUrl] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const navigate = useNavigate()
-  // const [sekolahOptions, setSekolahOptions] = useState([]);
-  // const [jurusanOptions, setJurusanOptions] = useState([
-  //   { value: "ti", label: "Teknik Informatika" },
-  //   { value: "rpl", label: "Rekayasa Perangkat Lunak" },
-  //   { value: "dkv", label: "DKV" },
-  //   { value: "mm", label: "Multimedia" },
-  // ]);
 
   const handleModalClose = () => {
     setShowSuccessModal(false);
@@ -52,83 +44,7 @@ export default function StudentRegistrationForm() {
     });
     setPreviewUrl("");
     navigate("/vacancy")
-    // setSekolahSearch("");
-    // setJurusanSearch("");
   };
-
-  // const [sekolahDropdownOpen, setSekolahDropdownOpen] = useState(false);
-  // const [jurusanDropdownOpen, setJurusanDropdownOpen] = useState(false);
-  // const [sekolahSearch, setSekolahSearch] = useState("");
-  // const [jurusanSearch, setJurusanSearch] = useState("");
-  // const sekolahDropdownRef = useRef(null);
-  // const jurusanDropdownRef = useRef(null);
-
-  // const fetchSekolah = async () => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${import.meta.env.VITE_API_URL}/sekolah`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //         },
-  //       }
-  //     );
-  //     const data = await response.data.data;
-  //     // console.log(data);
-
-  //     const formatted = data.map((item) => ({
-  //       value: item.id,
-  //       label: item.nama,
-  //     }));
-  //     setSekolahOptions(formatted);
-  //   } catch (err) {
-  //     console.error("Gagal mengambil data sekolah:", err);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   const fetchProvinces = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         "https://www.emsifa.com/api-wilayah-indonesia/api/districts.json"
-  //       );
-  //       const data = await response.json();
-  //       setProvinces(data);
-  //     } catch (error) {
-  //       console.error("Error fetching provinces:", error);
-  //     }
-  //   };
-
-  //   fetchProvinces();
-  // }, []);
-
-  // useEffect(() => {
-  //   fetchSekolah();
-  // }, []);
-
-  // const handleClickOutside = (event, ref, setDropdownOpen) => {
-  //   if (ref.current && !ref.current.contains(event.target)) {
-  //     setDropdownOpen(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   const handleSekolahClickOutside = (event) => {
-  //     handleClickOutside(event, sekolahDropdownRef, setSekolahDropdownOpen);
-  //   };
-
-  //   const handleJurusanClickOutside = (event) => {
-  //     handleClickOutside(event, jurusanDropdownRef, setJurusanDropdownOpen);
-  //   };
-
-  //   document.addEventListener("mousedown", handleSekolahClickOutside);
-  //   document.addEventListener("mousedown", handleJurusanClickOutside);
-
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleSekolahClickOutside);
-  //     document.removeEventListener("mousedown", handleJurusanClickOutside);
-  //   };
-  // }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -145,42 +61,6 @@ export default function StudentRegistrationForm() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
-  // const handleSelectOption = (field, value, label) => {
-  //   setFormData((prev) => ({ ...prev, [field]: value }));
-
-  //   if (field === "sekolah") {
-  //     setSekolahSearch(label);
-  //     setSekolahDropdownOpen(false);
-  //   } else if (field === "jurusan") {
-  //     setJurusanSearch(label);
-  //     setJurusanDropdownOpen(false);
-  //   }
-  // };
-
-  // const handleSearchChange = (field, value) => {
-  //   if (field === "sekolah") {
-  //     setSekolahSearch(value);
-  //     // Add option if it doesn't exist
-  //     const existingOption = sekolahOptions.find(
-  //       (option) => option.label.toLowerCase() === value.toLowerCase()
-  //     );
-
-  //     if (!existingOption && value) {
-  //       setFormData((prev) => ({ ...prev, sekolah: value }));
-  //     }
-  //   } else if (field === "jurusan") {
-  //     setJurusanSearch(value);
-  //     // Add option if it doesn't exist
-  //     const existingOption = jurusanOptions.find(
-  //       (option) => option.label.toLowerCase() === value.toLowerCase()
-  //     );
-
-  //     if (!existingOption && value) {
-  //       setFormData((prev) => ({ ...prev, jurusan: value }));
-  //     }
-  //   }
-  // };
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -206,11 +86,8 @@ export default function StudentRegistrationForm() {
     formDataToSend.append("tanggal_lahir", formData.tanggal_lahir);
     formDataToSend.append("telepon", formData.no_hp);
     formDataToSend.append("nomor_identitas", formData.nisn);
-    // formDataToSend.append("sekolah", formData.sekolah);
     formDataToSend.append("sekolah", formData.sekolah);
-    // formDataToSend.append("jurusan", formData.jurusan);
     formDataToSend.append("jurusan",formData.jurusan);
-    // formDataToSend.append("kelas", formData.kelas);
 
     if (formData.cv) {
       formDataToSend.append("cv", formData.cv);
@@ -373,12 +250,6 @@ export default function StudentRegistrationForm() {
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    {/* <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    ></path> */}
                   </svg>
                 </div>
               </div>
