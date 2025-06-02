@@ -144,7 +144,7 @@ const AdminLayout = () => {
             if (menu.hasSubmenu) {
               return (
                 <div key={idx} className="flex flex-col">
-                  <button onClick={() => setIsPresentasiOpen(!isPresentasiOpen)} className="px-4 py-2 rounded-lg flex gap-3 items-center text-slate-500 hover:text-white hover:bg-sky-800 transition-all duration-500 ease-in-out">
+                  <button onClick={() => setIsPresentasiOpen(!isPresentasiOpen)} className="px-4 py-2 rounded-lg flex gap-3 items-center text-black hover:text-white hover:bg-sky-800 transition-all duration-500 ease-in-out">
                     {menu.icon}
                     <span className="font-light text-sm">{menu.label}</span>
                   </button>
@@ -153,7 +153,7 @@ const AdminLayout = () => {
             }
 
             return (
-              <Link to={menu.link} key={idx} className="px-4 py-2 rounded-lg flex gap-3 items-center text-slate-500 hover:text-white hover:bg-sky-800 transition-all duration-500 ease-in-out">
+              <Link to={menu.link} key={idx} className="px-4 py-2 rounded-lg flex gap-3 items-center text-black hover:text-white hover:bg-sky-800 transition-all duration-500 ease-in-out">
                 {menu.icon}
                 <span className="font-light text-sm">{menu.label}</span>
               </Link>

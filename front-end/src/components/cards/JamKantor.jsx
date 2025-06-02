@@ -125,7 +125,7 @@ export default function JamKantorModernCard() {
   );
 
   return (
-      <div className="bg-white-200 bg-white border border-slate-400/[0.5] rounded-xl p-2 mb-2 hover:shadow-blue-300 shadow-lg">
+      <div className="bg-white-200 bg-white border border-slate-400/[0.5] rounded-xl p-2 mb-2">
         {/* Header */}
         <div className="p-2">
           <h2 className="text-2xl font-bold text-black">Jam Kantor</h2>

@@ -634,72 +634,65 @@ const getUniqueValues = (field) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filteredPendaftaran
-              .sort((a, b) => {
-                // Sort berdasarkan tanggal pembuatan (created_at) terbaru
-                const dateA = new Date(a.created_at || a.mulai);
-                const dateB = new Date(b.created_at || b.mulai);
-                return dateB - dateA; // Descending order (terbaru di atas)
-              })
-              .map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300 text-[#0069AB] focus:ring-[#0069AB]"
-                      checked={selectedItems.includes(item.id)}
-                      onChange={() => handleSelectItem(item.id)}
-                    />
-                  </td>
-                  <td className="px-6 py-4 flex items-center gap-3">
-                    <img
-                      src={
-                        item.user?.foto?.find((f) => f.type === "profile")
-                          ?.path
-                          ? `http://127.0.0.1:8000/storage/${
-                              item.user.foto.find((f) => f.type === "profile")
-                                .path
-                            }`
-                          : "/assets/img/default-avatar.png"
-                      }
-                      alt={item.user?.nama || "User"}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <span>{item.user?.nama || "-"}</span>
-                  </td>
-                  <td className="px-6 py-4">{item.user?.jurusan || "-"}</td>
-                  <td className="px-6 py-4">
-                    {item.mulai && item.selesai
-                      ? `${new Date(item.mulai).toLocaleDateString("id-ID", {
+            {filteredPendaftaran.map((item) => (
+              <tr key={item.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-[#0069AB] focus:ring-[#0069AB]"
+                    checked={selectedItems.includes(item.id)}
+                    onChange={() => handleSelectItem(item.id)}
+                  />
+                </td>
+                <td className="px-6 py-4 flex items-center gap-3">
+                  <img
+                    src={
+                      item.user?.foto?.find((f) => f.type === "profile")
+                        ?.path
+                        ? `http://127.0.0.1:8000/storage/${
+                            item.user.foto.find((f) => f.type === "profile")
+                              .path
+                          }`
+                        : "/assets/img/default-avatar.png"
+                    }
+                    alt={item.user?.nama || "User"}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  <span>{item.user?.nama || "-"}</span>
+                </td>
+                <td className="px-6 py-4">{item.user?.jurusan || "-"}</td>
+                <td className="px-6 py-4">
+                  {item.mulai && item.selesai
+                    ? `${new Date(item.mulai).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })} - ${new Date(item.selesai).toLocaleDateString(
+                        "id-ID",
+                        {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
-                        })} - ${new Date(item.selesai).toLocaleDateString(
-                          "id-ID",
-                          {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          }
-                        )}`
-                      : "-"}
-                  </td>
-                  <td className="px-6 py-4">{item.user?.sekolah || "-"}</td>
-                  <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
-                  <td className="px-6 py-4 text-center">
-  <button
-    onClick={() => {
-      setSelectedItem(item);
-      setShowModal(true);
-    }}
-    className="text-blue-600 hover:text-blue-800"
-    title="Lihat Detail"
-  >
-    <SquarePen className="w-5 h-5 mx-auto" />
-  </button>
-</td>
-                </tr>
-              ))}
+                        }
+                      )}`
+                    : "-"}
+                </td>
+                <td className="px-6 py-4">{item.user?.sekolah || "-"}</td>
+                <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
+                <td className="px-6 py-4 text-center">
+                  <button
+                    onClick={() => {
+                      setSelectedItem(item);
+                      setShowModal(true);
+                    }}
+                    className="text-blue-600 hover:text-blue-800"
+                    title="Lihat Detail"
+                  >
+                    <SquarePen className="w-5 h-5 mx-auto" />
+                  </button>
+                </td>
+              </tr>
+            ))}
             {filteredPendaftaran.length === 0 && (
               <tr>
                 <td

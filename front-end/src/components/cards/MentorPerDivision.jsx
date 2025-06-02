@@ -81,7 +81,7 @@ export default function MentorPerDivisionChart({ mentor }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg border border-slate-400/[0.5] p-4 w-fit min-w-96 relative hover:shadow-blue-300">
+    <div className="bg-white rounded-lg border border-slate-400/[0.5] p-4 w-fit min-w-96 relative">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-l font-bold text-gray-800">Jumlah Mentor Per Divisi</h2>
       </div>

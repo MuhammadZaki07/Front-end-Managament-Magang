@@ -250,6 +250,10 @@ export const router = createBrowserRouter([
           path: "jam-kantor",
           element: <DataJamkantor />,
         },
+        {
+          path: "mentor/:mentorId",
+          element: <Detailsmentor />,
+        },
     ],
   },
   {
