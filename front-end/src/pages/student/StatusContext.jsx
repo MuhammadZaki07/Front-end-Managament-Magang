@@ -1,19 +1,22 @@
 // StatusContext.jsx
-import { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export const StatusContext = createContext();
 
 export const StatusProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const { token } = useContext(AuthContext);
   const [role, setRole] = useState(null);
-  const [profileComplete, setProfileComplete] = useState(false);
+  const [profileComplete, setProfileComplete] = useState(JSON.parse(sessionStorage.getItem("profileComplete")) || false);
   const [internshipStatus, setInternshipStatus] = useState("menunggu");
   const [userLoading, setUserLoading] = useState(true);
-
+  
   const fetchUserData = async () => {
     try {
       if (!token) return;
+
+      setUserLoading(true); // Penting agar UI bisa render loading saat proses
 
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/complete/peserta`,
@@ -25,11 +28,15 @@ export const StatusProvider = ({ children }) => {
       );
 
       const data = res.data.data;
+
       setProfileComplete(data.is_profil_lengkap);
       setInternshipStatus(data.is_magang);
+      setRole("peserta");
+      
+      // Simpan ke sessionStorage sebagai cache
       sessionStorage.setItem("profileComplete", JSON.stringify(data.is_profil_lengkap));
       sessionStorage.setItem("internshipStatus", JSON.stringify(data.is_magang));
-      setRole("peserta");
+
     } catch (error) {
       console.error("Gagal fetch data user:", error);
     } finally {
@@ -38,24 +45,22 @@ export const StatusProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    if (!token) return;
     const savedProfileComplete = sessionStorage.getItem("profileComplete");
     const savedInternshipStatus = sessionStorage.getItem("internshipStatus");
 
     if (savedProfileComplete && savedInternshipStatus) {
-        setProfileComplete(JSON.parse(savedProfileComplete));
-        setInternshipStatus(JSON.parse(savedInternshipStatus));
-        setUserLoading(false);
+      setProfileComplete(JSON.parse(savedProfileComplete));
+      setInternshipStatus(JSON.parse(savedInternshipStatus));
+      setUserLoading(false);
     } else {
-        fetchUserData(); 
+      fetchUserData();
     }
-}, [token]);
-
+  }, [token]);
 
   return (
     <StatusContext.Provider
       value={{
-        token,
-        setToken,
         role,
         setRole,
         profileComplete,

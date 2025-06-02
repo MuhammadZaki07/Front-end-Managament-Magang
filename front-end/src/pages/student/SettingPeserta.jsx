@@ -43,11 +43,11 @@ const CompanyCard = () => {
           // Transform data sesuai dengan struktur yang dibutuhkan
           const transformedData = {
             nama: data.nama || "N/A",
-            divisi: data.divisi || "N/A",
+            divisi: data.divisi || "Belum tergabung dalam divisi",
             sekolah: data.sekolah || "N/A",
             jurusan: data.jurusan || "N/A",
             mulai_magang: data.mulai_magang || null,
-            perusahaan: data.perusahaan || "N/A",
+            perusahaan: data.perusahaan || "Belum terdaftar magang di perusahaan",
             selesai_magang: data.selesai_magang || null,
             foto: data.foto || [],
             cover_image: data.cover_image || "/assets/img/Cover.png"
@@ -55,18 +55,18 @@ const CompanyCard = () => {
 
           setDataPeserta(transformedData);
 
-          // Set images from API data
+          // Set images from API datas
           const profilePhoto = data.foto?.find((f) => f.type === "profile");
           if (profilePhoto && profilePhoto.path) {
-            setProfileImage(`${import.meta.env.VITE_API_URL}/storage/${profilePhoto.path}`);
+            setProfileImage(`${import.meta.env.VITE_API_URL_FILE}/storage/${profilePhoto.path}`);
           }
 
           const coverPhoto = data.foto?.find((f) => f.type === "cover");
           if (coverPhoto && coverPhoto.path) {
-            setCoverImage(`${import.meta.env.VITE_API_URL}/storage/${coverPhoto.path}`);
+            setCoverImage(`${import.meta.env.VITE_API_URL_FILE}/storage/${coverPhoto.path}`);
           } else if (data.cover_image) {
             // Jika cover_image langsung ada di response
-            setCoverImage(data.cover_image.startsWith('http') ? data.cover_image : `${import.meta.env.VITE_API_URL}/storage/${data.cover_image}`);
+            setCoverImage(data.cover_image.startsWith('http') ? data.cover_image : `${import.meta.env.VITE_API_URL_FILE}/storage/${data.cover_image}`);
           }
           
         } else {
@@ -149,7 +149,7 @@ const CompanyCard = () => {
 
       // API call to upload images
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/peserta/upload-foto`,
+        `${import.meta.env.VITE_API_URL}/peserta/`,
         formData,
         {
           headers: {

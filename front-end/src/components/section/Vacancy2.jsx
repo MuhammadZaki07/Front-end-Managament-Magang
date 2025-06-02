@@ -169,7 +169,7 @@ export default function JobListingPage() {
   // Fungsi untuk mengubah filter divisi
   const handleDivisionChange = (divisionIds) => {
     const idsArray = Array.isArray(divisionIds) ? divisionIds : [divisionIds];
-    
+      
     setSelectedDivisions(prev => {
       const allSelected = idsArray.every(id => prev.includes(id));
       if (allSelected) {
@@ -220,6 +220,7 @@ export default function JobListingPage() {
   }, {});
 
   const groupedDivisionArray = Object.values(groupedDivisions);
+  console.log(groupedDivisionArray);
   
   return (
     <div className="bg-white-100 min-h-screen p-10">
@@ -255,7 +256,7 @@ export default function JobListingPage() {
                   </div>
                 ) : groupedDivisionArray.length > 0 ? (
                   <>
-                    {groupedDivisionArray.slice(0, 5).map((group) => {
+                    {groupedDivisionArray.map((group) => {
                       const divisionIds = group.items.map(d => d.id);
                       const division = group.items[0];
                       const count = group.items.length;

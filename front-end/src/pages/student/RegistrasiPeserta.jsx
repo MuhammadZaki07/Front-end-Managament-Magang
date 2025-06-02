@@ -1,7 +1,8 @@
 import axios from "axios";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import SuccessModal from "../../components/modal/ModalRegis"; // Import the success modal component
 import { useNavigate } from "react-router-dom";
+import { StatusContext } from "./StatusContext";
 
 export default function StudentRegistrationForm() {
   const [formData, setFormData] = useState({
@@ -24,7 +25,7 @@ export default function StudentRegistrationForm() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const navigate = useNavigate()
-
+  
   const handleModalClose = () => {
     setShowSuccessModal(false);
     setFormData({
@@ -75,6 +76,8 @@ export default function StudentRegistrationForm() {
     }
   };
 
+  const { refreshUserData } = useContext(StatusContext);
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -109,10 +112,10 @@ export default function StudentRegistrationForm() {
         }
       );
 
+      await refreshUserData();
       // Handle success
       console.log("Form submitted successfully:", response.data);
       setShowSuccessModal(true); // Menampilkan modal sukses setelah berhasil
-      sessionStorage.setItem("profileComplete", JSON.stringify(true));
     } catch (error) {
       console.error("Error submitting form:", error);
       if (error.response) {
@@ -122,6 +125,7 @@ export default function StudentRegistrationForm() {
       }
     }
   };
+
 
   // Default avatar image (base64 encoded or URL)
   const defaultAvatar =

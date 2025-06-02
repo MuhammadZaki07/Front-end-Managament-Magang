@@ -83,7 +83,7 @@
 
 button,
 a {
-  cursor: none;
+  cursor: pointer;
 }
 
 button:hover ~ .fixed,

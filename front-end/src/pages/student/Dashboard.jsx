@@ -96,7 +96,7 @@ const Dashboard = () => {
     );
   }
 
-  if (!profileComplete) {
+  if (!profileComplete ) {
     return (
       <div className="w-full">
         <AlertVerification />
@@ -109,11 +109,11 @@ const Dashboard = () => {
 
   if (!internshipStatus) {
     return (
-      <div className="w-full mt-10">
+      <div className="w-full pt-10 ">
         <div className="w-xl mx-auto flex flex-col items-center justify-center">
           <img src="/assets/svg/Company-amico.svg" alt="Company-amico.svg" className="max-w-md" />
           <p className="text-lg font-medium text-gray-700 mt-4">
-            Pengajuan magang Anda sedang menunggu persetujuan
+            Anda Belum Terdaftar Magang
           </p>
         </div>
       </div>
