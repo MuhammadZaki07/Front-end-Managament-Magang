@@ -8,6 +8,8 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
+  const [loadingDivisi, setLoadingDivisi] = useState(false);
+  const [isDataLoaded, setIsDataLoaded] = useState(false); // Track jika data sudah dimuat
 
   const [formData, setFormData] = useState({
     tanggal_mulai: "",
@@ -19,64 +21,37 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     jobdesc: "",
   });
 
-  useEffect(() => {
-    if (editingData) {
-      const {
-        tanggal_mulai,
-        tanggal_selesai,
-        id_cabang,
-        id_divisi,
-        max_kuota,
-        requirement,
-        jobdesc,
-      } = editingData;
-
-      setFormData({
-        tanggal_mulai,
-        tanggal_selesai,
-        id_cabang,
-        id_divisi,
-        max_kuota,
-        requirement,
-        jobdesc,
-      });
-    } else {
-      setFormData({
-        tanggal_mulai: "",
-        tanggal_selesai: "",
-        id_cabang: "",
-        id_divisi: "",
-        max_kuota: "",
-        requirement: "",
-        jobdesc: "",
-      });
+  // Fungsi untuk mengambil divisi berdasarkan cabang
+  const GetDivisiByBranch = async (cabangId) => {
+    if (!cabangId) {
+      setDivisi([]);
+      return;
     }
 
-    setErrors({});
-    setTouched({});
-  }, [editingData]);
+    setLoadingDivisi(true);
+    try {
+      const id = parseInt(cabangId);
+      console.log("Fetching divisi for cabang ID:", id);
 
-  const handleClose = () => {
-    // Use SweetAlert2 for confirmation if form has been modified
-    const isFormModified = Object.values(formData).some(val => val !== "");
-    
-    if (isFormModified) {
-      Swal.fire({
-        title: 'Konfirmasi',
-        text: 'Perubahan yang Anda buat belum disimpan. Yakin ingin menutup?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya, tutup',
-        cancelButtonText: 'Batal'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          setShowModal(false);
-        }
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/divisi/cabang/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-    } else {
-      setShowModal(false);
+
+      console.log("Loaded divisi:", res.data.data);
+      setDivisi(res.data.data);
+      return res.data.data; // Return data untuk digunakan di useEffect
+    } catch (error) {
+      console.error("Error loading divisi:", error);
+      setDivisi([]);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal memuat data",
+        text: "Tidak dapat memuat data divisi. Silakan coba lagi nanti.",
+        confirmButtonColor: "#3085d6",
+      });
+      return [];
+    } finally {
+      setLoadingDivisi(false);
     }
   };
 
@@ -86,50 +61,163 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setCabang(res.data.data);
+      console.log("Loaded cabang:", res.data.data);
+      return res.data.data; // Return data untuk digunakan di useEffect
     } catch (error) {
-      console.error(error);
-      // Show error alert for API failure
+      console.error("Error loading cabang:", error);
       Swal.fire({
-        icon: 'error',
-        title: 'Gagal memuat data',
-        text: 'Tidak dapat memuat data cabang. Silakan coba lagi nanti.',
-        confirmButtonColor: '#3085d6'
+        icon: "error",
+        title: "Gagal memuat data",
+        text: "Tidak dapat memuat data cabang. Silakan coba lagi nanti.",
+        confirmButtonColor: "#3085d6",
       });
+      return [];
     }
   };
 
-  const GetDivisi = async () => {
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/divisi`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setDivisi(res.data.data);
-    } catch (error) {
-      console.error(error);
-      // Show error alert for API failure
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal memuat data',
-        text: 'Tidak dapat memuat data divisi. Silakan coba lagi nanti.',
-        confirmButtonColor: '#3085d6'
-      });
-    }
-  };
-
+  // Effect untuk memuat data cabang saat komponen mount
   useEffect(() => {
     GetCabang();
-    GetDivisi();
   }, []);
+
+  // Effect terpisah untuk handle editing data
+  useEffect(() => {
+    const loadEditingData = async () => {
+      console.log("EditingData received:", editingData);
+
+      // Reset state terlebih dahulu
+      setIsDataLoaded(false);
+      setErrors({});
+      setTouched({});
+
+      if (editingData) {
+        // Handle jika editingData adalah array atau object
+        const dataToEdit = Array.isArray(editingData) ? editingData[0] : editingData;
+        console.log("Processed editing data:", dataToEdit);
+
+        if (!dataToEdit) {
+          setIsDataLoaded(true);
+          return;
+        }
+
+        const { tanggal_mulai, tanggal_selesai, id_cabang, id_divisi, max_kuota, requirement, jobdesc, cabang, divisi } = dataToEdit;
+
+        // Format tanggal
+        const formatDateForInput = (dateString) => {
+          if (!dateString) return "";
+          try {
+            const date = new Date(dateString);
+            return date.toISOString().split("T")[0];
+          } catch (error) {
+            console.error("Date formatting error:", error);
+            return "";
+          }
+        };
+
+        // Ambil ID dari nested object jika ada, atau dari field langsung
+        const cabangId = cabang?.id || id_cabang;
+        const divisiId = divisi?.id || id_divisi;
+
+        // Set form data
+        const newFormData = {
+          tanggal_mulai: formatDateForInput(tanggal_mulai),
+          tanggal_selesai: formatDateForInput(tanggal_selesai),
+          id_cabang: cabangId ? parseInt(cabangId) : "",
+          id_divisi: divisiId ? parseInt(divisiId) : "",
+          max_kuota: max_kuota ? parseInt(max_kuota) : "",
+          requirement: requirement || "",
+          jobdesc: jobdesc || "",
+        };
+
+        console.log("Setting form data:", newFormData);
+        setFormData(newFormData);
+
+        // Load divisi untuk cabang yang sedang diedit
+        if (cabangId) {
+          console.log("Loading divisi for cabang:", cabangId);
+          await GetDivisiByBranch(parseInt(cabangId));
+        }
+
+        setIsDataLoaded(true);
+      } else {
+        // Reset form untuk mode tambah
+        setFormData({
+          tanggal_mulai: "",
+          tanggal_selesai: "",
+          id_cabang: "",
+          id_divisi: "",
+          max_kuota: "",
+          requirement: "",
+          jobdesc: "",
+        });
+        setDivisi([]);
+        setIsDataLoaded(true);
+      }
+    };
+
+    // Hanya jalankan jika modal terbuka
+    if (showModal) {
+      loadEditingData();
+    }
+  }, [editingData, showModal]);
+
+  const handleClose = () => {
+    const isFormModified = Object.values(formData).some((val) => val !== "");
+
+    if (isFormModified) {
+      Swal.fire({
+        title: "Konfirmasi",
+        text: "Perubahan yang Anda buat belum disimpan. Yakin ingin menutup?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ya, tutup",
+        cancelButtonText: "Batal",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setShowModal(false);
+          // Reset state saat modal ditutup
+          setIsDataLoaded(false);
+          setDivisi([]);
+        }
+      });
+    } else {
+      setShowModal(false);
+      setIsDataLoaded(false);
+      setDivisi([]);
+    }
+  };
 
   const handleValue = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setTouched(prev => ({ ...prev, [name]: true }));
+
+    if (name === "id_cabang") {
+      const cabangId = parseInt(value) || "";
+      setFormData((prev) => ({
+        ...prev,
+        [name]: cabangId,
+        id_divisi: "", // Reset divisi saat cabang berubah
+      }));
+
+      if (cabangId) {
+        GetDivisiByBranch(cabangId);
+      } else {
+        setDivisi([]);
+      }
+    } else if (name === "id_divisi") {
+      const divisiId = parseInt(value) || "";
+      setFormData((prev) => ({ ...prev, [name]: divisiId }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
+    setTouched((prev) => ({ ...prev, [name]: true }));
 
     if (name === "max_kuota" && (isNaN(value) || parseInt(value) <= 0)) {
-      setErrors(prev => ({ ...prev, [name]: "Kuota harus berupa angka positif" }));
+      setErrors((prev) => ({ ...prev, [name]: "Kuota harus berupa angka positif" }));
     } else {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -138,9 +226,9 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
       const start = new Date(formData.tanggal_mulai);
       const end = new Date(formData.tanggal_selesai);
       if (end < start) {
-        setErrors(prev => ({ ...prev, tanggal_selesai: "Tanggal selesai harus setelah tanggal mulai" }));
+        setErrors((prev) => ({ ...prev, tanggal_selesai: "Tanggal selesai harus setelah tanggal mulai" }));
       } else {
-        setErrors(prev => ({ ...prev, tanggal_selesai: "" }));
+        setErrors((prev) => ({ ...prev, tanggal_selesai: "" }));
       }
     }
   }, [formData.tanggal_mulai, formData.tanggal_selesai]);
@@ -157,21 +245,21 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
       { name: "jobdesc", label: "Deskripsi pekerjaan" },
     ];
 
-    requiredFields.forEach(field => {
+    requiredFields.forEach((field) => {
       if (!formData[field.name]) {
         newErrors[field.name] = `${field.label} wajib diisi`;
       }
     });
 
-    setErrors(prev => ({ ...prev, ...newErrors }));
-    return Object.values({ ...errors, ...newErrors }).every(err => !err);
+    setErrors((prev) => ({ ...prev, ...newErrors }));
+    return Object.values({ ...errors, ...newErrors }).every((err) => !err);
   };
 
   const handleBlur = (e) => {
     const { name } = e.target;
-    setTouched(prev => ({ ...prev, [name]: true }));
+    setTouched((prev) => ({ ...prev, [name]: true }));
     if (!formData[name]) {
-      setErrors(prev => ({ ...prev, [name]: `Field ini wajib diisi` }));
+      setErrors((prev) => ({ ...prev, [name]: `Field ini wajib diisi` }));
     }
   };
 
@@ -179,47 +267,60 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     e.preventDefault();
 
     const touchedAll = {};
-    Object.keys(formData).forEach(k => { touchedAll[k] = true; });
+    Object.keys(formData).forEach((k) => {
+      touchedAll[k] = true;
+    });
     setTouched(touchedAll);
 
     if (!validateForm()) {
-      // Show validation error alert
       Swal.fire({
-        icon: 'error',
-        title: 'Validasi Gagal',
-        text: 'Silakan periksa kembali form isian Anda',
-        confirmButtonColor: '#3085d6'
+        icon: "error",
+        title: "Validasi Gagal",
+        text: "Silakan periksa kembali form isian Anda",
+        confirmButtonColor: "#3085d6",
       });
       return;
     }
 
-    // Show loading state
     setLoading(true);
-    
-    // Show loading indicator with SweetAlert2
+
     Swal.fire({
-      title: 'Menyimpan Data',
-      text: 'Mohon tunggu...',
+      title: editingData ? "Memperbarui Data" : "Menyimpan Data",
+      text: "Mohon tunggu...",
       allowOutsideClick: false,
       allowEscapeKey: false,
       didOpen: () => {
         Swal.showLoading();
-      }
+      },
     });
 
     try {
-      const url = editingData
-        ? `${import.meta.env.VITE_API_URL}/lowongan/${editingData.id}`
+      // PERBAIKAN: Handle editingData yang berupa array atau object
+      let editId = null;
+      if (editingData) {
+        if (Array.isArray(editingData)) {
+          editId = editingData[0]?.id ? parseInt(editingData[0].id) : null;
+        } else {
+          editId = editingData.id ? parseInt(editingData.id) : null;
+        }
+      }
+
+      const url = editId 
+        ? `${import.meta.env.VITE_API_URL}/lowongan/${editId}` 
         : `${import.meta.env.VITE_API_URL}/lowongan`;
 
-      const method = editingData ? "put" : "post";
+      const method = editId ? "put" : "post";
 
       const payload = {
         ...formData,
+        id_cabang: parseInt(formData.id_cabang),
+        id_divisi: parseInt(formData.id_divisi),
         max_kuota: parseInt(formData.max_kuota),
       };
 
-      await axios({
+      console.log("Submitting:", { method, url, payload, editId, editingData });
+
+      const response = await axios({
         method,
         url,
         headers: {
@@ -228,17 +329,15 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
         data: payload,
       });
 
-      // Close loading indicator
+      console.log("Response:", response.data);
+
       Swal.close();
-      
-      // Show success message
+
       Swal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: editingData 
-          ? 'Data lowongan berhasil diperbarui' 
-          : 'Lowongan baru berhasil ditambahkan',
-        confirmButtonColor: '#3085d6'
+        icon: "success",
+        title: "Berhasil",
+        text: editingData ? "Data lowongan berhasil diperbarui" : "Lowongan baru berhasil ditambahkan",
+        confirmButtonColor: "#3085d6",
       });
 
       setFormData({
@@ -251,22 +350,22 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
         jobdesc: "",
       });
       setShowModal(false);
+      setIsDataLoaded(false);
       onSucces();
     } catch (err) {
-      console.error(err);
-      
-      // Close loading indicator
+      console.error("Submit error:", err);
+      console.error("Error response:", err.response);
+
       Swal.close();
-      
-      // Show error message
+
       Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
+        icon: "error",
+        title: "Gagal",
         text: err.response?.data?.message || "Terjadi kesalahan saat menyimpan data",
-        confirmButtonColor: '#3085d6'
+        confirmButtonColor: "#3085d6",
       });
-      
-      setErrors(prev => ({
+
+      setErrors((prev) => ({
         ...prev,
         form: err.response?.data?.message || "Terjadi kesalahan saat menyimpan data",
       }));
@@ -275,17 +374,33 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
     }
   };
 
+  // Jangan render form jika data belum dimuat dan dalam mode edit
+  if (editingData && !isDataLoaded) {
+    return (
+      <div className={`fixed inset-0 bg-black/40 flex justify-center items-center z-[999] ${showModal ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+        <div className="bg-white rounded-lg shadow-xl p-5 w-96 md:w-112 mx-4">
+          <div className="flex justify-center items-center py-10">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p className="text-sm text-gray-600">Memuat data...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`fixed inset-0 bg-black/40 flex justify-center items-center z-[999] ${showModal ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
       <div className="bg-white rounded-lg shadow-xl p-5 w-96 md:w-112 mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-base font-semibold">{editingData ? "Edit Lowongan" : "Tambah Lowongan"}</h2>
-          <button onClick={handleClose} className="text-gray-500 text-xl">⨯</button>
+          <button onClick={handleClose} className="text-gray-500 text-xl">
+            ⨯
+          </button>
         </div>
 
-        {errors.form && (
-          <div className="bg-red-50 text-red-600 p-2 rounded-md mb-3 text-xs">{errors.form}</div>
-        )}
+        {errors.form && <div className="bg-red-50 text-red-600 p-2 rounded-md mb-3 text-xs">{errors.form}</div>}
 
         <form onSubmit={handleSubmit}>
           {/* Tanggal */}
@@ -328,7 +443,11 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
                 className={`w-full border ${errors.id_cabang && touched.id_cabang ? "border-red-500" : "border-gray-300"} rounded-md py-2 px-3 text-xs bg-white`}
               >
                 <option value="">Pilih Cabang</option>
-                {cabang.map(c => <option key={c.id} value={c.id}>{c.nama}</option>)}
+                {cabang.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nama}
+                  </option>
+                ))}
               </select>
               {errors.id_cabang && touched.id_cabang && <p className="text-red-500 text-xs">{errors.id_cabang}</p>}
             </div>
@@ -339,10 +458,17 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
                 value={formData.id_divisi}
                 onChange={handleValue}
                 onBlur={handleBlur}
-                className={`w-full border ${errors.id_divisi && touched.id_divisi ? "border-red-500" : "border-gray-300"} rounded-md py-2 px-3 text-xs bg-white`}
+                disabled={!formData.id_cabang || loadingDivisi}
+                className={`w-full border ${errors.id_divisi && touched.id_divisi ? "border-red-500" : "border-gray-300"} rounded-md py-2 px-3 text-xs bg-white ${
+                  !formData.id_cabang || loadingDivisi ? "bg-gray-100 cursor-not-allowed" : ""
+                }`}
               >
-                <option value="">Pilih Divisi</option>
-                {divisi.map(d => <option key={d.id} value={d.id}>{d.nama}</option>)}
+                <option value="">{loadingDivisi ? "Memuat divisi..." : !formData.id_cabang ? "Pilih cabang" : "Pilih Divisi"}</option>
+                {divisi.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.nama}
+                  </option>
+                ))}
               </select>
               {errors.id_divisi && touched.id_divisi && <p className="text-red-500 text-xs">{errors.id_divisi}</p>}
             </div>
@@ -395,20 +521,11 @@ const AddJobModal = ({ showModal, setShowModal, editingData = null, onSucces }) 
           </div>
 
           <div className="flex justify-end space-x-2 mt-4">
-            <button 
-              type="button" 
-              onClick={handleClose} 
-              className="bg-red-500 text-white px-5 py-3 rounded-md text-xs"
-              disabled={loading}
-            >
+            <button type="button" onClick={handleClose} className="bg-red-500 text-white px-5 py-3 rounded-md text-xs" disabled={loading}>
               Batal
             </button>
-            <button 
-              type="submit" 
-              className="bg-blue-600 text-white px-5 py-3 rounded-md text-xs"
-              disabled={loading}
-            >
-              {loading ? 'Menyimpan...' : 'Simpan'}
+            <button type="submit" className="bg-blue-600 text-white px-5 py-3 rounded-md text-xs" disabled={loading}>
+              {loading ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </form>

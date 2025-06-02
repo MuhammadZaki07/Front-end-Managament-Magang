@@ -1,16 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import {
-  CalendarDays,
-  Download,
-  Search,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  ChevronDown,
-  DownloadIcon,
-  FileIcon,
-} from "lucide-react";
+import { CalendarDays, Download, Search, CheckCircle, XCircle, AlertTriangle, ChevronDown, DownloadIcon, FileIcon, SquarePen} from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CSVLink } from "react-csv";
@@ -41,8 +31,6 @@ export default function ApprovalTable() {
         return frontendStatus;
     }
   };
-
-
   const FileIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -59,7 +47,6 @@ export default function ApprovalTable() {
       />
     </svg>
   );
-
   const DownloadIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -76,7 +63,6 @@ export default function ApprovalTable() {
       />
     </svg>
   );
-
   const PreviewIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -99,13 +85,11 @@ export default function ApprovalTable() {
       />
     </svg>
   );
-
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedItem(null);
     document.body.classList.remove("modal-open");
   };
-
   const fetchDataPendaftaran = async () => {
     try {
       Swal.fire({
@@ -133,7 +117,6 @@ export default function ApprovalTable() {
 
     }
   };
-
   const fetchDataIzin = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/izin`, {
@@ -142,18 +125,15 @@ export default function ApprovalTable() {
         },
       });
       const izinData = response.data.data || response.data;
-
       setDataIzin(izinData);
     } catch (error) {
       console.error("Failed to fetch data izin:", error);
     }
   };
-
   useEffect(() => {
     fetchDataPendaftaran();
     fetchDataIzin();
   }, []);
-
   const handleSelectItem = (id) => {
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
@@ -161,12 +141,10 @@ export default function ApprovalTable() {
       setSelectedItems([...selectedItems, id]);
     }
   };
-
   const handleIndividualAction = async (itemId, frontendActionStatus, type) => {
     const apiActionStatus = mapFrontendStatusToApi(frontendActionStatus);
     let url = "";
     let payload = "";
-
     if (type === "pendaftaran") {
       url = `${API_BASE_URL}/magang/${itemId}`;
       payload = { status: apiActionStatus };
@@ -177,9 +155,7 @@ export default function ApprovalTable() {
       console.error("Tipe aksi individual tidak diketahui");
       return;
     }
-
     const token = localStorage.getItem("token");
-
     try {
       const response = await fetch(url, {
         method: "PUT",
@@ -190,7 +166,6 @@ export default function ApprovalTable() {
         },
         body: JSON.stringify(payload),
       });
-
       if (!response.ok) {
         const errorData = await response
           .json()
@@ -200,7 +175,6 @@ export default function ApprovalTable() {
         );
       }
 
-      // Update local state
       if (type === "pendaftaran") {
         setDataPendaftaran((prevData) =>
           prevData.map((item) =>
@@ -219,8 +193,6 @@ export default function ApprovalTable() {
           )
         );
       }
-      
-
      fetchDataPendaftaran()
      fetchDataIzin()
      setShowModal(false)
@@ -229,26 +201,21 @@ export default function ApprovalTable() {
       alert(`Gagal memperbarui status: ${error.message}`);
     }
   };
-
   const handleBulkAction = async (frontendActionStatus) => {
     if (selectedItems.length === 0) {
       setShowActionDropdown(false);
       return;
     }
-
     const apiActionStatus = mapFrontendStatusToApi(frontendActionStatus);
-
     const payload = {
       ids: selectedItems,
       status: apiActionStatus,
       status_izin: apiActionStatus,
     };
-
     const url =
       activeTab === "pendaftaran"
         ? `${API_BASE_URL}/many/magang`
         : `${API_BASE_URL}/many/izin`;
-
     try {
       await axios.put(url, payload, {
         headers: {
@@ -262,7 +229,6 @@ export default function ApprovalTable() {
       } else {
         window.location.href = "/perusahaan/approval";
       }
-
      fetchDataIzin()
      fetchDataPendaftaran()
       setSelectedItems([]);
@@ -270,7 +236,6 @@ export default function ApprovalTable() {
     } catch (error) {
       // Penanganan error yang lebih lengkap
       console.error("Terjadi kesalahan saat melakukan request API:", error);
-
       if (error.response) {
         // Jika ada response error dari server
         console.error("Status error response:", error.response.status);
@@ -282,7 +247,6 @@ export default function ApprovalTable() {
         // Jika ada error lain (misalnya masalah dalam pengaturan request)
         console.error("Pesan error:", error.message);
       }
-
       // Menampilkan alert dengan pesan error yang lebih jelas
       alert(
         `Gagal melakukan aksi massal: ${
@@ -292,7 +256,6 @@ export default function ApprovalTable() {
       setShowActionDropdown(false);
     }
   };
-
   const filteredPendaftaran = dataPendaftaran.filter((item) => {
     const matchesSearch =
       item.user &&
@@ -301,7 +264,6 @@ export default function ApprovalTable() {
           typeof value === "string" &&
           value.toLowerCase().includes(searchTerm.toLowerCase())
       );
-
     const matchesDate =
       !selectedDate ||
       (item.mulai &&
@@ -312,10 +274,8 @@ export default function ApprovalTable() {
             day: "numeric",
           })
         ));
-
     return matchesSearch && matchesDate;
   });
-
   const filteredIzin = dataIzin.filter((item) => {
     const matchesSearch = Object.values(item).some(
       (value) =>
@@ -334,7 +294,6 @@ export default function ApprovalTable() {
         ));
     return matchesSearch && matchesDate;
   });
-
   const CustomButton = React.forwardRef(({ value, onClick }, ref) => (
     <button
       className="flex items-center gap-2 bg-white text-[#344054] py-2 px-4 rounded-md shadow border border-[#667797] hover:bg-[#0069AB] hover:text-white text-sm"
@@ -352,7 +311,6 @@ export default function ApprovalTable() {
         : "Pilih Tanggal"}
     </button>
   ));
-
   const getStatusBadge = (status) => {
     switch (status) {
       case "diterima": // Frontend status
@@ -375,30 +333,87 @@ export default function ApprovalTable() {
         );
     }
   };
-
   const handleDownload = (doc) => {
     if (!doc || !doc.url) return;
-
     const baseUrl = import.meta.env.VITE_API_URL_FILE || "";
     const cleanedUrl = doc.url.includes("/storage/")
       ? doc.url.split("/storage/")[1]
       : doc.url;
-
     const downloadUrl = `${baseUrl}/storage/${cleanedUrl}`;
     const encodedUrl = encodeURI(downloadUrl);
-
     const link = document.createElement("a");
     link.href = encodedUrl;
     link.download = doc.name || "download";
     link.target = "_blank";
-
     document.body.appendChild(link);
     link.click();
-
     setTimeout(() => {
       document.body.removeChild(link);
     }, 100);
   };
+  const [filters, setFilters] = useState({
+  jurusan: '',
+  sekolah: ''
+});
+
+// Function untuk filter data berdasarkan tanggal dan filter lainnya
+const getFilteredData = () => {
+  const currentData = activeTab === "pendaftaran" ? dataPendaftaran : dataIzin;
+  let filtered = currentData;
+
+  // Filter berdasarkan tanggal (created_at)
+  if (selectedDate) {
+    const selectedDateStr = selectedDate.toDateString();
+    filtered = filtered.filter(item => {
+      const itemDate = new Date(item.created_at);
+      return itemDate.toDateString() === selectedDateStr;
+    });
+  }
+
+  // Filter berdasarkan search term
+  if (searchTerm) {
+    filtered = filtered.filter(item =>
+      item.user?.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.user?.jurusan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.user?.sekolah?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
+  // Filter berdasarkan jurusan
+  if (filters.jurusan) {
+    filtered = filtered.filter(item =>
+      item.user?.jurusan?.toLowerCase().includes(filters.jurusan.toLowerCase())
+    );
+  }
+
+  // Filter berdasarkan sekolah
+  if (filters.sekolah) {
+    filtered = filtered.filter(item =>
+      item.user?.sekolah?.toLowerCase().includes(filters.sekolah.toLowerCase())
+    );
+  }
+
+  return filtered;
+};
+
+// Function untuk handle filter change
+const handleFilterChange = (filterType, value) => {
+  setFilters(prev => ({
+    ...prev,
+    [filterType]: value
+  }));
+};
+
+// Function untuk mendapatkan unique values untuk dropdown
+const getUniqueValues = (field) => {
+  const currentData = activeTab === "pendaftaran" ? dataPendaftaran : dataIzin;
+  const values = currentData
+    .map(item => item.user?.[field])
+    .filter(value => value && value.trim() !== '')
+    .filter((value, index, self) => self.indexOf(value) === index)
+    .sort();
+  return values;
+};
 
   const handlePreview = (document) => {
     if (!document || !document.url) return;
@@ -408,7 +423,6 @@ export default function ApprovalTable() {
     const finalUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${cleanUrl}`;
     window.open(finalUrl, "_blank");
   };
-
   const DocumentItem = ({ document, onDownload, onPreview }) => {
     return (
       <div className="border border-gray-200 rounded-lg p-2 mb-2 w-full">
@@ -443,7 +457,6 @@ export default function ApprovalTable() {
       </div>
     );
   };
-
   const InputLabel = ({ label, value }) => (
     <div>
       <label className="block text-gray-600 text-xs mb-1">{label}</label>
@@ -455,261 +468,260 @@ export default function ApprovalTable() {
       />
     </div>
   );
-  // if (loading) return  <Loading />;
-
   return (
     <div className="w-full">
       <div className="bg-white rounded-xl border border-gray-200 shadow-md overflow-hidden">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-xl font-semibold text-[#1D2939]">
-                Data Approval
-              </h2>
-              <p className="text-[#667085] text-sm mt-1">
-                Kelola data penerimaan dengan maksimal!
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <DatePicker
-                selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
-                customInput={<CustomButton />}
-                dateFormat="dd MMMM yyyy"
-                showPopperArrow={false}
-              />
-              <CSVLink
-                data={
-                  activeTab === "pendaftaran"
-                    ? filteredPendaftaran
-                    : filteredIzin
-                } // Export data yang terfilter
-                filename={`data_${activeTab}.csv`}
-                headers={
-                  activeTab === "pendaftaran"
-                    ? [
-                        { label: "Nama", key: "nama" },
-                        { label: "Jurusan", key: "jurusan" },
-                        { label: "Kelas", key: "kelas" },
-                        { label: "Masa Magang", key: "masaMagang" },
-                        { label: "Sekolah", key: "sekolah" },
-                        { label: "Status", key: "status" }, // Mungkin perlu mapping ke teks "Disetujui", dll.
-                      ]
-                    : [
-                        { label: "Nama", key: "nama" },
-                        { label: "Sekolah", key: "sekolah" },
-                        { label: "Tanggal Izin", key: "tanggalIzin" },
-                        { label: "Tanggal Kembali", key: "tanggalKembali" },
-                        { label: "Status Izin/Sakit", key: "status" }, // field "status" di dataIzin
-                        { label: "Status Approval", key: "approvalStatus" }, // Mungkin perlu mapping
-                      ]
-                }
-              >
-                <button className="flex items-center gap-2 border border-gray-300 text-[#344054] px-4 py-2 rounded-lg text-sm shadow-sm hover:bg-[#0069AB] hover:text-white">
-                  <Download size={16} />
-                  Export
-                </button>
-              </CSVLink>
-            </div>
-          </div>
-
-          <div className="border-b border-gray-200 my-5" />
-
-          <div className="flex flex-wrap justify-between items-center gap-3">
-            <div className="flex gap-2">
-              <button
-                className={`px-4 py-2 rounded-lg text-sm border ${
-                  activeTab === "pendaftaran"
-                    ? "bg-[#0069AB] text-white"
-                    : "border-gray-300 text-[#344054]"
-                }`}
-                onClick={() => {
-                  setActiveTab("pendaftaran");
-                  setSelectedItems([]); // Reset pilihan saat ganti tab
-                  setShowActionDropdown(false);
-                }}
-              >
-                Pendaftaran
-              </button>
-              <button
-                className={`px-4 py-2 rounded-lg text-sm border ${
-                  activeTab === "izin"
-                    ? "bg-[#0069AB] text-white"
-                    : "border-gray-300 text-[#344054]"
-                }`}
-                onClick={() => {
-                  setActiveTab("izin");
-                  setSelectedItems([]); // Reset pilihan saat ganti tab
-                  setShowActionDropdown(false);
-                }}
-              >
-                Izin/Sakit
-              </button>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <span className="absolute left-3 top-2.5 text-gray-400">
-                  <Search size={16} />
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Bulk Action Controls */}
-          {selectedItems.length > 0 && (
-            <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg mt-4">
-              <div className="text-sm text-blue-700">
-                {selectedItems.length} item dipilih
-              </div>
-              <div className="relative">
-                <button
-                  className="flex items-center gap-2 bg-[#0069AB] text-white px-4 py-2 rounded-lg text-sm"
-                  onClick={() => setShowActionDropdown(!showActionDropdown)}
-                >
-                  Aksi Massal
-                  <ChevronDown size={14} />
-                </button>
-
-                {showActionDropdown && (
-                  <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-40">
-                    <button
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-gray-100 w-full text-left"
-                      onClick={() => handleBulkAction("approved")} // Menggunakan status frontend
-                    >
-                      <CheckCircle size={14} />
-                      Setujui
-                    </button>
-                    <button
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
-                      onClick={() => handleBulkAction("rejected")} // Menggunakan status frontend
-                    >
-                      <XCircle size={14} />
-                      Tolak
-                    </button>
-                    <button
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-yellow-600 hover:bg-gray-100 w-full text-left"
-                      onClick={() => handleBulkAction("blocked")} // Menggunakan status frontend
-                    >
-                      <AlertTriangle size={14} />
-                      Blokir
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <div className="p-6">
+      {/* Header */}
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-xl font-semibold text-[#1D2939]">
+            Data Approval
+          </h2>
+          <p className="text-[#667085] text-sm mt-1">
+            Kelola data penerimaan dengan maksimal!
+          </p>
         </div>
 
-        {/* Table for Pendaftaran */}
-        {activeTab === "pendaftaran" && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-[#667085]">
-                <tr>
-                  <th className="px-6 py-3 text-left">
-                    {/* Checkbox select all bisa ditambahkan kembali jika diperlukan */}
-                  </th>
-                  <th className="px-6 py-3 text-left">Nama</th>
-                  <th className="px-6 py-3 text-left">Jurusan</th>
-                  <th className="px-6 py-3 text-left">Masa Magang</th>
-                  <th className="px-6 py-3 text-left">Sekolah</th>
-                  <th className="px-6 py-3 text-left">Status</th>
-                  <th className="px-6 py-3 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredPendaftaran.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-[#0069AB] focus:ring-[#0069AB]"
-                        checked={selectedItems.includes(item.id)}
-                        onChange={() => handleSelectItem(item.id)}
-                      />
-                    </td>
-                    <td className="px-6 py-4 flex items-center gap-3">
-                      <img
-                        src={
-                          item.user?.berkas?.find((f) => f.type === "profile")
-                            ?.path
-                            ? `http://127.0.0.1:8000/storage/${
-                                item.user.berkas.find((f) => f.type === "profile")
-                                  .path
-                              }`
-                            : "/assets/img/default-avatar.png"
-                        }
-                        alt={item.user?.nama || "User"}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                      <span>{item.user?.nama || "-"}</span>
-                    </td>
-                    <td className="px-6 py-4">{item.user?.jurusan || "-"}</td>
-                    <td className="px-6 py-4">
-                      {item.mulai && item.selesai
-                        ? `${new Date(item.mulai).toLocaleDateString("id-ID", {
+        <div className="flex items-center gap-3">
+          <DatePicker
+            selected={selectedDate}
+            onChange={(date) => setSelectedDate(date)}
+            customInput={<CustomButton />}
+            dateFormat="dd MMMM yyyy"
+            showPopperArrow={false}
+            placeholderText="Pilih Tanggal"
+            isClearable
+          />
+          
+          <select
+            value={filters.jurusan}
+            onChange={(e) => handleFilterChange('jurusan', e.target.value)}
+            className="px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0069AB] bg-white w-[140px]"
+          >
+            <option value="">Semua Jurusan</option>
+            {getUniqueValues('jurusan').map((jurusan) => (
+              <option key={jurusan} value={jurusan}>
+                {jurusan}
+              </option>
+            ))}
+          </select>
+          
+          <select
+            value={filters.sekolah}
+            onChange={(e) => handleFilterChange('sekolah', e.target.value)}
+            className="px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0069AB] bg-white w-[140px] truncate"
+          >
+            <option value="">Semua Sekolah</option>
+            {getUniqueValues('sekolah').map((sekolah) => (
+              <option key={sekolah} value={sekolah} title={sekolah}>
+                {sekolah}
+              </option>
+            ))}
+          </select>
+          
+          
+        </div>
+      </div>
+      
+      <div className="border-b border-gray-200 my-5" />
+      
+      <div className="flex flex-wrap justify-between items-center gap-3">
+        <div className="flex gap-2">
+          <button
+            className={`px-4 py-2 rounded-lg text-sm border ${
+              activeTab === "pendaftaran"
+                ? "bg-[#0069AB] text-white"
+                : "border-gray-300 text-[#344054]"
+            }`}
+            onClick={() => {
+              setActiveTab("pendaftaran");
+              setSelectedItems([]); // Reset pilihan saat ganti tab
+              setShowActionDropdown(false);
+            }}
+          >
+            Pendaftaran
+          </button>
+          <button
+            className={`px-4 py-2 rounded-lg text-sm border ${
+              activeTab === "izin"
+                ? "bg-[#0069AB] text-white"
+                : "border-gray-300 text-[#344054]"
+            }`}
+            onClick={() => {
+              setActiveTab("izin");
+              setSelectedItems([]); // Reset pilihan saat ganti tab
+              setShowActionDropdown(false);
+            }}
+          >
+            Izin/Sakit
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Cari berdasarkan nama..."
+              className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm w-60"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <span className="absolute left-3 top-2.5 text-gray-400">
+              <Search size={16} />
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      {selectedItems.length > 0 && (
+        <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg mt-4">
+          <div className="text-sm text-blue-700">
+            {selectedItems.length} item dipilih
+          </div>
+          <div className="relative">
+            <button
+              className="flex items-center gap-2 bg-[#0069AB] text-white px-4 py-2 rounded-lg text-sm"
+              onClick={() => setShowActionDropdown(!showActionDropdown)}
+            >
+              Aksi Massal
+              <ChevronDown size={14} />
+            </button>
+
+            {showActionDropdown && (
+              <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-40">
+                <button
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-gray-100 w-full text-left"
+                  onClick={() => handleBulkAction("approved")}
+                >
+                  <CheckCircle size={14} />
+                  Setujui
+                </button>
+                <button
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
+                  onClick={() => handleBulkAction("rejected")}
+                >
+                  <XCircle size={14} />
+                  Tolak
+                </button>
+                <button
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-yellow-600 hover:bg-gray-100 w-full text-left"
+                  onClick={() => handleBulkAction("blocked")}
+                >
+                  <AlertTriangle size={14} />
+                  Blokir
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Table for Pendaftaran */}
+    {activeTab === "pendaftaran" && (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-[#667085]">
+            <tr>
+              <th className="px-6 py-3 text-left"></th>
+              <th className="px-6 py-3 text-left">Nama</th>
+              <th className="px-6 py-3 text-left">Jurusan</th>
+              <th className="px-6 py-3 text-left">Masa Magang</th>
+              <th className="px-6 py-3 text-left">Sekolah</th>
+              <th className="px-6 py-3 text-left">Status</th>
+              <th className="px-6 py-3 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {filteredPendaftaran
+              .sort((a, b) => {
+                // Sort berdasarkan tanggal pembuatan (created_at) terbaru
+                const dateA = new Date(a.created_at || a.mulai);
+                const dateB = new Date(b.created_at || b.mulai);
+                return dateB - dateA; // Descending order (terbaru di atas)
+              })
+              .map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-[#0069AB] focus:ring-[#0069AB]"
+                      checked={selectedItems.includes(item.id)}
+                      onChange={() => handleSelectItem(item.id)}
+                    />
+                  </td>
+                  <td className="px-6 py-4 flex items-center gap-3">
+                    <img
+                      src={
+                        item.user?.foto?.find((f) => f.type === "profile")
+                          ?.path
+                          ? `http://127.0.0.1:8000/storage/${
+                              item.user.foto.find((f) => f.type === "profile")
+                                .path
+                            }`
+                          : "/assets/img/default-avatar.png"
+                      }
+                      alt={item.user?.nama || "User"}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                    <span>{item.user?.nama || "-"}</span>
+                  </td>
+                  <td className="px-6 py-4">{item.user?.jurusan || "-"}</td>
+                  <td className="px-6 py-4">
+                    {item.mulai && item.selesai
+                      ? `${new Date(item.mulai).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })} - ${new Date(item.selesai).toLocaleDateString(
+                          "id-ID",
+                          {
                             day: "numeric",
                             month: "long",
                             year: "numeric",
-                          })} - ${new Date(item.selesai).toLocaleDateString(
-                            "id-ID",
-                            {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            }
-                          )}`
-                        : "-"}
-                    </td>
-                    <td className="px-6 py-4">{item.user?.sekolah || "-"}</td>
-                    <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => {
-                          setSelectedItem(item);
-                          setShowModal(true);
-                        }}
-                        className="text-blue-600 hover:underline"
-                      >
-                        Lihat Detail
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-
-                {filteredPendaftaran.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={8}
-                      className="px-6 py-8 text-center text-gray-500"
-                    >
-                      Tidak ada data pendaftaran yang sesuai.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-
+                          }
+                        )}`
+                      : "-"}
+                  </td>
+                  <td className="px-6 py-4">{item.user?.sekolah || "-"}</td>
+                  <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
+                  <td className="px-6 py-4 text-center">
+  <button
+    onClick={() => {
+      setSelectedItem(item);
+      setShowModal(true);
+    }}
+    className="text-blue-600 hover:text-blue-800"
+    title="Lihat Detail"
+  >
+    <SquarePen className="w-5 h-5 mx-auto" />
+  </button>
+</td>
+                </tr>
+              ))}
+            {filteredPendaftaran.length === 0 && (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-6 py-8 text-center text-gray-500"
+                >
+                  {searchTerm || filters.jurusan || filters.sekolah || selectedDate
+                    ? "Tidak ada data pendaftaran yang sesuai dengan filter."
+                    : "Tidak ada data pendaftaran."}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    )}
         {activeTab === "izin" && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-[#667085]">
                 <tr>
-                  <th className="px-6 py-3 text-left">
-                    {/* Checkbox select all */}
-                  </th>
+                  <th className="px-6 py-3 text-left"></th>
                   <th className="px-6 py-3 text-left">Nama</th>
                   <th className="px-6 py-3 text-left">Sekolah</th>
                   <th className="px-6 py-3 text-left">Tanggal Izin</th>
@@ -777,19 +789,6 @@ export default function ApprovalTable() {
                         Lihat Detail{" "}
                       </button>
                     </td>{" "}
-                    {/* <td className="px-6 py-4">
-                      <div className="flex justify-center gap-2">
-                        <button className="p-1.5 rounded-full text-green-600 hover:bg-green-50" onClick={() => handleIndividualAction(item.id, "approved", "izin")}>
-                          <CheckCircle size={18} />
-                        </button>
-                        <button className="p-1.5 rounded-full text-red-600 hover:bg-red-50" onClick={() => handleIndividualAction(item.id, "rejected", "izin")}>
-                          <XCircle size={18} />
-                        </button>
-                        <button className="p-1.5 rounded-full text-yellow-600 hover:bg-yellow-50" onClick={() => handleIndividualAction(item.id, "blocked", "izin")}>
-                          <AlertTriangle size={18} />
-                        </button>
-                      </div>
-                    </td> */}
                   </tr>
                 ))}
                 {filteredIzin.length === 0 && (
@@ -809,7 +808,7 @@ export default function ApprovalTable() {
 
 {showModal && selectedItem && (
   <div
-    className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50"
+    className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 p-4"
     onClick={(e) => {
       if (e.target === e.currentTarget) {
         closeModal();
@@ -817,37 +816,41 @@ export default function ApprovalTable() {
     }}
   >
     <div
-      className="bg-white rounded-lg max-w-4xl w-full shadow-lg pointer-events-auto max-h-[90vh] overflow-y-auto"
+      className="bg-white rounded-lg max-w-4xl w-full shadow-lg pointer-events-auto max-h-[90vh] overflow-y-auto scrollbar-hide"
       onClick={(e) => e.stopPropagation()}
+      style={{
+        scrollbarWidth: 'none', /* Firefox */
+        msOverflowStyle: 'none', /* Internet Explorer 10+ */
+      }}
     >
       {/* Konten utama pendaftar */}
-      <div className="p-5">
-        <h2 className="text-xl font-semibold mb-4">Detail Pendaftar</h2>
+      <div className="p-4">
+        <h2 className="text-lg font-semibold mb-3">Detail Pendaftar</h2>
 
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           {/* Kolom foto profil */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 lg:w-40">
             <img
               src={
-                selectedItem.user?.berkas?.find((f) => f.type === "profile")
+                selectedItem.user?.foto?.find((f) => f.type === "profile")
                   ? `${import.meta.env.VITE_API_URL_FILE}/storage/${
-                      selectedItem.user.berkas.find((f) => f.type === "profile")
+                      selectedItem.user.foto.find((f) => f.type === "profile")
                         .path
                     }`
                   : "/placeholder-profile.jpg"
               }
               alt={selectedItem.user?.nama}
-              className="w-30 h-30 rounded-lg object-cover"
+              className="w-full h-40 rounded-lg object-cover mx-auto"
               onError={(e) => {
                 e.target.src = "/placeholder-profile.jpg";
               }}
             />
           </div>
 
-          {/* Kolom Informasi - dibagi 2 */}
-          <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
+          {/* Kolom Informasi - layout lebih kompak */}
+          <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
             {/* Kolom 1 */}
-            <div className="space-y-3">
+            <div className="space-y-1">
               <InputLabel label="Nama" value={selectedItem.user?.nama} />
               <InputLabel
                 label="Jenis Kelamin"
@@ -866,11 +869,10 @@ export default function ApprovalTable() {
                 label="NISN/NIM"
                 value={selectedItem.user?.nomor_identitas}
               />
-
             </div>
 
             {/* Kolom 2 */}
-            <div className="space-y-3">
+            <div className="space-y-1">
               <InputLabel label="Alamat" value={selectedItem.user?.alamat} />
               <InputLabel label="No. HP" value={selectedItem.user?.telepon} />
               <InputLabel
@@ -882,194 +884,267 @@ export default function ApprovalTable() {
                 <label className="block text-gray-600 text-xs">
                   Status Pendaftaran
                 </label>
-                <span className="bg-orange-100 text-orange-500 px-2 py-1 rounded-lg text-xs inline-block mt-1">
+                <span className="bg-orange-100 text-orange-500 px-2 py-1 rounded text-xs inline-block mt-1">
                   {selectedItem.status || "Menunggu Konfirmasi"}
                 </span>
               </div>
 
-              
+              {/* Tombol Aksi */}
+              <div className="flex gap-6 mt-6">
+                {/* Tombol Tolak */}
+                <button
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 bg-red-100 text-sm font-medium transition-colors"
+                  onClick={() => {
+                    Swal.fire({
+                      title: "Apakah Anda yakin?",
+                      text: "Anda akan menolak siswa ini.",
+                      icon: "warning",
+                      showCancelButton: true,
+                      confirmButtonColor: "#d33",
+                      cancelButtonColor: "#aaa",
+                      confirmButtonText: "Ya, Tolak",
+                      cancelButtonText: "Batal",
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        handleIndividualAction(selectedItem.id, "rejected", "pendaftaran");
+                      }
+                    });
+                  }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Tolak
+                </button>
+
+                {/* Tombol Terima */}
+                <button
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-green-600 hover:bg-green-50 bg-green-100 text-sm font-medium transition-colors"
+                  onClick={() => {
+                    Swal.fire({
+                      title: "Apakah Anda yakin?",
+                      text: "Anda akan menerima siswa ini.",
+                      icon: "question",
+                      showCancelButton: true,
+                      confirmButtonColor: "#22c55e",
+                      cancelButtonColor: "#aaa",
+                      confirmButtonText: "Ya, Terima",
+                      cancelButtonText: "Batal",
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        handleIndividualAction(selectedItem.id, "approved", "pendaftaran");
+                      }
+                    });
+                  }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Terima
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Tombol Aksi */}
-        <div className="flex justify-center gap-20 mt-6">
-          {/* Tombol Tolak */}
-          <button
-            className="px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 bg-red-100 text-sm font-medium"
-            onClick={() => {
-              Swal.fire({
-                title: "Apakah Anda yakin?",
-                text: "Anda akan menolak siswa ini.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#d33",
-                cancelButtonColor: "#aaa",
-                confirmButtonText: "Ya, Tolak",
-                cancelButtonText: "Batal",
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  handleIndividualAction(selectedItem.id, "rejected", "pendaftaran");
-                }
-              });
-            }}
-          >
-            Tolak
-          </button>
-
-          {/* Tombol Terima */}
-          <button
-            className="px-4 py-2 rounded-lg text-green-600 hover:bg-green-50 bg-green-100 text-sm font-medium"
-            onClick={() => {
-              Swal.fire({
-                title: "Apakah Anda yakin?",
-                text: "Anda akan menerima siswa ini.",
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonColor: "#22c55e",
-                cancelButtonColor: "#aaa",
-                confirmButtonText: "Ya, Terima",
-                cancelButtonText: "Batal",
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  handleIndividualAction(selectedItem.id, "approved", "pendaftaran");
-                }
-              });
-            }}
-          >
-            Terima
-          </button>
-        </div>
-
-        {/* Preview Dokumen - Di bawah tombol */}
-        <div className="mt-4 pt-2">
-          <h3 className="text-lg font-semibold mb-4">Preview Dokumen</h3>
+        {/* Preview Dokumen - layout lebih kompak */}
+        <div className="mt-4 pt-3 border-t border-gray-200">
+          <h3 className="text-base font-semibold mb-3">Preview Dokumen</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
             {/* Preview CV */}
             <div>
-              {selectedItem.user?.berkas?.find((f) => f.type === "cv") ? (
-                (() => {
-                  const cv = selectedItem.user.berkas.find((f) => f.type === "cv");
+              {(() => {
+                const cv = selectedItem.user?.foto?.find((f) => f.type === "cv");
+                
+                if (cv && cv.path) {
                   const cvUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${cv.path}`;
+                  const fileExtension = cv.path.split('.').pop().toLowerCase();
                   
                   return (
-                    <div>
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="text-sm font-semibold text-gray-700">CV</span>
-                        {/* <button
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = cvUrl;
-                            link.download = `cv-${selectedItem.user?.nama || 'peserta'}.pdf`;
-                            link.click();
-                          }}
-                          className="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700 transition"
-                        >
-
-                        </button> */}
+                    <div className="border rounded-lg overflow-hidden shadow-sm">
+                      <div className="bg-gray-50 px-3 py-2 border-b flex justify-between items-center">
+                        <span className="text-xs font-semibold text-gray-700">CV ({fileExtension.toUpperCase()})</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = cvUrl;
+                              link.download = `CV_${selectedItem.user?.nama || 'document'}.${fileExtension}`;
+                              link.target = '_blank';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                            className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors"
+                            title="Download CV"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
-                      <div className="border rounded-lg overflow-hidden relative">
-                        {/* Button untuk buka di tab baru - di luar iframe */}
-                        <button
-                          onClick={() => window.open(cvUrl, "_blank", 'noopener,noreferrer')}
-                          className="absolute top-2 right-2 z-10 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded shadow-lg transition-colors"
-                          title="Buka di tab baru"
-                        >
-
-                        </button>
-                        
-                        {/* Iframe yang bisa di-scroll penuh */}
-                        <iframe
-                          src={`${cvUrl}#view=FitH&toolbar=0`}
-                          className="w-full h-80 border-0"
-                          title="Preview CV"
-                          scrolling="yes"
-                          onError={() => {
-                            console.error('Error loading CV preview');
-                          }}
-                        ></iframe>
+                      <div className="bg-white">
+                        {(() => {
+                          if (fileExtension === 'pdf') {
+                            return (
+                              <iframe
+                                src={`${cvUrl}#view=FitH&toolbar=0&navpanes=0`}
+                                className="w-full h-64 border-0"
+                                title="Preview CV"
+                              />
+                            );
+                          } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExtension)) {
+                            return (
+                              <div className="p-2">
+                                <img
+                                  src={cvUrl}
+                                  alt="CV Preview"
+                                  className="w-full h-auto max-h-60 object-contain rounded"
+                                  onError={(e) => {
+                                    console.error('Error loading CV image');
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <iframe
+                                src={`https://docs.google.com/gview?url=${encodeURIComponent(cvUrl)}&embedded=true&rm=minimal`}
+                                className="w-full h-64 border-0"
+                                title="Preview CV"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  const fallback = document.createElement('div');
+                                  fallback.className = 'flex items-center justify-center h-64 text-center p-3 bg-gray-50';
+                                  fallback.innerHTML = `
+                                    <div>
+                                      <div class="text-2xl mb-2 text-gray-400">📄</div>
+                                      <p class="text-xs text-gray-500">Preview tidak tersedia</p>
+                                    </div>
+                                  `;
+                                  e.target.parentNode.appendChild(fallback);
+                                }}
+                              />
+                            );
+                          }
+                        })()}
                       </div>
                     </div>
                   );
-                })()
-              ) : (
-                <div className="border rounded-lg p-8 text-center bg-gray-50">
-                  <span className="text-sm font-semibold text-gray-700 block mb-2">CV</span>
-                  <p className="text-sm text-gray-500">CV belum tersedia.</p>
-                </div>
-              )}
+                } else {
+                  return (
+                    <div className="border rounded-lg p-4 text-center bg-gray-50">
+                      <div className="text-2xl mb-2 text-gray-400">📄</div>
+                      <span className="text-xs font-semibold text-gray-700 block mb-1">CV</span>
+                      <p class="text-xs text-gray-500">CV belum tersedia</p>
+                    </div>
+                  );
+                }
+              })()}
             </div>
 
             {/* Preview Surat Pernyataan */}
-            {/* Preview Surat Pernyataan */}
-<div>
-  {selectedItem.user?.berkas?.find((f) => f.type === "surat_pernyataan_diri") ? (
-    (() => {
-      const surat = selectedItem.user.berkas.find((b) => b.type === "surat_pernyataan_diri");
-      const suratUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${surat.path}`;
+            <div>
+              {(() => {
+                const surat = selectedItem.user?.berkas?.find((b) => b.type === "surat_pernyataan_diri");
+                
+                if (surat && surat.path) {
+                  const suratUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${surat.path}`;
+                  const fileExtension = surat.path.split('.').pop().toLowerCase();
 
-      return (
-        <div>
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-sm font-semibold text-gray-700">Surat Pernyataan Diri</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => window.open(suratUrl, "_blank", 'noopener,noreferrer')}
-                className="text-white text-xs px-3 py-1 rounded hover:bg-green-700 transition"
-                title="Buka di tab baru"
-              >
-              </button>
-              {/* <button
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = suratUrl;
-                  link.download = `surat-pernyataan-${selectedItem.user?.nama || 'peserta'}.pdf`;
-                  link.click();
-                }}
-                className="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700 transition"
-              >
-                Download
-              </button> */}
+                  return (
+                    <div className="border rounded-lg overflow-hidden shadow-sm">
+                      <div className="bg-gray-50 px-3 py-2 border-b flex justify-between items-center">
+                        <span className="text-xs font-semibold text-gray-700">Surat Pernyataan ({fileExtension.toUpperCase()})</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = suratUrl;
+                              link.download = `Surat_Pernyataan_${selectedItem.user?.nama || 'document'}.${fileExtension}`;
+                              link.target = '_blank';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                            className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors"
+                            title="Download Surat Pernyataan"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="bg-white">
+                        {(() => {
+                          if (fileExtension === 'pdf') {
+                            return (
+                              <iframe
+                                src={`${suratUrl}#view=FitH&toolbar=0&navpanes=0`}
+                                className="w-full h-64 border-0"
+                                title="Preview Surat Pernyataan"
+                              />
+                            );
+                          } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExtension)) {
+                            return (
+                              <div className="p-2">
+                                <img
+                                  src={suratUrl}
+                                  alt="Surat Pernyataan Preview"
+                                  className="w-full h-auto max-h-60 object-contain rounded"
+                                  onError={(e) => {
+                                    console.error('Error loading Surat Pernyataan image');
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <iframe
+                                src={`https://docs.google.com/gview?url=${encodeURIComponent(suratUrl)}&embedded=true&rm=minimal`}
+                                className="w-full h-64 border-0"
+                                title="Preview Surat Pernyataan"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  const fallback = document.createElement('div');
+                                  fallback.className = 'flex items-center justify-center h-64 text-center p-3 bg-gray-50';
+                                  fallback.innerHTML = `
+                                    <div>
+                                      <div class="text-2xl mb-2 text-gray-400">📋</div>
+                                      <p class="text-xs text-gray-500">Preview tidak tersedia</p>
+                                    </div>
+                                  `;
+                                  e.target.parentNode.appendChild(fallback);
+                                }}
+                              />
+                            );
+                          }
+                        })()}
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="border rounded-lg p-4 text-center bg-gray-50">
+                      <div className="text-2xl mb-2 text-gray-400">📋</div>
+                      <span className="text-xs font-semibold text-gray-700 block mb-1">Surat Pernyataan</span>
+                      <p class="text-xs text-gray-500">Surat pernyataan belum tersedia</p>
+                    </div>
+                  );
+                }
+              })()}
             </div>
-          </div>
-          <div className="border rounded-lg overflow-hidden bg-gray-100">
-            {/* Iframe dengan scroll yang berfungsi */}
-            <iframe
-              src={`${suratUrl}#view=FitH&toolbar=0&navpanes=0&scrollbar=1`}
-              className="w-full h-80 border-0 pointer-events-auto"
-              title="Preview Surat Pernyataan"
-              scrolling="yes"
-              allow="fullscreen"
-              onError={() => {
-                console.error('Error loading Surat Pernyataan preview');
-              }}
-              style={{ 
-                pointerEvents: 'auto',
-                userSelect: 'auto'
-              }}
-            />
-          </div>
-          <div className="text-xs text-gray-500 mt-2 text-center">
-            💡 Gunakan scroll mouse atau tombol panah untuk navigasi dalam dokumen
-          </div>
-        </div>
-      );
-    })()
-  ) : (
-    <div className="border rounded-lg p-8 text-center bg-gray-50">
-      <span className="text-sm font-semibold text-gray-700 block mb-2">Surat Pernyataan Diri</span>
-      <p className="text-sm text-gray-500">Surat pernyataan belum tersedia.</p>
-    </div>
-  )}
-</div>
           </div>
         </div>
       </div>
     </div>
   </div>
 )}
-
 
         {showModalIzin && selectedItem && (
           <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50">

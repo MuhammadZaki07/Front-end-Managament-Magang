@@ -11,6 +11,7 @@ import Swal from "sweetalert2";
 export default function CompanyBranchCard() {
   const [branches, setBranches] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [sortOrder, setSortOrder] = useState("terbaru"); // State untuk sorting
   const itemsPerPage = 12;
   const [modalState, setModalState] = useState({
     showModal: false,
@@ -23,26 +24,37 @@ export default function CompanyBranchCard() {
   const fetchAdmins = async () => {
     try {
       Swal.fire({
-                      title: 'Memuat data...',
-                      allowOutsideClick: false,
-                      allowEscapeKey: false,
-                      showConfirmButton: false,
-                      didOpen: () => {
-                        Swal.showLoading();
-                      }
-                    });
+        title: 'Memuat data...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/admin`,
+        `${import.meta.env.VITE_API_URL}/admin?sort=${sortOrder}`, // Tambahkan parameter sort
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
-      setBranches(response.data.data);
+      
+      // Jika API tidak mendukung sorting, lakukan sorting di frontend
+      let sortedData = response.data.data;
+      if (sortOrder === "terbaru") {
+        sortedData = sortedData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      } else if (sortOrder === "terlama") {
+        sortedData = sortedData.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      }
+      
+      setBranches(sortedData);
       Swal.close();
     } catch (error) {
       console.error("Error fetching admins:", error);
+      Swal.close();
     } finally {
       setLoading(false);
     }
@@ -50,10 +62,15 @@ export default function CompanyBranchCard() {
 
   useEffect(() => {
     fetchAdmins();
-  }, []);
+  }, [sortOrder]); // Tambahkan sortOrder sebagai dependency
 
   const handlePageClick = (event) => {
     setCurrentPage(event.selected);
+  };
+
+  const handleSortChange = (event) => {
+    setSortOrder(event.target.value);
+    setCurrentPage(0); // Reset ke halaman pertama saat sorting berubah
   };
 
   const displayedBranches = branches.slice(
@@ -180,9 +197,13 @@ export default function CompanyBranchCard() {
 
             <div className="flex items-center">
               <span className="mr-1 text-xs">Sort by:</span>
-              <select className="border border-gray-300 rounded-md px-2 py-1 text-xs">
-                <option>Terbaru</option>
-                <option>Terlama</option>
+              <select 
+                className="border border-gray-300 rounded-md px-2 py-1 text-xs"
+                value={sortOrder}
+                onChange={handleSortChange}
+              >
+                <option value="terbaru">Terbaru</option>
+                <option value="terlama">Terlama</option>
               </select>
             </div>
           </div>
@@ -224,7 +245,7 @@ export default function CompanyBranchCard() {
                       <h3 className="font-bold text-sm text-gray-800 text-center mb-2">
                         {branch.user.nama}
                       </h3>
-                      <p className="text-xs text-black-600 text-center mb-1">
+                      <p className="text-xs text-black-600 text-center mb-1 break-words px-2">
                         {branch.user.email}
                       </p>
                     </>
@@ -269,6 +290,7 @@ export default function CompanyBranchCard() {
                 marginPagesDisplayed={2}
                 pageRangeDisplayed={3}
                 onPageChange={handlePageClick}
+                forcePage={currentPage} // Pastikan pagination tetap sinkron
                 containerClassName="flex justify-center items-center space-x-2"
                 pageLinkClassName="px-3 py-1 text-sm rounded-md text-gray-700 hover:bg-blue-100"
                 activeLinkClassName="bg-blue-500 text-white"

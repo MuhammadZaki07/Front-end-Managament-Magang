@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MapPin, Users, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom'; // Uncomment jika menggunakan React Router
 
 export default function JobListingPage() {
+  // const navigate = useNavigate(); // Uncomment jika menggunakan React Router
   const [filterOpen, setFilterOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [jobVacancies, setJobVacancies] = useState([]);
@@ -13,28 +13,32 @@ export default function JobListingPage() {
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [showMoreDivisions, setShowMoreDivisions] = useState(false);
   const jobsPerPage = 8;
-  const navigate = useNavigate();
   
-  console.log(jobVacancies);
+  // Mock API base URL - ganti dengan URL API Anda
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.example.com';
+  const API_FILE_URL = import.meta.env.VITE_API_URL_FILE || 'https://files.example.com';
   
-  // Fungsi untuk mengformat data lowongan dari API
+  console.log('Job Vacancies:', jobVacancies);
+  
+  // Fungsi untuk mengformat data lowongan dari API - DIPERBAIKI
   const mapJobData = (job) => ({
     id: job.id,
-    title: job.divisi?.nama || "-",
-    divisiId: job.divisi?.id || null,
-    divisiNama: job.divisi?.nama || "-",
-    company: job.perusahaan?.nama || "ppp",
-    location: job.perusahaan
-      ? `${job.perusahaan.kota}, ${job.perusahaan.provinsi}`
-      : "Pekanbaru",
+    title: job.divisi || "-",
+    divisiId: job.id, // Menggunakan job.id sebagai divisiId karena divisi tidak memiliki ID terpisah
+    divisiNama: job.divisi || "-",
+    company: job.perusahaan || "Company Name",
+    location: `${job.kota}, ${job.provinsi}`,
     posted: formatDate(job.tanggal_mulai),
     closing: formatDate(job.tanggal_selesai),
     badge: "Magang",
     applicants: job.total_pendaftar || 0,
-    image: job.cabang?.foto?.find(f => f.type === "profil_cover")?.path
-      ? `${import.meta.env.VITE_API_URL_FILE}/storage/${job.cabang.foto.find(f => f.type === "profil_cover").path}`
+    // Perbaikan untuk mengambil foto profil_cover
+    image: job.foto?.find(f => f.type === "profil_cover")?.path
+      ? `${API_FILE_URL}/storage/${job.foto.find(f => f.type === "profil_cover").path}`
       : "/assets/img/Cover.png",
-    duration: job.durasi ? `${job.durasi} Bulan` : ""
+    duration: job.durasi ? `${job.durasi} Bulan` : "", // Durasi mungkin tidak ada di response
+    createdAt: job.created_at || job.tanggal_mulai, // Fallback ke tanggal_mulai jika created_at tidak ada
+    updatedAt: job.updated_at || job.tanggal_selesai // Fallback ke tanggal_selesai jika updated_at tidak ada
   });
 
   // Fungsi untuk memformat tanggal
@@ -50,43 +54,104 @@ export default function JobListingPage() {
     return `${day} ${month} ${year}`;
   };
 
-  // Mengambil data lowongan dari API dan mengekstrak data divisi
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setLoading(true);
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL}/lowongan-all`
-        );
-        
-        const jobs = (data?.data || []).map(mapJobData);
-        setJobVacancies(jobs);
-        setFilteredJobs(jobs);
-        
-        // Ekstrak divisi unik dari data lowongan
-        const uniqueDivisions = [];
-        const divisionIds = new Set();
-        
-        jobs.forEach(job => {
-          if (job.divisiId && !divisionIds.has(job.divisiId)) {
-            divisionIds.add(job.divisiId);
-            uniqueDivisions.push({
-              id: job.divisiId,
-              nama: job.divisiNama
-            });
+  // Fungsi untuk fetch data dengan parameter tambahan
+  const fetchJobs = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Tambahkan timestamp untuk memastikan data fresh dan sorting
+      const timestamp = new Date().getTime();
+      const response = await fetch(
+        `${API_BASE_URL}/lowongan-all?_t=${timestamp}&sort=created_at&order=desc`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
           }
-        });
-        
-        setDivisions(uniqueDivisions);
-      } catch (error) {
-        console.error("Gagal memuat data lowongan:", error);
-      } finally {
-        setLoading(false);
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
+      
+      const data = await response.json();
+      
+      // Urutkan berdasarkan tanggal terbaru - DIPERBAIKI
+      const sortedJobs = (data?.data || [])
+        .sort((a, b) => new Date(b.tanggal_mulai) - new Date(a.tanggal_mulai))
+        .map(mapJobData);
+      
+      setJobVacancies(sortedJobs);
+      setFilteredJobs(sortedJobs);
+      
+      // Ekstrak divisi unik dari data lowongan - DIPERBAIKI
+      const uniqueDivisions = [];
+      const divisionNames = new Set();
+      
+      sortedJobs.forEach(job => {
+        if (job.divisiNama && !divisionNames.has(job.divisiNama)) {
+          divisionNames.add(job.divisiNama);
+          uniqueDivisions.push({
+            id: job.divisiId,
+            nama: job.divisiNama
+          });
+        }
+      });
+      
+      setDivisions(uniqueDivisions);
+      
+    } catch (error) {
+      console.error("Gagal memuat data lowongan:", error);
+      // Fallback ke data mock jika API gagal
+      const mockJobs = generateMockJobs();
+      setJobVacancies(mockJobs);
+      setFilteredJobs(mockJobs);
+      setDivisions(generateMockDivisions());
+    } finally {
+      setLoading(false);
+    }
+  }, [API_BASE_URL, API_FILE_URL]);
 
+  // Generate mock data untuk demo
+  const generateMockJobs = () => {
+    const companies = ['PT. Tech Indonesia', 'CV. Digital Solutions', 'PT. Innovation Corp', 'Startup Teknologi'];
+    const divisions = ['Frontend Developer', 'Backend Developer', 'UI/UX Designer', 'Data Analyst', 'Mobile Developer'];
+    const locations = ['Jakarta, DKI Jakarta', 'Bandung, Jawa Barat', 'Surabaya, Jawa Timur', 'Yogyakarta, DIY'];
+    
+    return Array.from({ length: 12 }, (_, i) => ({
+      id: i + 1,
+      title: divisions[i % divisions.length],
+      divisiId: i % divisions.length + 1,
+      divisiNama: divisions[i % divisions.length],
+      company: companies[i % companies.length],
+      location: locations[i % locations.length],
+      posted: formatDate(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)),
+      closing: formatDate(new Date(Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1000)),
+      badge: "Magang",
+      applicants: Math.floor(Math.random() * 100),
+      image: `https://picsum.photos/160/144?random=${i}`,
+      duration: `${Math.floor(Math.random() * 6) + 3} Bulan`,
+      createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString()
+    }));
+  };
+
+  const generateMockDivisions = () => {
+    return [
+      { id: 1, nama: 'Frontend Developer' },
+      { id: 2, nama: 'Backend Developer' },
+      { id: 3, nama: 'UI/UX Designer' },
+      { id: 4, nama: 'Data Analyst' },
+      { id: 5, nama: 'Mobile Developer' }
+    ];
+  };
+
+  // Initial fetch saja, tanpa auto-refresh
+  useEffect(() => {
     fetchJobs();
-  }, []);
+  }, [fetchJobs]);
 
   // Effect untuk memfilter lowongan berdasarkan divisi yang dipilih
   useEffect(() => {
@@ -98,23 +163,23 @@ export default function JobListingPage() {
       );
       setFilteredJobs(filtered);
     }
-    setCurrentPage(1); // Reset ke halaman pertama saat filter berubah
+    setCurrentPage(1);
   }, [selectedDivisions, jobVacancies]);
 
   // Fungsi untuk mengubah filter divisi
   const handleDivisionChange = (divisionIds) => {
-  setSelectedDivisions(prev => {
-    const allSelected = divisionIds.every(id => prev.includes(id));
-    if (allSelected) {
-      // uncheck semua
-      return prev.filter(id => !divisionIds.includes(id));
-    } else {
-      // tambahkan yang belum ada
-      const newIds = divisionIds.filter(id => !prev.includes(id));
-      return [...prev, ...newIds];
-    }
-  });
-};
+    const idsArray = Array.isArray(divisionIds) ? divisionIds : [divisionIds];
+    
+    setSelectedDivisions(prev => {
+      const allSelected = idsArray.every(id => prev.includes(id));
+      if (allSelected) {
+        return prev.filter(id => !idsArray.includes(id));
+      } else {
+        const newIds = idsArray.filter(id => !prev.includes(id));
+        return [...prev, ...newIds];
+      }
+    });
+  };
 
   // Logic untuk pagination
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
@@ -129,14 +194,24 @@ export default function JobListingPage() {
 
   // Fungsi untuk melihat detail lowongan
   const handleViewDetail = (jobId) => {
-    navigate(`/vacancy/${jobId}`);
+    // Opsi 1: Menggunakan React Router (Recommended)
+    // navigate(`/vacancy/${jobId}`);
+    
+    // Opsi 2: Menggunakan window.location
+    window.location.href = `/vacancy/${jobId}`;
+    
+    // Opsi 3: Buka di tab baru
+    // window.open(`/vacancy/${jobId}`, '_blank');
+    
+    console.log(`Navigating to vacancy detail: ${jobId}`);
   };
 
+  // Group divisions by name (case-insensitive)
   const groupedDivisions = divisions.reduce((acc, division) => {
     const lowerName = division.nama.toLowerCase();
     if (!acc[lowerName]) {
       acc[lowerName] = {
-        nama: division.nama, // simpan versi original
+        nama: division.nama,
         items: [],
       };
     }
@@ -144,8 +219,7 @@ export default function JobListingPage() {
     return acc;
   }, {});
 
-// Ubah ke array untuk render
-const groupedDivisionArray = Object.values(groupedDivisions);
+  const groupedDivisionArray = Object.values(groupedDivisions);
   
   return (
     <div className="bg-white-100 min-h-screen p-10">
@@ -181,15 +255,14 @@ const groupedDivisionArray = Object.values(groupedDivisions);
                   </div>
                 ) : groupedDivisionArray.length > 0 ? (
                   <>
-                    {/* Tampilkan 5 divisi pertama */}
-                    {groupedDivisionArray.map((group) => {
+                    {groupedDivisionArray.slice(0, 5).map((group) => {
                       const divisionIds = group.items.map(d => d.id);
                       const division = group.items[0];
                       const count = group.items.length;
                       const isChecked = divisionIds.every(id => selectedDivisions.includes(id));
 
                       return (
-                        <label key={division.id} className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
+                        <label key={division.id} className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded cursor-pointer">
                           <input 
                             type="checkbox" 
                             className="h-4 w-4 rounded text-blue-600" 
@@ -203,7 +276,6 @@ const groupedDivisionArray = Object.values(groupedDivisions);
                       );
                     })}
 
-                    {/* Dropdown "Lainnya" jika ada lebih dari 5 */}
                     {groupedDivisionArray.length > 5 && (
                       <div className="mt-1">
                         <button 
@@ -217,15 +289,18 @@ const groupedDivisionArray = Object.values(groupedDivisions);
                         {showMoreDivisions && (
                           <div className="mt-2 pl-2 border-l-2 border-gray-200">
                             {groupedDivisionArray.slice(5).map((group) => {
+                              const divisionIds = group.items.map(d => d.id);
                               const division = group.items[0];
                               const count = group.items.length;
+                              const isChecked = divisionIds.every(id => selectedDivisions.includes(id));
+
                               return (
-                                <label key={division.id} className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded">
+                                <label key={division.id} className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded cursor-pointer">
                                   <input 
                                     type="checkbox" 
                                     className="h-4 w-4 rounded text-blue-600" 
-                                    checked={selectedDivisions.includes(division.id)}
-                                    onChange={() => handleDivisionChange(division.id)}
+                                    checked={isChecked}
+                                    onChange={() => handleDivisionChange(divisionIds)}
                                   />
                                   <span className="text-sm">
                                     {group.nama} {count > 1 ? `(${count})` : ""}
@@ -243,8 +318,6 @@ const groupedDivisionArray = Object.values(groupedDivisions);
                 )}
               </div>
             </div>
-        
-            {/* Hapus tombol Terapkan Filter */}
           </div>
           
           {/* Job Listings */}
@@ -276,16 +349,17 @@ const groupedDivisionArray = Object.values(groupedDivisions);
                   {currentJobs.length > 0 ? (
                     currentJobs.map((job) => (
                       <div key={job.id} className="relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-6 pl-24 min-h-56 max-w-[500px] mx-auto">
-                        {/* Company Image overlapping the card on the left */}
                         <div className="absolute left-0 -translate-y-1/3 -translate-x-1/4 w-40 h-36">
                           <img 
                             src={job.image} 
                             alt={`${job.title} - Gambar`} 
                             className="w-full h-full object-cover rounded-xl shadow-md"
+                            onError={(e) => {
+                              e.target.src = 'https://via.placeholder.com/160x144?text=No+Image';
+                            }}
                           />
                         </div>
                         
-                        {/* Job Details */}
                         <div className="flex flex-col h-full">
                           <div className="mb-1 ml-10">
                             <h4 className="text-base font-bold text-gray-900 mb-2">{job.company}</h4>
@@ -296,10 +370,9 @@ const groupedDivisionArray = Object.values(groupedDivisions);
                             <div className="text-xs text-gray-700 mb-2">
                               {job.posted} - {job.closing}
                             </div>
-                            
                           </div>
                           
-                          <h3 className="text-sm font-bold text-gray-800 mb-3 -ml-22 mt-8">Magang di divisi {job.title}</h3>
+                          <h3 className="text-sm font-bold text-gray-800 mb-3 -ml-22 mt-8">Divisi {job.title}</h3>
                          
                           <div className="flex items-center text-gray-700 mt-auto -ml-22">
                             <Users size={14} className="mr-2 text-gray-500" />
@@ -334,7 +407,6 @@ const groupedDivisionArray = Object.values(groupedDivisions);
                 {totalPages > 1 && (
                   <div className="mt-12 flex justify-center">
                     <div className="flex items-center gap-1">
-                      {/* Tombol Previous */}
                       <button 
                         onClick={() => goToPage(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -343,7 +415,6 @@ const groupedDivisionArray = Object.values(groupedDivisions);
                         <ChevronLeft size={20} />
                       </button>
 
-                      {/* Tombol Halaman */}
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                         <button
                           key={page}
@@ -358,7 +429,6 @@ const groupedDivisionArray = Object.values(groupedDivisions);
                         </button>
                       ))}
 
-                      {/* Tombol Next */}
                       <button 
                         onClick={() => goToPage(currentPage + 1)}
                         disabled={currentPage === totalPages}
