@@ -8,6 +8,7 @@ const SelectAuth = () => {
   const [selected, setSelected] = useState(null);
   const navigate = useNavigate();
   const { tempRegisterData, setToken, setRole } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -38,13 +39,14 @@ const SelectAuth = () => {
     if (!selected || !tempRegisterData) return;
 
     try {
+      setLoading(true);
       const data = {
-        ...tempRegisterData,
+        id_user : tempRegisterData.id,
         role: selected,
       };
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/register/${selected}`,
+        `${import.meta.env.VITE_API_URL}/assign/${selected}`,
         data
       );
       
@@ -55,6 +57,7 @@ const SelectAuth = () => {
         setToken(token);
         setRole(role);
         navigate(`/${role}/dashboard`);
+        setLoading(false);
       } else {
         setErrors({
           message: response.data.message || "Login failed. Try again.",
@@ -135,7 +138,7 @@ const SelectAuth = () => {
               : "text-sky-800 hover:text-sky-700"
           }`}
         >
-          Next →
+          {loading ? "Loading..." : "Next →"}
         </a>
       </div>
     </div>

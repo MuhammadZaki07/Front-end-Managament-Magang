@@ -3,8 +3,11 @@ import { useContext, useState } from "react";
 import SuccessModal from "../../components/modal/ModalRegis"; // Import the success modal component
 import { useNavigate } from "react-router-dom";
 import { StatusContext } from "./StatusContext";
+import Swal from "sweetalert2";
 
 export default function StudentRegistrationForm() {
+  const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     nama: "",
     alamat: "",
@@ -101,6 +104,7 @@ export default function StudentRegistrationForm() {
     }
 
     try {
+      setLoading(true);
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/peserta`,
         formDataToSend,
@@ -116,12 +120,26 @@ export default function StudentRegistrationForm() {
       // Handle success
       console.log("Form submitted successfully:", response.data);
       setShowSuccessModal(true); // Menampilkan modal sukses setelah berhasil
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.error("Error submitting form:", error);
       if (error.response) {
-        alert(`Error: ${JSON.stringify(error.response.data.errors)}`);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response.data.message,
+          confirmButtonColor: '#3085d6',
+          confirmButtonText: 'OK',
+        })
       } else {
-        alert("Error submitting the form");
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error submitting the form',
+          confirmButtonColor: '#3085d6',
+          confirmButtonText: 'OK',
+        });
       }
     }
   };
@@ -447,7 +465,7 @@ export default function StudentRegistrationForm() {
               onClick={handleSubmit}
               className="py-2 px-6 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              Kirim
+              {loading ? "Loading..." : "Submit"}
             </button>
           </div>
         </div>

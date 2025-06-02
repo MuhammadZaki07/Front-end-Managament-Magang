@@ -3,6 +3,7 @@ import { useContext, useState } from "react";
 import FloatingLabelInput from "../../components/FloatingLabelInput";
 import { motion } from "framer-motion";
 import { AuthContext } from "../../contexts/AuthContext";
+import axios from "axios";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -57,8 +58,18 @@ const Register = () => {
       password_confirmation: confirmPassword,
     };
 
-    setTempRegisterData(data);
-    navigate("/auth/SelectAuth");
+    try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/register/`,
+          data
+        );
+        
+        setTempRegisterData(response.data);
+        navigate("/auth/SelectAuth");
+      setLoading(false);
+    } catch (error) {
+      console.error("Pendaftaran gagal:", error);
+    }
   };
 
   return (
