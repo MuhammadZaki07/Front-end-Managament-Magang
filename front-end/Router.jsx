@@ -77,6 +77,7 @@ import ProjectCard from "./src/components/cards/ProjectCard";
 import SuperadminLayout from "./src/layout/SuperadminLayout";
 import DashboardSuperadmin from "./src/pages/superadmin/Dashboard";
 import MitraDetails from "./src/components/section/MitraDetails";
+import StatusProvider from "./src/pages/student/StatusContext";
 
 
 export const router = createBrowserRouter([
@@ -120,7 +121,11 @@ export const router = createBrowserRouter([
   },
   {
     path: "/peserta",
-    element: <StudentLayout />,
+    element: (
+        <StatusProvider>
+          <StudentLayout />
+        </StatusProvider>
+      ),
     children: [
       {
         path: "dashboard",
