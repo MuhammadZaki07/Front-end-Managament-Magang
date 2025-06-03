@@ -190,7 +190,7 @@ export default function StudentTable() {
               <th className="p-3">Action</th>
             </tr>
           </thead>
-          <tbody className="text-black text-sm" style={{ backgroundColor: "#F7F6FE" }}>
+          <tbody className="text-black text-sm" style={{ backgroundColor: "#FFFFFF" }}>
             {currentStudents.length > 0 ? (
               currentStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-100">
