@@ -150,7 +150,7 @@ export default function TablePendaftaran({
         <thead className="bg-[#F9FAFB] text-[#667085] border-t border-gray-200">
           <tr>
             <th className="px-3 py-3 text-center font-medium">No</th>
-            <th className="px-3 py-3 text-center font-medium">Nama Lengkap</th>
+            <th className="px-3 py-3 text-left font-medium">Nama Lengkap</th>
             <th className="px-3 py-3 text-center font-medium">Email</th>
             <th className="px-3 py-3 text-center font-medium">Status Magang</th>
             <th className="px-3 py-3 text-center font-medium">Sekolah</th>
@@ -171,30 +171,32 @@ export default function TablePendaftaran({
               return (
                 <tr
                   key={item.id || index}
-                  className="border-t border-gray-200 hover:bg-gray-50 text-center"
+                  className="border-t border-gray-200 hover:bg-gray-50"
                 >
-                  <td className="px-3 py-3">{index + 1}</td>
-                  <td className="px-3 py-3 flex items-center gap-2 justify-center">
-                    <img
-                      src={getProfilePhoto(item)} 
-                      alt={item.nama || "User"}
-                      className="w-8 h-8 rounded-full cursor-pointer object-cover"
-                      onClick={() => handlePhotoClick(item.id)}
-                      onError={(e) => {
-                        console.log("Error loading image:", e.target.src);
-                        e.target.src = "/default-avatar.png";
-                      }}
-                    />
-                    {item.nama || "Nama tidak tersedia"}
-                  </td>
-                  <td className="px-3 py-3">{item.email || "-"}</td>
+                  <td className="px-3 py-3 text-center">{index + 1}</td>
                   <td className="px-3 py-3">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={getProfilePhoto(item)} 
+                        alt={item.nama || "User"}
+                        className="w-8 h-8 rounded-full cursor-pointer object-cover"
+                        onClick={() => handlePhotoClick(item.id)}
+                        onError={(e) => {
+                          console.log("Error loading image:", e.target.src);
+                          e.target.src = "/default-avatar.png";
+                        }}
+                      />
+                      <span>{item.nama || "Nama tidak tersedia"}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3 text-center">{item.email || "-"}</td>
+                  <td className="px-3 py-3 text-center">
                     <span className="text-sm font-medium">
                       {renderStatusBadge(statusMagang)}
                     </span>
                   </td>
-                  <td className="px-3 py-3">{item.sekolah || "-"}</td>
-                  <td className="px-3 py-3">{item.divisi || "-"}</td>
+                  <td className="px-3 py-3 text-center">{item.sekolah || "-"}</td>
+                  <td className="px-3 py-3 text-center">{item.divisi || "-"}</td>
                 </tr>
               );
             }).filter(Boolean) // Hapus item null
