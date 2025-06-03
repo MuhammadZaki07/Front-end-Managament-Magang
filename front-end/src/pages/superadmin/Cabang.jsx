@@ -21,19 +21,16 @@ function TablePerusahaan({ data, searchTerm, selectedLocation }) {
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Perusahaan
+              Cabang
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Lokasi
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Jumlah Cabang
+              Jumlah Divisi
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Jumlah Peserta
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Tanggal Daftar
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Aksi
@@ -77,13 +74,10 @@ function TablePerusahaan({ data, searchTerm, selectedLocation }) {
                   {item.lokasi}
                 </td>
                 <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-900">
-                  {item.jml_cabang}
+                  {item.jml_divisi}
                 </td>
                 <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-900">
                   {item.jml_peserta}
-                </td>
-                <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-900">
-                  {new Date(item.tanggal_daftar).toLocaleDateString('id-ID')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button 
@@ -121,16 +115,16 @@ export default function ApprovalTable() {
         id: 1,
         nama: "PT. HUMMA TEKNOLOGI INDONESIA",
         lokasi: "Malang, Jawa Timur",
-        jml_cabang: "12",
+        jml_divisi: "12",
         jml_peserta: "300",
-        img: "https://via.placeholder.com/40x40/3B82F6/FFFFFF?text=HT",
+        img: "/assets/img/Profil.png",
         tanggal_daftar: "2024-01-15"
       },
       {
         id: 2,
         nama: "PT. INDOSAT OOREDOO HUTCHISON",
         lokasi: "Jakarta, DKI Jakarta",
-        jml_cabang: "8",
+        jml_divisi: "8",
         jml_peserta: "150",
         img: "https://via.placeholder.com/40x40/EF4444/FFFFFF?text=IO",
         tanggal_daftar: "2024-02-10"
@@ -139,7 +133,7 @@ export default function ApprovalTable() {
         id: 3,
         nama: "PT. BANK CENTRAL ASIA TBK",
         lokasi: "Surabaya, Jawa Timur",
-        jml_cabang: "25",
+        jml_divisi: "25",
         jml_peserta: "500",
         img: "https://via.placeholder.com/40x40/10B981/FFFFFF?text=BCA",
         tanggal_daftar: "2024-01-20"
@@ -148,7 +142,7 @@ export default function ApprovalTable() {
         id: 4,
         nama: "PT. TELKOM INDONESIA PERSERO",
         lokasi: "Bandung, Jawa Barat",
-        jml_cabang: "15",
+        jml_divisi: "15",
         jml_peserta: "250",
         img: "https://via.placeholder.com/40x40/F59E0B/FFFFFF?text=TI",
         tanggal_daftar: "2024-03-05"
@@ -157,7 +151,7 @@ export default function ApprovalTable() {
         id: 5,
         nama: "PT. GOJEK INDONESIA",
         lokasi: "Jakarta, DKI Jakarta",
-        jml_cabang: "10",
+        jml_divisi: "10",
         jml_peserta: "180",
         img: "https://via.placeholder.com/40x40/059669/FFFFFF?text=GO",
         tanggal_daftar: "2024-02-20"
@@ -166,7 +160,7 @@ export default function ApprovalTable() {
         id: 6,
         nama: "PT. TOKOPEDIA",
         lokasi: "Jakarta, DKI Jakarta",
-        jml_cabang: "5",
+        jml_divisi: "5",
         jml_peserta: "120",
         img: "https://via.placeholder.com/40x40/8B5CF6/FFFFFF?text=TP",
         tanggal_daftar: "2024-03-10"
@@ -175,7 +169,7 @@ export default function ApprovalTable() {
         id: 7,
         nama: "PT. SHOPEE INDONESIA",
         lokasi: "Banjarnegara, Jawa Timur",
-        jml_cabang: "7",
+        jml_divisi: "7",
         jml_peserta: "200",
         img: "https://via.placeholder.com/40x40/EC4899/FFFFFF?text=SP",
         tanggal_daftar: "2024-03-15"
@@ -184,7 +178,7 @@ export default function ApprovalTable() {
         id: 8,
         nama: "PT. GRAB INDONESIA",
         lokasi: "Surabaya, Jawa Timur",
-        jml_cabang: "6",
+        jml_divisi: "6",
         jml_peserta: "140",
         img: "https://via.placeholder.com/40x40/6366F1/FFFFFF?text=GR",
         tanggal_daftar: "2024-04-01"
@@ -201,7 +195,7 @@ export default function ApprovalTable() {
   // Statistik untuk ditampilkan
   const totalPerusahaan = dataPerusahaan.length;
   const totalPeserta = dataPerusahaan.reduce((sum, item) => sum + parseInt(item.jml_peserta), 0);
-  const totalCabang = dataPerusahaan.reduce((sum, item) => sum + parseInt(item.jml_cabang), 0);
+  const totalCabang = dataPerusahaan.reduce((sum, item) => sum + parseInt(item.jml_divisi), 0);
 
   // Data yang sudah difilter untuk statistik
   const filteredData = dataPerusahaan.filter(item => {
@@ -218,7 +212,7 @@ export default function ApprovalTable() {
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-xl font-semibold text-[#1D2939]">
-                Manajemen Perusahaan
+                Manajemen Cabang
               </h2>
               <p className="text-sm text-gray-500 mt-1">
                 Menampilkan {filteredData.length} dari {totalPerusahaan} perusahaan

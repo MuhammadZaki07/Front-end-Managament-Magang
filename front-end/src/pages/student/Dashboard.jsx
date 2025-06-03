@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
-
 import AlertVerification from "../../components/AlertVerification";
 import Calendar from "../../components/Calendar";
 import ChartStats from "../../components/charts/ChartStats";

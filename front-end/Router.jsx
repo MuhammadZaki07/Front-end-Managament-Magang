@@ -79,7 +79,7 @@ import DashboardSuperadmin from "./src/pages/superadmin/Dashboard";
 import MitraDetails from "./src/components/section/MitraDetails";
 import StatusProvider from "./src/pages/student/StatusContext";
 import DataPerusahaan from "./src/pages/superadmin/DataPerusahaan";
-
+import MenuPerusahaan from "./src/pages/superadmin/MenuSuperadmin";
 
 export const router = createBrowserRouter([
   {
@@ -412,7 +412,15 @@ export const router = createBrowserRouter([
     {
       path: "DataPerusahaan",
       element: <DataPerusahaan/>
-    }
+    },
+    {
+      path: "MenuPerusahaan",
+      element: <MenuPerusahaan/>
+    },
+    {
+      path: "Cabang",
+      element: <DataPerusahaan/>
+    },
   ]
 },
   {
