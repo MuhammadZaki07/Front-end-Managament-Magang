@@ -645,50 +645,61 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
               {isEditing ? (
                 /* Edit Form */
                 <div className="space-y-6">
-                  {/* Date Input */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
-                    <input
-                      type="date"
-                      value={editData.tanggal || ''}
-                      onChange={(e) => handleInputChange('tanggal', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  {/* Time Inputs */}
+                  {/* Tanggal dan Kuota - 2 Column Row */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Waktu Mulai</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tanggal</label>
                       <input
-                        type="time"
-                        value={editData.waktu_mulai || ''}
-                        onChange={(e) => handleInputChange('waktu_mulai', e.target.value)}
+                        type="date"
+                        value={editData.tanggal || ''}
+                        onChange={(e) => handleInputChange('tanggal', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Waktu Selesai</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Kuota Peserta</label>
                       <input
-                        type="time"
-                        value={editData.waktu_selesai || ''}
-                        onChange={(e) => handleInputChange('waktu_selesai', e.target.value)}
+                        type="number"
+                        min="1"
+                        value={editData.kuota || ''}
+                        onChange={(e) => handleInputChange('kuota', parseInt(e.target.value) || 0)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
 
-                  {/* Type Selection */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Tipe Presentasi</label>
-                    <select
-                      value={editData.tipe || ''}
-                      onChange={(e) => handleInputChange('tipe', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="offline">Offline</option>
-                      <option value="online">Online</option>
-                    </select>
+                  {/* Tipe dan Jam Presentasi - 2 Column Row */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tipe Presentasi</label>
+                      <select
+                        value={editData.tipe || ''}
+                        onChange={(e) => handleInputChange('tipe', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="offline">Offline</option>
+                        <option value="online">Online</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Jam Presentasi</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="time"
+                          value={editData.waktu_mulai || ''}
+                          onChange={(e) => handleInputChange('waktu_mulai', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          placeholder="Mulai"
+                        />
+                        <input
+                          type="time"
+                          value={editData.waktu_selesai || ''}
+                          onChange={(e) => handleInputChange('waktu_selesai', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          placeholder="Selesai"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Conditional Fields based on type */}
@@ -700,7 +711,7 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
                         value={editData.link_zoom || ''}
                         onChange={(e) => handleInputChange('link_zoom', e.target.value)}
                         placeholder="https://zoom.us/j/..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   ) : (
@@ -711,22 +722,10 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
                         value={editData.lokasi || ''}
                         onChange={(e) => handleInputChange('lokasi', e.target.value)}
                         placeholder="Masukkan lokasi presentasi"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   )}
-
-                  {/* Kuota */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Kuota Peserta</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={editData.kuota || ''}
-                      onChange={(e) => handleInputChange('kuota', parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
 
                   {/* Save/Cancel Buttons */}
                   <div className="flex justify-end gap-3 pt-4 border-t">
@@ -868,14 +867,16 @@ const EventDetailModal = ({ show, onClose, eventId }) => {
           {/* Footer Actions - Only show when not editing */}
           {!isEditing && (
             <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-              <button onClick={handleClose} className="px-6 py-2 border border-[#0069AB] text-[#0069AB] rounded-full text-sm hover:bg-[#0069AB] hover:text-white transition-colors">
+              <button 
+              onClick={handleClose} 
+              className="px-6 py-2 border border-[#0069AB] text-[#0069AB] rounded-full text-sm hover:bg-[#0069AB] hover:text-white transition-colors">
                 Close
               </button>
 
               {event && event.presentationStatus === "dijadwalkan" && (
                 <button
                   onClick={handleEdit}
-                  className="px-6 py-2 bg-[#0069AB] text-white rounded-full text-sm hover:bg-[#0056A0] transition-colors flex items-center gap-2"
+                  className="px-6 py-2 border border-[#0069AB] text-[#0069AB] rounded-full text-sm hover:bg-[#0069AB] hover:text-white transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
