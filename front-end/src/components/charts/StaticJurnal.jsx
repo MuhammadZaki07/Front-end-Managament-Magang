@@ -22,42 +22,113 @@ const StaticJurnal = () => {
         "Dec",
       ],
       series: [
-        { name: "Mengisi", data: [2, 3, 2, 4, 3, 6, 3, 4, 3, 4, 3, 5] },
-        { name: "Tidak Mengisi", data: [1, 2, 3, 6, 4, 8, 5, 6, 5, 6, 5, 7] },
+        { name: "Mengisi", data: [18, 22, 15, 25, 20, 28, 19, 24, 21, 26, 23, 27] },
+        { name: "Tidak Mengisi", data: [8, 12, 16, 18, 14, 22, 17, 19, 15, 20, 16, 24] },
       ],
     },
     Monthly: {
       categories: ["Week 1", "Week 2", "Week 3", "Week 4"],
       series: [
-        { name: "Mengisi", data: [5, 7, 6, 8] },
-        { name: "Tidak Mengisi", data: [3, 5, 4, 6] },
+        { name: "Mengisi", data: [22, 26, 24, 29] },
+        { name: "Tidak Mengisi", data: [15, 18, 16, 21] },
       ],
     },
     Weekly: {
       categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
       series: [
-        { name: "Mengisi", data: [1, 2, 3, 2, 4, 3, 5] },
-        { name: "Tidak Mengisi", data: [2, 1, 3, 2, 3, 4, 2] },
+        { name: "Mengisi", data: [12, 18, 24, 16, 28, 22, 26] },
+        { name: "Tidak Mengisi", data: [14, 8, 19, 13, 21, 25, 17] },
       ],
     },
   };
 
   const options = {
-    chart: { type: "area", toolbar: { show: false } },
-    colors: ["#1E40AF", "#DC2626"],
-    stroke: { curve: "smooth", width: 2 },
-    fill: {
-      type: "gradient",
-      gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.4,
-        opacityTo: 0,
-        stops: [0, 100],
+    chart: {
+       type: "bar",
+       toolbar: { show: false },
+      height: 300,
+      events: {
+        dataPointMouseEnter: function(event, chartContext, config) {
+          const element = event.target;
+          const seriesIndex = config.seriesIndex;
+          
+          // Add shadow to hovered element
+          element.style.filter = 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))';
+          
+          // Make other series transparent
+          const allSeries = chartContext.el.querySelectorAll('.apexcharts-series');
+          allSeries.forEach((series, index) => {
+            if (index !== seriesIndex) {
+              series.style.opacity = '0.3';
+            }
+          });
+        },
+        dataPointMouseLeave: function(event, chartContext, config) {
+          const element = event.target;
+          
+          // Remove shadow
+          element.style.filter = 'none';
+          
+          // Reset all series opacity
+          const allSeries = chartContext.el.querySelectorAll('.apexcharts-series');
+          allSeries.forEach((series) => {
+            series.style.opacity = '1';
+          });
+        }
+      }
+    },
+    colors: ["#60A5FA", "#2563EB"],
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '55%',
+        endingShape: 'rounded',
+        borderRadiusApplication: 'end',
+        borderRadius: 8
       },
     },
+    states: {
+      hover: {
+        filter: {
+          type: 'darken',
+          value: 0.1
+        }
+      },
+      active: {
+        allowMultipleDataPointsSelection: false,
+        filter: {
+          type: 'none'
+        }
+      }
+    },
     dataLabels: { enabled: false },
-    xaxis: { categories: dataOptions[filter].categories },
-    yaxis: { min: 0, max: 10 },
+    stroke: {
+      show: true,
+      width: 2,
+      colors: ['transparent']
+    },
+    xaxis: {
+       categories: dataOptions[filter].categories
+     },
+    yaxis: {
+       min: 0,
+       max: 30,
+      
+    },
+    fill: {
+      opacity: 1,
+      type: 'solid'
+    },
+    tooltip: {
+      enabled: true,
+      shared: false,
+      intersect: true,
+      y: {
+        formatter: function (val) {
+          return val + " entries"
+        }
+      }
+    },
     legend: {
       position: "top",
       horizontalAlign: "left",
@@ -84,7 +155,7 @@ const StaticJurnal = () => {
       <Chart
         options={options}
         series={dataOptions[filter].series}
-        type="area"
+        type="bar"
         height={300}
       />
     </>

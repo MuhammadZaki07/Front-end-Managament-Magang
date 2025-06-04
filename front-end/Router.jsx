@@ -80,6 +80,8 @@ import MitraDetails from "./src/components/section/MitraDetails";
 import StatusProvider from "./src/pages/student/StatusContext";
 import GoogleCallback from "./src/pages/Auth/GoogleCallback";
 
+import DataPerusahaan from "./src/pages/superadmin/DataPerusahaan";
+import MenuPerusahaan from "./src/pages/superadmin/MenuSuperadmin";
 
 export const router = createBrowserRouter([
   {
@@ -412,7 +414,19 @@ export const router = createBrowserRouter([
     {
       path: "dashboard",
       element: <DashboardSuperadmin/>
-    }
+    },
+    {
+      path: "DataPerusahaan",
+      element: <DataPerusahaan/>
+    },
+    {
+      path: "MenuPerusahaan",
+      element: <MenuPerusahaan/>
+    },
+    {
+      path: "Cabang",
+      element: <DataPerusahaan/>
+    },
   ]
 },
   {

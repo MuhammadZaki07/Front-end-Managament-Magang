@@ -24,7 +24,7 @@ export default function LowonganChart() {
               track: {
                 background: "#A5B4FC",
                 strokeWidth: '97%',
-                margin: 5,
+                margin: 2,
                 dropShadow: {
                   enabled: true,
                   top: 2,

@@ -19,7 +19,7 @@ import {
   Shield,
   Building2,
 } from "lucide-react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
@@ -29,6 +29,14 @@ const SuperadminLayout = () => {
   const [isRinging, setIsRinging] = useState(false);
   const [isPresentasiOpen, setIsPresentasiOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  
+  // Get current location to determine active menu
+  const location = useLocation();
+
+  // Function to check if menu is active
+  const isActiveMenu = (path) => {
+    return location.pathname === path;
+  };
 
   const sidebarMenus = [
     { icon: <LayoutDashboard size={18} />, label: "Dashboard", link: "/admin/dashboard" },
@@ -45,6 +53,13 @@ const SuperadminLayout = () => {
   ];
 
   const footerMenus = ["License", "More Themes", "Documentation", "Support"];
+
+  // Navigation menu items
+  const navMenus = [
+    { label: "Dashboard", path: "/superadmin/dashboard" },
+    { label: "Manajemen Perusahaan", path: "/superadmin/DataPerusahaan" },
+    { label: "Create Post", path: "/superadmin/post" }
+  ];
 
   const handleLogout = async () => {
     // Using SweetAlert2 for logout confirmation
@@ -116,23 +131,16 @@ const SuperadminLayout = () => {
     });
   };
 
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       setIsRinging(true);
-//       setTimeout(() => setIsRinging(false), 800);
-//     }, 3000);
-//     return () => clearInterval(interval);
-//   }, []);
-
-//   useEffect(() => {
-//     const handleClickOutside = (event) => {
-//       if (!event.target.closest(".profile-dropdown")) {
-//         setIsDropdownOpen(false);
-//       }
-//     };
-//     document.addEventListener("click", handleClickOutside);
-//     return () => document.removeEventListener("click", handleClickOutside);
-//   }, []);
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".profile-dropdown")) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   return (
     <div className="w-full flex">
@@ -168,20 +176,19 @@ const SuperadminLayout = () => {
         <nav className="bg-white w-full h-[60px] flex items-center px-10 sticky top-0 z-50 border-b border-b-slate-300">
           {/* Left Menu Buttons */}
           <div className="flex gap-3">
-            <Link 
-              to="/superadmin/dashboard" 
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-black hover:text-sky-800 hover:bg-sky-50 transition-all duration-300 ease-in-out"
-            >
-              <LayoutDashboard size={16} />
-              <span className="text-sm font-medium">Dashboard</span>
-            </Link>
-            <Link 
-              to="/superadmin/management" 
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-black hover:text-sky-800 hover:bg-sky-50 transition-all duration-300 ease-in-out"
-            >
-              <Building2 size={16} />
-              <span className="text-sm font-medium">Manajemen Perusahaan</span>
-            </Link>
+            {navMenus.map((menu, idx) => (
+              <Link 
+                key={idx}
+                to={menu.path} 
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out ${
+                  isActiveMenu(menu.path) 
+                    ? "bg-sky-800 text-white shadow-md" 
+                    : "text-black hover:text-sky-800 hover:bg-sky-50"
+                }`}
+              >
+                <span>{menu.label}</span>
+              </Link>
+            ))}
           </div>
 
           {/* Right Side Items */}

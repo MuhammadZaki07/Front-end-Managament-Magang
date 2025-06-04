@@ -211,7 +211,7 @@ const StudentLayout = () => {
                       ? "bg-sky-800 text-white"
                       : isDisabled
                       ? "text-slate-400 opacity-50 cursor-not-allowed"
-                      : "text-slate-500 hover:text-white hover:bg-sky-800"
+                      : "text-black hover:text-white hover:bg-sky-800"
                   }`}
                   title={isDisabled ? disableReason : ""}
                 >

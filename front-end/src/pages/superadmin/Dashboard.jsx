@@ -35,13 +35,13 @@ const MentorDashboard = () => {
           </div>
           
           {/* Baris kedua */}
-          <div className="flex gap-2 h-[363px]">
-            <div className="flex-[6] w-60 flex flex-col gap-2">
+          <div className="flex gap-2 h-[300px]">
+            <div className="flex-[5] w-60 flex flex-col gap-2">
               <div className="flex-1 h-15">
                 <PesertaAksiChart />
               </div>
             </div>
-            <div className="flex-[3] w-60 flex flex-col gap-2 -mt-2">
+            <div className="flex-[4] w-60 flex flex-col gap-2 -mt-2">
               <div className="flex-1 h-15">
                 <CabangTerdaftar />
               </div>
@@ -59,7 +59,7 @@ const MentorDashboard = () => {
           <Card className="px-1 py-1 h-[350px]">
             <ChartLowongan />
           </Card>
-          <Card className="px-1 py-1 h-[472px]">
+          <Card className="px-1 py-1 h-[410px]">
             <DivisiTerdata />
           </Card>
         </div>

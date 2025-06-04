@@ -29,11 +29,7 @@ const PresentationCard = ({ item, buttonLabel = "Apply Presentation", onButtonCl
         }`}>
           {item.status}
         </span>
-        {/* Added kuota and application count */}
-        <span className="text-xs text-gray-600 font-medium flex items-center gap-1">
-          <i className="bi bi-people"></i>
-          {item.applicants}/{item.kuota} orang
-        </span>
+        
       </div>
     )}
 
@@ -188,7 +184,7 @@ const Presentasi = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white rounded-lg">
       {/* Bootstrap Icons CSS Link */}
       <link 
         href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" 

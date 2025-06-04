@@ -107,9 +107,7 @@ export default function DataPenerimaan({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-3">
-                    <button className="text-[#0069AB] hover:text-blue-800 flex items-center gap-1">
-                      <Eye size={20} />
-                    </button>
+                    
                     <button
                       onClick={() =>
                         window.open(

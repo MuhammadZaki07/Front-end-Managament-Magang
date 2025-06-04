@@ -9,8 +9,8 @@ const StatistikPeserta = () => {
     options: {
       chart: {
         type: 'donut',
-        height: 200,
-        width: 200,
+        height: 100,
+        width: 100,
         events: {
           dataPointMouseEnter: function(event, chartContext, config) {
             setHoveredIndex(config.dataPointIndex);
@@ -25,7 +25,7 @@ const StatistikPeserta = () => {
       dataLabels: {
         enabled: true,
         style: {
-          fontSize: '14px',
+          fontSize: '12px',
           fontWeight: 600,
           colors: ['#fff']
         },
@@ -40,7 +40,7 @@ const StatistikPeserta = () => {
       plotOptions: {
         pie: {
           donut: {
-            size: '45%',
+            size: '40%',
             labels: {
               show: true,
               name: {
@@ -52,7 +52,7 @@ const StatistikPeserta = () => {
               total: {
                 show: true,
                 label: 'Status',
-                fontSize: '14px',
+                fontSize: '12px',
                 fontWeight: 600,
                 color: '#374151',
                 formatter: function () {
@@ -68,7 +68,7 @@ const StatistikPeserta = () => {
         show: false
       },
       stroke: {
-        width: 2,
+        width: 1,
         colors: ['#fff']
       },
       states: {
@@ -91,7 +91,7 @@ const StatistikPeserta = () => {
         breakpoint: 480,
         options: {
           chart: {
-            width: 200
+            width: 140
           }
         }
       }]
@@ -105,19 +105,19 @@ const StatistikPeserta = () => {
   ];
 
   return (
-    <div className="bg-white rounded-xl p-6 w-full h-full border border-gray-100 mt-5">
+    <div className="bg-white rounded-xl p-4 w-full h-full border border-gray-100 mt-5">
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-2">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold text-gray-800 mb-1">
           Status Peserta
         </h2>
-        <p className="text-gray-600 text-sm">
+        <p className="text-gray-600 text-xs">
           Kelola status peserta magang
         </p>
       </div>
       
       {/* Content */}
-      <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
+      <div className="flex flex-col lg:flex-row items-center justify-center">
         {/* Chart Section */}
         <div className="flex-shrink-0 relative">
           <style jsx>{`
@@ -148,25 +148,25 @@ const StatistikPeserta = () => {
             options={chartData.options}
             series={chartData.series}
             type="donut"
-            height={200}
-            width={200}
+            height={180}
+            width={180}
           />
         </div>
         
         {/* Legend Section */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col ml-4">
           {legendData.map((item, index) => (
             <div
               key={index}
-              className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
+              className={`flex items-center gap-2 p-2 rounded-lg transition-all duration-200 ${
                 hoveredIndex === index 
                   ? 'bg-gray-50 shadow-md transform scale-105' 
                   : ''
               }`}
             >
               <div
-                className={`w-4 h-4 rounded-full transition-all duration-200 ${
-                  hoveredIndex === index ? 'w-5 h-5 shadow-lg' : ''
+                className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                  hoveredIndex === index ? 'w-4 h-4 shadow-lg' : ''
                 }`}
                 style={{ 
                   backgroundColor: item.color,
@@ -174,14 +174,14 @@ const StatistikPeserta = () => {
                 }}
               />
               <div className="flex-1">
-                <p className={`text-sm font-medium transition-all duration-200 ${
+                <p className={`text-xs font-medium transition-all duration-200 ${
                   hoveredIndex === index ? 'text-gray-900 font-semibold' : 'text-gray-700'
                 }`}>
                   {item.name}
                 </p>
               </div>
-              <div className={`text-lg font-bold transition-all duration-200 ${
-                hoveredIndex === index ? 'text-gray-900 text-xl' : 'text-gray-600'
+              <div className={`text-sm font-bold transition-all duration-200 ${
+                hoveredIndex === index ? 'text-gray-900 text-base' : 'text-gray-600'
               }`}>
                 {item.value}%
               </div>
