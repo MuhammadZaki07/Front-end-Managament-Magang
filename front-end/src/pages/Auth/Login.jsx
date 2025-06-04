@@ -4,6 +4,7 @@ import FloatingLabelInput from "../../components/FloatingLabelInput";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { AuthContext } from "../../contexts/AuthContext";
+import Loading from "../../components/Loading";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -11,6 +12,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
   const navigate = useNavigate();
   const { setRole, setToken } = useContext(AuthContext);
 
@@ -90,11 +92,14 @@ const Login = () => {
 
   const handleLoginWithGoogle = async () => {
     try{
+      setLoadingGoogle(true);
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/auth`);
       window.location.href = res.data.url;
+      setLoadingGoogle(false);
     }
     catch(err){
       console.log(err);
+      setLoadingGoogle(false);
     }
   }
   return (
@@ -227,7 +232,7 @@ const Login = () => {
               alt="Google"
               className="w-6 h-6"
             />
-            <span>Masuk dengan Google</span>
+            <span>{!loadingGoogle ? 'Masuk dengan Google' : 'Loading ...'}</span>
           </button>
         </div>
       </motion.div>
