@@ -88,6 +88,15 @@ const Login = () => {
     setRememberMe(e.target.checked);
   };
 
+  const handleLoginWithGoogle = async () => {
+    try{
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/auth`);
+      window.location.href = res.data.url;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
   return (
     <div className="w-full h-screen bg-white relative px-20 py-10 overflow-hidden">
       <motion.div
@@ -206,17 +215,19 @@ const Login = () => {
 
         <div className="flex items-center my-4">
           <div className="flex-1 border-t border-gray-300"></div>
-          <p className="mx-4 text-gray-500">Or login with</p>
+          <p className="mx-4 text-gray-500">Atau</p>
           <div className="flex-1 border-t border-gray-300"></div>
         </div>
 
         <div className="">
-          <button className="w-full border border-blue-500 py-2.5 rounded-sm hover:bg-sky-50 hover:border-blue-500 cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out flex gap-2 justify-center">
+          <button  onClick={handleLoginWithGoogle}
+          className="w-full border border-blue-500 py-2.5 rounded-sm hover:bg-sky-50 hover:border-blue-500 cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out flex gap-2 justify-center">
             <img
               src="/assets/Auth/Google.png"
               alt="Google"
               className="w-6 h-6"
             />
+            <span>Masuk dengan Google</span>
           </button>
         </div>
       </motion.div>

@@ -78,6 +78,7 @@ import SuperadminLayout from "./src/layout/SuperadminLayout";
 import DashboardSuperadmin from "./src/pages/superadmin/Dashboard";
 import MitraDetails from "./src/components/section/MitraDetails";
 import StatusProvider from "./src/pages/student/StatusContext";
+import GoogleCallback from "./src/pages/Auth/GoogleCallback";
 
 
 export const router = createBrowserRouter([
@@ -280,6 +281,10 @@ export const router = createBrowserRouter([
       {
         path: "google/success",
         element: <GoogleSuccess />,
+      },
+      {
+        path: "google",
+        element: <GoogleCallback />
       },
       {
         path: "ForgotPassword",
