@@ -178,7 +178,7 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
             disabled={isApplying}
             className={`w-full py-3 border border-[#0069AB] text-[#0069AB] hover:bg-[#0069AB] hover:text-white transition-colors duration-200 rounded-lg ${
               isApplying ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            }`}  c
           >
             {isApplying ? (
               <div className="flex items-center justify-center">

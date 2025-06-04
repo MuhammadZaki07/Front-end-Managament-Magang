@@ -75,14 +75,17 @@ const ChangeDivisionModal = ({ isOpen, onClose, student, onSuccess }) => {
     setError(null);
 
     try {
+      // Menggunakan format yang benar: id_divisi dan id_mentor
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/set-mentor/${selectedMentor}`,
+        `${import.meta.env.VITE_API_URL}/divisi/peserta/${student.id}`,
         {
-          pesertas: [student.id],  // kirim array peserta, walau 1 peserta saja
+          id_divisi: parseInt(selectedDivision),
+          id_mentor: selectedMentor
         },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
+            'Content-Type': 'application/json'
           },
         }
       );
@@ -90,7 +93,19 @@ const ChangeDivisionModal = ({ isOpen, onClose, student, onSuccess }) => {
       onClose();
     } catch (error) {
       console.error("Gagal mengubah mentor dan divisi:", error);
-      setError("Gagal mengubah mentor dan divisi peserta");
+      
+      let errorMessage = "Gagal mengubah mentor dan divisi peserta";
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        // Handle validation errors
+        const errors = error.response.data.errors;
+        const errorMessages = Object.values(errors).flat();
+        errorMessage = errorMessages.join(', ');
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

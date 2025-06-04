@@ -28,8 +28,8 @@ export default function JadwalPiket() {
     Sore: [],
   });
 
-  // Define all days of the week
-  const allDays = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at"];
+  // Define all days of the week - FIXED: Ubah "Jum'at" menjadi "Jumat"
+  const allDays = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 
   const fetchMembers = async () => {
     try {
@@ -116,7 +116,20 @@ export default function JadwalPiket() {
       // Edit existing schedule
       setEditMode(true);
       setEditingScheduleId(day.id);
-      setSelectedDay(day.hari);
+      // Normalize hari untuk display - pastikan format yang benar
+      const normalizeHariForDisplay = (hari) => {
+        const hariMap = {
+          'senin': 'Senin',
+          'selasa': 'Selasa',
+          'rabu': 'Rabu',
+          'kamis': 'Kamis',
+          'jumat': 'Jumat',
+          'jum\'at': 'Jumat' // handle jika dari API masih menggunakan jum'at
+        };
+        return hariMap[hari.toLowerCase()] || capitalize(hari);
+      };
+      
+      setSelectedDay(normalizeHariForDisplay(day.hari));
       setShift(capitalize(day.shift));
       const matchedMembers = allMembersOptions.filter((opt) =>
         day.members.includes(opt.label)
@@ -139,11 +152,29 @@ export default function JadwalPiket() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
+    
+    // Normalize hari untuk API - pastikan format lowercase yang benar
+    const normalizeHariForAPI = (hari) => {
+      const hariMap = {
+        'senin': 'senin',
+        'selasa': 'selasa',
+        'rabu': 'rabu', 
+        'kamis': 'kamis',
+        'jumat': 'jumat',
+        'jum\'at': 'jumat' // handle jika masih ada jum'at
+      };
+      return hariMap[hari.toLowerCase()] || hari.toLowerCase();
+    };
+    
     const data = {
-      hari: selectedDay?.toLowerCase(),
+      hari: normalizeHariForAPI(selectedDay),
       shift: shift.toLowerCase(),
       peserta: selectedMembers.map((m) => m.value),
     };
+
+    // Debug: Log data yang dikirim
+    console.log("Data yang dikirim ke API:", data);
+    console.log("Selected Day:", selectedDay);
 
     try {
       if (editMode && editingScheduleId) {
@@ -156,11 +187,21 @@ export default function JadwalPiket() {
             },
           }
         );
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Jadwal piket berhasil diupdate'
+        });
       } else {
         await axios.post(`${import.meta.env.VITE_API_URL}/piket`, data, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+        });
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Jadwal piket berhasil ditambahkan'
         });
       }
 
@@ -172,6 +213,11 @@ export default function JadwalPiket() {
       setEditingScheduleId(null);
     } catch (err) {
       console.error("Gagal simpan jadwal:", err.response?.data || err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Simpan!',
+        text: err.response?.data?.message || 'Terjadi kesalahan saat menyimpan jadwal'
+      });
     }
   };
 
@@ -184,28 +230,28 @@ export default function JadwalPiket() {
     scheduleByDay[day.hari.toLowerCase()] = day;
   });
 
-  // Fungsi untuk mendapatkan warna berdasarkan hari (dengan background putih/jarak)a
-    const getCardColor = (hari) => {
+  // Fungsi untuk mendapatkan warna berdasarkan hari (dengan background putih/jarak) - FIXED: Ubah "jum'at" menjadi "jumat"
+  const getCardColor = (hari) => {
     const colors = {
       "senin": "bg-[#E0F3FF]",
       "selasa": "bg-[#FFE1CB]",
       "rabu": "bg-[#E2DBF9]", 
       "kamis": "bg-[#FFFED3]",
-      "jum'at": "bg-[#C3EDC0]"
+      "jumat": "bg-[#C3EDC0]"
     };
     
     const day = hari.toLowerCase();
     return colors[day] || "bg-white";
   };
   
-  // Fungsi untuk mendapatkan warna yang lebih gelap untuk kartu nama (style seperti gambar)
+  // Fungsi untuk mendapatkan warna yang lebih gelap untuk kartu nama (style seperti gambar) - FIXED: Ubah "jum'at" menjadi "jumat"
   const getMemberCardColor = (hari) => {
     const colors = {
       "senin": "bg-[#C0E9FB]",
       "selasa": "bg-[#FFD2B7]",
       "rabu": "bg-[#D5C7FD]", 
       "kamis": "bg-[#FCDC94]",
-      "jum'at": "bg-[#9FD99B]"
+      "jumat": "bg-[#9FD99B]"
     };
     
     const day = hari.toLowerCase();
@@ -324,18 +370,7 @@ export default function JadwalPiket() {
             </button>
           </div>
 
-          <button
-            onClick={() => {
-              setEditMode(false);
-              setSelectedDay(null);
-              setSelectedMembers([]);
-              setShowModal(true);
-            }}
-            className="px-6 py-3 rounded-lg text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
-          >
-            <FileText className="w-4 h-4 inline mr-2" />
-            Tambah Data
-          </button>
+          
         </div>
 
         {/* Grid jadwal dengan layout khusus */}
@@ -368,7 +403,7 @@ export default function JadwalPiket() {
                     <option value="Selasa">Selasa</option>
                     <option value="Rabu">Rabu</option>
                     <option value="Kamis">Kamis</option>
-                    <option value="Jum'at">Jum'at</option>
+                    <option value="Jumat">Jumat</option>
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                   </div>
