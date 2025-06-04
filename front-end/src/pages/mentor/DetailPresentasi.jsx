@@ -139,7 +139,7 @@ const ParticipantDetailView = () => {
       
       // API call to update task status
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/peserta-progress/${id}/task/${taskId}/status`,
+        `${import.meta.env.VITE_API_URL}/progress/${id}`,
         { 
           status: newStatus,
           revision_id: revisionId 

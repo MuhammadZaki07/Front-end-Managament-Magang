@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin } from "lucide-react";
 
-function TablePerusahaan({ data, searchTerm, selectedLocation }) {
+function TableCabang({ data, searchTerm, selectedLocation }) {
   const navigate = useNavigate();
 
   const handleDetailClick = (id) => {
-    navigate('/superadmin/MenuPerusahaan', { state: { companyId: id } });
+    // Navigasi ke menu cabang dengan branchId
+    navigate('/superadmin/CabangDashboard', { state: { branchId: id } });
   };
 
   const filteredData = data.filter(item => {
@@ -102,15 +103,15 @@ function TablePerusahaan({ data, searchTerm, selectedLocation }) {
   );
 }
 
-export default function ApprovalTable() {
+export default function ManajemenCabang() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
-  const [dataPerusahaan, setDataPerusahaan] = useState([]);
+  const [dataCabang, setDataCabang] = useState([]);
   const [locations, setLocations] = useState([]);
 
   useEffect(() => {
-    // Data dummy untuk perusahaan dengan gambar placeholder yang berfungsi
-    const dummyPeserta = [
+    // Data dummy untuk cabang dengan gambar placeholder yang berfungsi
+    const dummyCabang = [
       {
         id: 1,
         nama: "PT. HUMMA TEKNOLOGI INDONESIA",
@@ -185,20 +186,20 @@ export default function ApprovalTable() {
       }
     ];
 
-    setDataPerusahaan(dummyPeserta);
+    setDataCabang(dummyCabang);
 
     // Extract unique locations for filter dropdown
-    const uniqueLocations = [...new Set(dummyPeserta.map(item => item.lokasi))];
+    const uniqueLocations = [...new Set(dummyCabang.map(item => item.lokasi))];
     setLocations(uniqueLocations);
   }, []);
 
   // Statistik untuk ditampilkan
-  const totalPerusahaan = dataPerusahaan.length;
-  const totalPeserta = dataPerusahaan.reduce((sum, item) => sum + parseInt(item.jml_peserta), 0);
-  const totalCabang = dataPerusahaan.reduce((sum, item) => sum + parseInt(item.jml_divisi), 0);
+  const totalCabang = dataCabang.length;
+  const totalPeserta = dataCabang.reduce((sum, item) => sum + parseInt(item.jml_peserta), 0);
+  const totalDivisi = dataCabang.reduce((sum, item) => sum + parseInt(item.jml_divisi), 0);
 
   // Data yang sudah difilter untuk statistik
-  const filteredData = dataPerusahaan.filter(item => {
+  const filteredData = dataCabang.filter(item => {
     const matchSearch = item.nama.toLowerCase().includes(searchTerm.toLowerCase());
     const matchLocation = selectedLocation === "" || item.lokasi === selectedLocation;
     return matchSearch && matchLocation;
@@ -215,7 +216,7 @@ export default function ApprovalTable() {
                 Manajemen Cabang
               </h2>
               <p className="text-sm text-gray-500 mt-1">
-                Menampilkan {filteredData.length} dari {totalPerusahaan} perusahaan
+                Menampilkan {filteredData.length} dari {totalCabang} cabang
               </p>
             </div>
 
@@ -225,7 +226,7 @@ export default function ApprovalTable() {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Cari nama perusahaan..."
+                  placeholder="Cari nama cabang..."
                   className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -262,8 +263,8 @@ export default function ApprovalTable() {
           </div>
         </div>
 
-        <TablePerusahaan
-          data={dataPerusahaan}
+        <TableCabang
+          data={dataCabang}
           searchTerm={searchTerm}
           selectedLocation={selectedLocation}
         />
