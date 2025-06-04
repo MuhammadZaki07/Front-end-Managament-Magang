@@ -78,6 +78,8 @@ import SuperadminLayout from "./src/layout/SuperadminLayout";
 import DashboardSuperadmin from "./src/pages/superadmin/Dashboard";
 import MitraDetails from "./src/components/section/MitraDetails";
 import StatusProvider from "./src/pages/student/StatusContext";
+import GoogleCallback from "./src/pages/Auth/GoogleCallback";
+
 import DataPerusahaan from "./src/pages/superadmin/DataPerusahaan";
 import MenuPerusahaan from "./src/pages/superadmin/MenuSuperadmin";
 import CabangDashboard from "./src/pages/superadmin/CabangDashboard";
@@ -284,6 +286,10 @@ export const router = createBrowserRouter([
       {
         path: "google/success",
         element: <GoogleSuccess />,
+      },
+      {
+        path: "google",
+        element: <GoogleCallback />
       },
       {
         path: "ForgotPassword",

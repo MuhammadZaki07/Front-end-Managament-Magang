@@ -3,21 +3,24 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
 
 const AuthLayout = () => {
-  const { token, user } = useContext(AuthContext);
+  const { token, user, role } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (token && user) {
+    if (token && user && role) {
+
       const redirectTo = localStorage.getItem("location");
 
       if (redirectTo) {
+        console.log(redirectTo);
+        
         navigate(redirectTo);
         localStorage.removeItem("location");
       } else {
         navigate("/");
       }
     }
-  }, [token, user, navigate]);
+  }, [token, user, navigate, role]);
 
   return <Outlet />;
 };

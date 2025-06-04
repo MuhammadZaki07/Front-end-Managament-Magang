@@ -59,18 +59,28 @@ const Register = () => {
     };
 
     try {
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/register/`,
-          data
-        );
-        
-        setTempRegisterData(response.data);
-        navigate("/auth/SelectAuth");
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/register`,
+        data
+      );
+
+      setTempRegisterData(response.data);
+      navigate("/auth/SelectAuth");
       setLoading(false);
     } catch (error) {
       console.error("Pendaftaran gagal:", error);
     }
   };
+
+  const handleLoginWithGoogle = async () => {
+    try{
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/auth`);
+      window.location.href = res.data.url;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
 
   return (
     <div className="w-full h-screen bg-white relative p-8 overflow-hidden">
@@ -111,9 +121,9 @@ const Register = () => {
         transition={{ duration: 0.7, delay: 0.4 }}
         className="w-full max-w-sm absolute z-50 right-50 top-40"
       >
-        <div className="space-y-5">
+        <div className="space-y-5 -mt-16">
           <h1 className="text-3xl font-bold text-gray-800">
-          Selamat Datang, Lengkapi Data Anda untuk Memulai 🚀
+            Selamat Datang, Lengkapi Data Anda untuk Memulai 🚀
           </h1>
           <p className="text-gray-500 text-sm mb-5">
             Untuk melanjutkan proses pendaftaran, silakan lengkapi informasi
@@ -191,14 +201,31 @@ const Register = () => {
 
           <button
             type="submit"
-            className={`w-full mt-4 p-3 bg-blue-500 text-white rounded-lg font-bold hover:bg-blue-600 ${
-              loading || !termsChecked ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`w-full mt-4 p-3 bg-blue-500 text-white rounded-lg font-bold hover:bg-blue-600 ${loading || !termsChecked ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             disabled={loading || !termsChecked}
           >
             {loading ? "Mendaftar..." : "Daftar"}
           </button>
         </form>
+
+        <div className="flex items-center my-4">
+          <div className="flex-1 border-t border-gray-300"></div>
+          <p className="mx-4 text-gray-500">Atau</p>
+          <div className="flex-1 border-t border-gray-300"></div>
+        </div>
+
+        <div className="">
+          <button onClick={handleLoginWithGoogle}
+            className="w-full border border-blue-500 py-2.5 rounded-sm hover:bg-sky-50 hover:border-blue-500 cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out flex gap-2 justify-center">
+            <img
+              src="/assets/Auth/Google.png"
+              alt="Google"
+              className="w-6 h-6"
+            />
+            <span>Masuk dengan Google</span>
+          </button>
+        </div>
       </motion.div>
     </div>
   );

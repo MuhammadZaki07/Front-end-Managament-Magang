@@ -7,15 +7,16 @@ import { AuthContext } from "../../contexts/AuthContext";
 const SelectAuth = () => {
   const [selected, setSelected] = useState(null);
   const navigate = useNavigate();
-  const { tempRegisterData, setToken, setRole } = useContext(AuthContext);
+  const { tempRegisterData, setRole } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const id = sessionStorage.getItem('id');
+  
   useEffect(() => {
-    if (!tempRegisterData) {
+    if (!tempRegisterData && !id) {
       navigate("/auth/register");
     }
-  }, [tempRegisterData, navigate]);
+  }, [tempRegisterData, id, navigate]);
 
   const cardData = [
     {
@@ -36,12 +37,12 @@ const SelectAuth = () => {
 
   const handleNext = async (e) => {
     e.preventDefault();
-    if (!selected || !tempRegisterData) return;
+    if (!selected) return;
 
     try {
       setLoading(true);
       const data = {
-        id_user : tempRegisterData.id,
+        id_user : tempRegisterData?.id || id,
         role: selected,
       };
 
@@ -51,13 +52,11 @@ const SelectAuth = () => {
       );
       
       if (response.data.status === "success") {
-        
-        const { token, role } = response.data.data;
-        localStorage.setItem("token", token);
-        setToken(token);
+        const { role } = response.data.data;
         setRole(role);
         navigate(`/${role}/dashboard`);
         setLoading(false);
+      
       } else {
         setErrors({
           message: response.data.message || "Login failed. Try again.",
