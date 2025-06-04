@@ -101,7 +101,7 @@ const StudentLayout = () => {
   }, [navigate]);
 
   const sidebarMenus = [
-    { icon: "bi-grid", label: "Dashboard", link: "dashboard" },
+    { icon: "bi-grid", label: "Beranda", link: "dashboard" },
     { icon: "bi-calendar4-week", label: "Absensi", link: "absensi" },
     { icon: "bi-clipboard2-minus", label: "Jurnal", link: "jurnal" },
     { icon: "bi-mortarboard", label: "Jadwal Presentasi", link: "presentasi" },
@@ -261,7 +261,7 @@ const StudentLayout = () => {
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <i className="bi bi-gear mr-2 text-sm"></i>
-                      Settings
+                      Pengaturan
                     </Link>
                     <button
                       onClick={() => {
@@ -271,7 +271,7 @@ const StudentLayout = () => {
                       className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
                       <i className="bi bi-box-arrow-right mr-2 text-sm"></i>
-                      Logout
+                      Keluar
                     </button>
                   </div>
                 </div>
