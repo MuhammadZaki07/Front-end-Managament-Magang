@@ -29,7 +29,7 @@ export default function JadwalPiket() {
   });
 
   // Define all days of the week - FIXED: Ubah "Jum'at" menjadi "Jumat"
-  const allDays = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+  const allDays = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
   const fetchMembers = async () => {
     try {
@@ -124,7 +124,7 @@ export default function JadwalPiket() {
           'rabu': 'Rabu',
           'kamis': 'Kamis',
           'jumat': 'Jumat',
-          'jum\'at': 'Jumat' // handle jika dari API masih menggunakan jum'at
+          'sabtu': 'Sabtu' // handle jika dari API masih menggunakan jum'at
         };
         return hariMap[hari.toLowerCase()] || capitalize(hari);
       };
@@ -161,7 +161,7 @@ export default function JadwalPiket() {
         'rabu': 'rabu', 
         'kamis': 'kamis',
         'jumat': 'jumat',
-        'jum\'at': 'jumat' // handle jika masih ada jum'at
+        'sabtu': 'sabtu' // handle jika masih ada jum'at
       };
       return hariMap[hari.toLowerCase()] || hari.toLowerCase();
     };
@@ -237,7 +237,8 @@ export default function JadwalPiket() {
       "selasa": "bg-[#FFE1CB]",
       "rabu": "bg-[#E2DBF9]", 
       "kamis": "bg-[#FFFED3]",
-      "jumat": "bg-[#C3EDC0]"
+      "jumat": "bg-[#C3EDC0]",
+      "sabtu": "bg-[#AAB99A]"
     };
     
     const day = hari.toLowerCase();
@@ -251,7 +252,8 @@ export default function JadwalPiket() {
       "selasa": "bg-[#FFD2B7]",
       "rabu": "bg-[#D5C7FD]", 
       "kamis": "bg-[#FCDC94]",
-      "jumat": "bg-[#9FD99B]"
+      "jumat": "bg-[#9FD99B]",
+      "sabtu": "bg-[#AAB99A]"
     };
     
     const day = hari.toLowerCase();
@@ -260,35 +262,29 @@ export default function JadwalPiket() {
 
   // Render grid dengan layout khusus
   const renderDayCards = () => {
-    const firstThree = allDays.slice(0, 3); // Senin, Selasa, Rabu
-    const lastTwo = allDays.slice(3, 5); // Kamis, Jumat
-    
     return (
-      <>
-        {/* Baris pertama: Senin, Selasa, Rabu */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {loading ? (
-            Array(3).fill(0).map((_, idx) => (
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading
+          ? Array(5).fill(0).map((_, idx) => (
               <div key={idx} className="bg-white animate-pulse rounded-lg h-64" />
             ))
-          ) : (
-            firstThree.map((dayName) => renderDayCard(dayName))
-          )}
-        </div>
-        
-        {/* Baris kedua: Kamis dan Jumat di tengah */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          {loading ? (
-            Array(2).fill(0).map((_, idx) => (
-              <div key={idx + 3} className="bg-white animate-pulse rounded-lg h-64" />
-            ))
-          ) : (
-            lastTwo.map((dayName) => renderDayCard(dayName))
-          )}
-        </div>
-      </>
+          : allDays.map((dayName, index) => (
+              <div
+                key={index}
+                className={
+                  // Untuk baris kedua (Kamis & Jumat), sisipkan grid kosong di posisi ke-4 jika totalnya 5 hari
+                  allDays.length === 5 && index === 3
+                    ? "col-start-2"
+                    : ""
+                }
+              >
+                {renderDayCard(dayName)}
+              </div>
+            ))}
+      </div>
     );
   };
+
 
   const renderDayCard = (dayName) => {
     const dayLower = dayName.toLowerCase();

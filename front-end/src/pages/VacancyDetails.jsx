@@ -15,8 +15,8 @@ const Lowongan = () => {
   return (
     <>
       <Banner
-        title="VACANCY"
-        subtitle="Home → Vacancy"
+        title="Lowongan"
+        subtitle="Beranda → Detail Lowongan"
         backgroundImage="/assets/img/banner/study_tim.jpg"
         possitionIlustration={`right-0 top-18 w-full h-screen z-10`}
         ilustration={`ilustration_blue`}
