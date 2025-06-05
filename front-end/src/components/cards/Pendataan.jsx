@@ -49,7 +49,7 @@ export default function Pendataan() {
             tanggal: jurnal.tanggal,
             deskripsi: jurnal.deskripsi || "-",
             status:
-              jurnal.deskripsi && jurnal.deskripsi !== "-"
+              jurnal.deskripsi && jurnal.deskripsi !== "kosong"
                 ? "Mengisi"
                 : "Tidak Mengisi",
             image:
