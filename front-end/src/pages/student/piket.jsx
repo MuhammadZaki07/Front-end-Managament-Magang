@@ -11,7 +11,7 @@ export default function JadwalPiket() {
   });
 
   // Define all days of the week
-  const allDays = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at"];
+  const allDays = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 
   const fetchSchedule = async () => {
     try {
@@ -73,7 +73,7 @@ export default function JadwalPiket() {
       "selasa": "bg-[#FFE1CB]",
       "rabu": "bg-[#E2DBF9]", 
       "kamis": "bg-[#FFFED3]",
-      "jum'at": "bg-[#C3EDC0]"
+      "jumat": "bg-[#C3EDC0]"
     };
     
     const day = hari.toLowerCase();
@@ -87,7 +87,7 @@ export default function JadwalPiket() {
       "selasa": "bg-[#FFD2B7]",
       "rabu": "bg-[#D5C7FD]", 
       "kamis": "bg-[#FCDC94]",
-      "jum'at": "bg-[#9FD99B]"
+      "jumat": "bg-[#9FD99B]"
     };
     
     const day = hari.toLowerCase();
