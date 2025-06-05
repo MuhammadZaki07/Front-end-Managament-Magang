@@ -19,12 +19,12 @@ const Navbar = () => {
   }, []);
 
   const router_link = [
-    { link: "/", name: "Home" },
-    { link: "/about_us", name: "About us" },
-    { link: "/gallery", name: "Gallery" },
-    { link: "/procedure", name: "Procedure" },
-    { link: "/contact_us", name: "Contact us" },
-    { link: "/vacancy", name: "Vacancy"},
+    { link: "/", name: "Beranda" },
+    { link: "/tentang", name: "Tentang Kami" },
+    { link: "/artikel", name: "Artikel" },
+    { link: "/prosedur", name: "Prosedur" },
+    { link: "/hubungi-kami", name: "Hubungi Kami" },
+    { link: "/lowongan", name: "Lowongan"},
   ];
 
   useEffect(() => {
@@ -66,12 +66,12 @@ const Navbar = () => {
         >
           {!user && !token ? (
             <>
-              Login
+              Masuk
               <i className="bi bi-arrow-right transition-transform duration-300 group-hover:translate-x-1"></i>
             </>
           ) : (
             <>
-              Dashboard
+              Dasbor
               <i className="bi bi-house-door transition-transform duration-300 group-hover:translate-x-1"></i>
             </>
           )}

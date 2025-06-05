@@ -20,7 +20,7 @@ const About_us = () => {
             <i className="bi bi-journal-text"></i> Tentang Sistem Kami
           </Badge>
           <h1 className="font-bold text-left text-2xl">
-            Selamat Datang di [Nama Sistem] – Solusi Manajemen Magang Terpadu
+            Selamat Datang di aplikasi Manajemen Magang – Solusi Manajemen Magang Terpadu
           </h1>
           <p className="text-slate-500 text-sm text-left">
             Kami menghadirkan platform inovatif yang menghubungkan mahasiswa

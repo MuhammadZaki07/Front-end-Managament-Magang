@@ -10,6 +10,8 @@ const ParticipantDetailView = () => {
   const [error, setError] = useState(null);
   const [isUpdating, setIsUpdating] = useState({}); // Track which tasks are being updated
 
+  console.log(id);
+  
   // State to track which tracks are expanded
   const [expandedTracks, setExpandedTracks] = useState({});
   // State to track which revisions are expanded
@@ -46,42 +48,40 @@ const ParticipantDetailView = () => {
             mentor: data.mentor,
             period: `${formatDate(data.mulai_magang)} - ${formatDate(data.selesai_magang)}`,
             profileImage: data.foto?.find((f) => f.type === "profile")?.path 
-              ? `${import.meta.env.VITE_API_URL}/storage/${data.foto.find((f) => f.type === "profile").path}` 
-              : "/assets/img/default-avatar.png"
+            ? `${import.meta.env.VITE_API_URL_FILE}/storage/${data.foto.find((f) => f.type === "profile").path}` 
+              : "/assets/img/Profil.png"
           };
 
           setParticipant(transformedParticipant);
 
           // Transform progress data - sesuaikan dengan struktur API response
-          let transformedTracks = [];
-          
           if (data.progress) {
             // Progress adalah object tunggal, bukan array
-            const progress = data.progress;
-            transformedTracks = [{
-              id: progress.id,
-              stage: "Proyek Utama", // Atau sesuaikan dengan kategori proyek
-              status: progress.selesai ? "Selesai" : "Dikerjakan",
-              startDate: formatDate(progress.mulai),
-              endDate: progress.selesai ? formatDate(progress.selesai) : null,
-              revisions: data.revisi && data.revisi.length > 0 ? 
+            const transformedProgress = data.progress.map((progressItem) => ({
+              id: progressItem.id,
+              id_kategori_proyek: progressItem?.kategori_proyek?.id,
+              stage: progressItem?.kategori_proyek?.nama,
+              status: progressItem.selesai ? "Selesai" : "Dikerjakan",
+              startDate: progressItem.mulai ? formatDate(progressItem.mulai) : null,
+              endDate: progressItem.selesai ? formatDate(progressItem.selesai) : null,
+              revisions: data.revisi?.length ? 
                 data.revisi.map((rev, index) => ({
                   id: rev.id || index + 1,
-                  name: `Revisi ${index + 1}`, // Generate nama revisi karena tidak ada di API
-                  status: rev.status, // Status dari API (0 atau 1)
+                  name: `Revisi ${index + 1}`,
+                  status: rev.status,
                   created_at: rev.created_at,
                   updated_at: rev.updated_at,
-                  tasks: rev.progress && rev.progress.length > 0 ? 
+                  tasks: rev.progress?.length ? 
                     rev.progress.map((prog) => ({
                       id: prog.id,
                       deskripsi: prog.deskripsi,
-                      status: prog.status // Status task (0 atau 1)
+                      status: prog.status
                     })) : []
                 })) : []
-            }];
+            }));
+            setProjectTracks(transformedProgress);
           }
 
-          setProjectTracks(transformedTracks);
         } else {
           setError("Gagal mengambil data peserta");
         }
@@ -135,11 +135,11 @@ const ParticipantDetailView = () => {
     try {
       setIsUpdating(prev => ({ ...prev, [taskKey]: true }));
       
-      const newStatus = currentStatus === 1 ? 0 : 1; // Toggle status
+      const newStatus = currentStatus === 1 ? 0 : 1; 
       
       // API call to update task status
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/peserta-progress/${id}/task/${taskId}/status`,
+        `${import.meta.env.VITE_API_URL}/progress/${taskId}`,
         { 
           status: newStatus,
           revision_id: revisionId 
@@ -208,34 +208,8 @@ const ParticipantDetailView = () => {
   };
 
   // Function to update revision status
-  const updateRevisionStatus = async (revisionId, status) => {
-    try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/peserta-progress/${id}/revision/${revisionId}/status`,
-        { status },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      
-      if (response.data.status === "success") {
-        // Update local state for revision status
-        setProjectTracks(prev => 
-          prev.map(track => ({
-            ...track,
-            revisions: track.revisions.map(revision => 
-              revision.id === revisionId 
-                ? { ...revision, status }
-                : revision
-            )
-          }))
-        );
-      }
-    } catch (err) {
-      console.error("Error updating revision status:", err);
-    }
+  const updateRevisionStatus = (revisionId, status) => {
+    
   };
 
   // Function to render status badge with appropriate color
@@ -290,11 +264,13 @@ const ParticipantDetailView = () => {
 
   // Function to handle marking task as complete
   const handleMarkComplete = async (trackId) => {
+    console.log(id, trackId);
+    
     try {
       // Implementasi API call untuk menandai sebagai selesai
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/peserta-progress/${id}/complete`, 
-        { track_id: trackId },
+        `${import.meta.env.VITE_API_URL}/peserta-progress/${id}`, 
+        { id_kategori_proyek: trackId },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -314,7 +290,7 @@ const ParticipantDetailView = () => {
       }
     } catch (err) {
       console.error("Error marking task as complete:", err);
-      alert("Gagal menandai tugas sebagai selesai");
+      alert("Gagal menandai tugas sebagai selesai", err);
     }
   };
 
@@ -442,7 +418,7 @@ const ParticipantDetailView = () => {
                           className="text-blue-500 bg-blue-50 px-3 py-1 rounded-md text-xs hover:bg-blue-100 transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleMarkComplete(track.id);
+                            handleMarkComplete(track.id_kategori_proyek);
                           }}
                         >
                           Tandai Selesai
@@ -452,7 +428,10 @@ const ParticipantDetailView = () => {
                     <div className="mt-1 text-sm text-gray-500">
                       <div className="flex flex-col">
                         <div className="flex items-center">{renderStatusBadge(track.status)}</div>
-                        <div className="mt-1">{track.startDate}{track.endDate ? ` - ${track.endDate}` : ""}</div>
+                        <div className="mt-1">  {track.startDate}
+                        {" - "}
+                        {track.endDate ? track.endDate : "Sekarang"}
+                        </div>
                       </div>
                     </div>
                   </div>

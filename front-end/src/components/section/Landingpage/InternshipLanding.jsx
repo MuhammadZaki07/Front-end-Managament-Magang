@@ -43,10 +43,12 @@ const InternshipLanding = () => {
                 otomatis. Buka lowongan, kelola pelamar, dan temukan kandidat
                 terbaik dengan mudah!
               </p>
+              <a href="/auth/register">
               <button className="bg-[#0069AB] text-white px-4 py-1.5 rounded-lg flex items-center justify-center gap-2 mx-auto cursor-pointer hover:bg-[#385c70]">
               <i className="bi bi-rocket-takeoff text-lg text-white font-semibold"></i>
-                Register
+                Daftar
               </button>
+              </a>
             </div>
           </div>
           <div>
@@ -63,10 +65,12 @@ const InternshipLanding = () => {
                 Tingkatkan pengalaman dan keterampilan dengan magang di berbagai
                 perusahaan ternama. Persiapkan diri untuk dunia kerja!
               </p>
+              <a href="/auth/register">
               <button className="bg-[#0069AB] text-white px-4 py-1.5 rounded-lg flex items-center justify-center gap-2 mx-auto cursor-pointer hover:bg-[#385c70]">
               <i className="bi bi-rocket-takeoff text-lg text-white font-semibold"></i>
-                Register
+                Daftar
               </button>
+              </a>
             </div>
           </div>
         </div>

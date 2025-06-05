@@ -39,7 +39,7 @@ const AboutSection = () => {
         </div>
 
         <div className="w-full lg:w-1/2 text-center lg:text-left px-10">
-         <Badge>More About Us</Badge>
+         <Badge>Lebih Lanjut Tentang Kami</Badge>
           <h2 className="text-3xl font-bold text-gray-900 mt-2 leading-snug">
             Sistem Manajemen Magang <br /> Terintegrasi untuk Perusahaan Anda
           </h2>
@@ -49,9 +49,9 @@ const AboutSection = () => {
             efisien, tugas peserta lebih terorganisir, dan evaluasi menjadi
             lebih mudah dengan sistem otomatis.
           </p>
-          <div className="w-44">
+          <div className="w-max">
             <Button color={`blue`} icon={`bi-arrow-right`}>
-              LEARN MORE
+              Pelajari lebih lanjut
             </Button>
           </div>
         </div>

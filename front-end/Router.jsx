@@ -93,27 +93,27 @@ export const router = createBrowserRouter([
         element: <Index />,
       },
       {
-        path: "/about_us",
+        path: "/tentang",
         element: <About />,
       },
       {
-        path: "/gallery",
+        path: "/artikel",
         element: <Gallery />,
       },
       {
-        path: "/procedure",
+        path: "/prosedur",
         element: <Procedure />,
       },
       {
-        path: "/contact_us",
+        path: "/hubungi-kami",
         element: <Contact />,
       },
       {
-        path: "/vacancy",
+        path: "/lowongan",
         element: <Vacancy />,
       },
       {
-        path: "/vacancy/:jobId",
+        path: "/lowongan/:jobId",
         element: <VacancyDetails />,
       },
       {

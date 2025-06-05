@@ -142,7 +142,8 @@ const StudentLayout = () => {
       if (redirectTo) {
         navigate(redirectTo);
         localStorage.removeItem("location");
-      } else {        
+      } else {
+        console.log('anjay');
         navigate("/");
       }
     }

@@ -17,6 +17,8 @@ const AuthLayout = () => {
         navigate(redirectTo);
         localStorage.removeItem("location");
       } else {
+        console.log('kenapa nih');
+        
         navigate("/");
       }
     }

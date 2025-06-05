@@ -66,17 +66,17 @@ const Index = () => {
         <InternshipLanding />
       </AnimatedSection>
       
-      <AnimatedSection delay={0.1}>
+      {/* <AnimatedSection delay={0.1}>
         <Gallery />
       </AnimatedSection>
-      
+       */}
       <AnimatedSection delay={0.1}>
   <h2 className="text-center text-2xl font-semibold text-black mb-20">
     Temukan Karir yang Tepat, dengan Cepat
   </h2>
   <CarierStart />
   <div className="flex justify-center mt-8">
-              <Button icon="bi-arrow-right" onClick={() => window.location.href = '/vacancy'}>
+              <Button icon="bi-arrow-right" onClick={() => window.location.href = '/lowongan'}>
                 Lihat semua lowongan
               </Button>
             </div>

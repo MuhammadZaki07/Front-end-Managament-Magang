@@ -203,8 +203,8 @@ export default function RegistrationProcedure() {
   return (
     <>
       <Banner
-        title="Procedure"
-        subtitle="Home → Procedure"
+        title="Prosedur"
+        subtitle="Beranda → Prosedur"
         backgroundImage="/assets/img/banner/study_tim.jpg"
         possitionIlustration="right-0 top-18 w-full h-screen z-10"
         ilustration="ilustration_blue"

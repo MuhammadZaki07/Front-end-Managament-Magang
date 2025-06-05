@@ -46,7 +46,6 @@ function GoogleCallback() {
           localStorage.setItem('user', JSON.stringify(user));
           setRole(role);
           navigate(`/${role}/dashboard`, { replace: true });
-          
         }
       } catch (error) {
         console.error('Google auth error:', error);
