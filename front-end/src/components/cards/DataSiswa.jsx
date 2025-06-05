@@ -8,6 +8,8 @@ export default function StudentTable() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  console.log(allStudentsData);
+  
   const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,61 +27,30 @@ export default function StudentTable() {
         });
 
         if (response.data.status === "success") {
-          // DEBUG: Print raw API response
-          console.log("RAW API RESPONSE:", response.data);
-          console.log("RAW API DATA:", response.data.data);
-          console.log("FIRST STUDENT RAW:", response.data.data[0]);
+          
+          console.log(response.data.data);
           
           // Transform API data to match component expectations
           const transformedData = response.data.data.map((student, index) => {
-            // DEBUG: Print each student structure
-            console.log(`STUDENT ${index}:`, student);
-            console.log(`STUDENT ${index} PROGRESS:`, student.progress);
+            const unfinishedProject = student?.route?.find((r) => r.selesai == null);
             
-            // Ambil id_peserta dari array progress (ambil yang pertama karena id_peserta sama semua)
-            let idPeserta = null;
-            
-            // Coba berbagai cara untuk ambil ID peserta
-            if (student.progress && Array.isArray(student.progress) && student.progress.length > 0) {
-              idPeserta = student.progress[0].id_peserta;
-              console.log(`ID PESERTA from progress[0]:`, idPeserta);
-            }
-            
-            // Fallback: cek apakah ada field lain yang mengandung UUID
-            const possibleIdFields = ['id', 'user_id', 'peserta_id', 'uuid', 'id_peserta'];
-            for (const field of possibleIdFields) {
-              if (student[field] && typeof student[field] === 'string' && student[field].includes('-')) {
-                idPeserta = student[field];
-                console.log(`ID PESERTA found in field '${field}':`, idPeserta);
-                break;
-              }
-            }
-            
-            console.log(`FINAL ID PESERTA for ${student.nama}:`, idPeserta);
-
             return {
-              id: idPeserta || `temp-${index + 1}`, // Gunakan id_peserta sebagai ID utama
-              apiId: idPeserta, // Store the actual peserta ID for navigation
+              id: student.id_peserta || `temp-${index + 1}`, // ID frontend sementara
               name: student.nama,
               sekolah: student.sekolah,
-              project: student.project,
-              status: student.selesai ? "Completed" : "In Progress",
+              project: unfinishedProject?.kategori_proyek?.nama || "-", // Ambil nama kategori proyek dari route yang belum selesai
+              status: unfinishedProject ? "In Progress" : "Completed",
               email: student.email,
               nomor_identitas: student.nomor_identitas,
-              mulai: student.mulai,
-              selesai: student.selesai,
-              // Get profile image from foto array
               image: student.foto?.find((f) => f.type === "profile")?.path 
                 ? `${import.meta.env.VITE_API_URL_FILE}/storage/${student.foto.find((f) => f.type === "profile").path}` 
-                : "/assets/img/default-avatar.png", // fallback image
-              // Tambahan: simpan juga progress data jika diperlukan
-              progressData: student.progress || [],
-              // DEBUG: simpan raw data untuk debug
-              rawData: student
+                : "/assets/img/default-avatar.png",
+              progressData: student.route || [], // simpan semua data progress
+              rawData: student, // simpan data asli
             };
           });
 
-          console.log("FINAL TRANSFORMED DATA:", transformedData);
+
           setAllStudentsData(transformedData);
         } else {
           setError("Failed to fetch student data");
@@ -126,12 +97,8 @@ export default function StudentTable() {
   // Function untuk handle navigation ke halaman detail siswa
   const handleEditStudent = (student) => {
     // Use the actual peserta ID for navigation
-    const studentId = student.apiId;
-    console.log("Student ID untuk navigasi:", studentId);
-    console.log("Full student data:", student);
-    
-    if (studentId) {
-      window.location.href = `/mentor/siswa/${studentId}`;
+    if (student) {
+      window.location.href = `/mentor/siswa/${student}`;
       // console.log(`Navigating to: /mentor/siswa/${studentId}`);
     } else {
       console.error("ID Peserta tidak ditemukan!");
@@ -225,7 +192,7 @@ export default function StudentTable() {
                     )}
                   </td>
                   <td className="p-3">
-                    <button onClick={() => handleEditStudent(student)} className="p-2 rounded-md hover:bg-purple-100 transition-all" title={`Edit ${student.name}`}>
+                    <button onClick={() => handleEditStudent(student.id)} className="p-2 rounded-md hover:bg-purple-100 transition-all" title={`Edit ${student.name}`}>
                       <Edit className="h-5 w-5 text-purple-600" />
                     </button>
                   </td>
