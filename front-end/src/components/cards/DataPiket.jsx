@@ -400,6 +400,7 @@ export default function JadwalPiket() {
                     <option value="Rabu">Rabu</option>
                     <option value="Kamis">Kamis</option>
                     <option value="Jumat">Jumat</option>
+                    <option value="Sabtu">Sabtu</option>
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                   </div>
