@@ -11,6 +11,7 @@ const AddJurnalModal = ({ isOpen, onClose, editMode, selectedJournal, onSubmitSu
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -94,7 +95,7 @@ const AddJurnalModal = ({ isOpen, onClose, editMode, selectedJournal, onSubmitSu
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setIsSubmitting(true);
     const newErrors = {};
     if (!formData.title?.trim()) newErrors.title = "Judul wajib diisi.";
     if (!selectedFile && !editMode) newErrors.bukti = "Bukti wajib diunggah."; // file tidak wajib saat edit
@@ -131,6 +132,7 @@ const AddJurnalModal = ({ isOpen, onClose, editMode, selectedJournal, onSubmitSu
 
       // Reset state and notify parent of success
       onSubmitSuccess();
+      setIsSubmitting(false);
       
     } catch (error) {
       const backendErrors = error.response?.data?.meta;
@@ -160,6 +162,7 @@ const AddJurnalModal = ({ isOpen, onClose, editMode, selectedJournal, onSubmitSu
       
       setErrors(parsedErrors);
       console.error("Submit error:", error);
+      setIsSubmitting(false);
     }
   };
 
@@ -308,7 +311,7 @@ const AddJurnalModal = ({ isOpen, onClose, editMode, selectedJournal, onSubmitSu
               type="submit"
               className="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
             >
-              Simpan
+              {isSubmitting ? "Menyimpan..." : "Simpan"}
             </button>
           </div>
         </form>

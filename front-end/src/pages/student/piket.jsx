@@ -11,7 +11,7 @@ export default function JadwalPiket() {
   });
 
   // Define all days of the week
-  const allDays = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at"];
+  const allDays = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu"];
 
   const fetchSchedule = async () => {
     try {
@@ -73,7 +73,8 @@ export default function JadwalPiket() {
       "selasa": "bg-[#FFE1CB]",
       "rabu": "bg-[#E2DBF9]", 
       "kamis": "bg-[#FFFED3]",
-      "jum'at": "bg-[#C3EDC0]"
+      "jum'at": "bg-[#C3EDC0]",
+      "sabtu": "bg-[#AAB99A]"
     };
     
     const day = hari.toLowerCase();
@@ -87,42 +88,27 @@ export default function JadwalPiket() {
       "selasa": "bg-[#FFD2B7]",
       "rabu": "bg-[#D5C7FD]", 
       "kamis": "bg-[#FCDC94]",
-      "jum'at": "bg-[#9FD99B]"
+      "jum'at": "bg-[#9FD99B]",
+      "sabtu": "bg-[#AAB99A]"
     };
     
     const day = hari.toLowerCase();
     return colors[day] || "bg-white";
   };
 
-  // Render grid with specific layout
   const renderDayCards = () => {
-    const firstThree = allDays.slice(0, 3); // Senin, Selasa, Rabu
-    const lastTwo = allDays.slice(3, 5); // Kamis, Jumat
-    
     return (
-      <>
-        {/* First row: Senin, Selasa, Rabu */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {loading ? (
-            Array(3).fill(0).map((_, idx) => (
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading
+          ? Array(allDays.length).fill(0).map((_, idx) => (
               <div key={idx} className="bg-white animate-pulse rounded-lg h-64" />
             ))
-          ) : (
-            firstThree.map((dayName) => renderDayCard(dayName))
-          )}
-        </div>
-        
-        {/* Second row: Kamis and Jumat in center */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          {loading ? (
-            Array(2).fill(0).map((_, idx) => (
-              <div key={idx + 3} className="bg-white animate-pulse rounded-lg h-64" />
-            ))
-          ) : (
-            lastTwo.map((dayName) => renderDayCard(dayName))
-          )}
-        </div>
-      </>
+          : allDays.map((dayName, index) => (
+              <div key={index}>
+                {renderDayCard(dayName)}
+              </div>
+            ))}
+      </div>
     );
   };
 

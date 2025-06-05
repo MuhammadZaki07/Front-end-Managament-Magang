@@ -184,25 +184,6 @@ const ParticipantDetailView = () => {
             return track;
           })
         );
-
-        // Check if all tasks in this revision are completed
-        const track = projectTracks.find(t => t.id === trackId);
-        const revision = track?.revisions.find(r => r.id === revisionId);
-        
-        if (revision) {
-          const updatedTasks = revision.tasks.map(task => 
-            task.id === taskId ? { ...task, status: newStatus } : task
-          );
-          
-          const allTasksCompleted = updatedTasks.every(task => task.status === 1);
-          
-          // Update revision status if all tasks are completed
-          if (allTasksCompleted && revision.status !== 1) {
-            await updateRevisionStatus(revisionId, 1);
-          } else if (!allTasksCompleted && revision.status === 1) {
-            await updateRevisionStatus(revisionId, 0);
-          }
-        }
         
       } else {
         throw new Error("Gagal mengupdate status task");
@@ -213,11 +194,6 @@ const ParticipantDetailView = () => {
     } finally {
       setIsUpdating(prev => ({ ...prev, [taskKey]: false }));
     }
-  };
-
-  // Function to update revision status
-  const updateRevisionStatus = (revisionId, status) => {
-    
   };
 
   // Function to render status badge with appropriate color
@@ -272,8 +248,7 @@ const ParticipantDetailView = () => {
 
   // Function to handle marking task as complete
   const handleMarkComplete = async (trackId) => {
-    console.log(id, trackId);
-    
+    setIsLoading(true);
     try {
       // Implementasi API call untuk menandai sebagai selesai
       const response = await axios.put(
@@ -296,9 +271,12 @@ const ParticipantDetailView = () => {
           )
         );
       }
+      
+      setIsLoading(false);
     } catch (err) {
       console.error("Error marking task as complete:", err);
       alert("Gagal menandai tugas sebagai selesai", err);
+      setIsLoading(false);
     }
   };
 

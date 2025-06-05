@@ -91,22 +91,23 @@ export default function InternshipModal({ isOpen, onClose, jobData }) {
           },
         }
       );
-      
-      // Close loading state
-      Swal.close();
-      
-      // Show success message
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: 'Permohonan magang Anda telah berhasil diajukan',
-        confirmButtonColor: '#3085d6'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigate("/peserta/dashboard");
-          onClose();
-        }
-      });
+      if (res.status === 200) {
+        // Close loading state
+        Swal.close();
+        
+        // Show success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Permohonan magang Anda telah berhasil diajukan',
+          confirmButtonColor: '#3085d6'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate("/peserta/dashboard");
+            onClose();
+          }
+        });
+      }
       
     } catch (err) {
       console.error("Gagal:", err);
