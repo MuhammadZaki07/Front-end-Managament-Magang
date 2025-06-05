@@ -10,8 +10,6 @@ const ParticipantDetailView = () => {
   const [error, setError] = useState(null);
   const [isUpdating, setIsUpdating] = useState({}); // Track which tasks are being updated
 
-  console.log(id);
-  
   // State to track which tracks are expanded
   const [expandedTracks, setExpandedTracks] = useState({});
   // State to track which revisions are expanded
@@ -57,28 +55,38 @@ const ParticipantDetailView = () => {
           // Transform progress data - sesuaikan dengan struktur API response
           if (data.progress) {
             // Progress adalah object tunggal, bukan array
-            const transformedProgress = data.progress.map((progressItem) => ({
-              id: progressItem.id,
-              id_kategori_proyek: progressItem?.kategori_proyek?.id,
-              stage: progressItem?.kategori_proyek?.nama,
-              status: progressItem.selesai ? "Selesai" : "Dikerjakan",
-              startDate: progressItem.mulai ? formatDate(progressItem.mulai) : null,
-              endDate: progressItem.selesai ? formatDate(progressItem.selesai) : null,
-              revisions: data.revisi?.length ? 
-                data.revisi.map((rev, index) => ({
-                  id: rev.id || index + 1,
-                  name: `Revisi ${index + 1}`,
-                  status: rev.status,
-                  created_at: rev.created_at,
-                  updated_at: rev.updated_at,
-                  tasks: rev.progress?.length ? 
-                    rev.progress.map((prog) => ({
-                      id: prog.id,
-                      deskripsi: prog.deskripsi,
-                      status: prog.status
-                    })) : []
-                })) : []
-            }));
+          const transformedProgress = data.progress.map((progressItem) => ({
+            id: progressItem.id,
+            id_kategori_proyek: progressItem?.kategori_proyek?.id,
+            stage: progressItem?.kategori_proyek?.nama,
+            status: progressItem.selesai ? "Selesai" : "Dikerjakan",
+            startDate: progressItem.mulai ? formatDate(progressItem.mulai) : null,
+            endDate: progressItem.selesai ? formatDate(progressItem.selesai) : null,
+            revisions: data.revisi?.length
+              ? data.revisi.map((rev, index) => {
+                  const tasks = rev.progress?.length
+                    ? rev.progress.map((prog) => ({
+                        id: prog.id,
+                        deskripsi: prog.deskripsi,
+                        status: prog.status,
+                      }))
+                    : [];
+
+                  // Hitung status berdasarkan semua task selesai
+                  const isCompleted = tasks.length > 0 && tasks.every((task) => task.status == 1);
+
+                  return {
+                    id: rev.id || index + 1,
+                    name: `Revisi ${index + 1}`,
+                    status: isCompleted ? 1 : 0,
+                    created_at: rev.created_at,
+                    updated_at: rev.updated_at,
+                    tasks,
+                  };
+                })
+              : [],
+          }));
+
             setProjectTracks(transformedProgress);
           }
 

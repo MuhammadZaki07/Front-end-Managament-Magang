@@ -14,7 +14,8 @@ const DetailProjectPage = () => {
   const {routeId} = useParams();
   const [currentRoute, setCurrentRoute] = useState([]);
   const kategoriList = mentor?.divisi?.kategori || [];
-
+  console.log(routeId);
+  
   const currentKategori = kategoriList.find(
     (p) => p.id === currentRoute?.id_kategori_proyek
   );
@@ -33,7 +34,8 @@ const DetailProjectPage = () => {
 
   const progressPercent = totalTasks === 0 ? 0 : ((completedTasks / totalTasks) * 100).toFixed(1);
   const remainingPercent = (100 - progressPercent).toFixed(1);
-
+  console.log(revisi);
+  
     // Project stages data 
     const getDetailRoute = async () => {
       try {
@@ -49,7 +51,7 @@ const DetailProjectPage = () => {
         setRoute(response.data.data)
         setMentor(response.data.data.mentor)
         setCurrentRoute(response.data.data.route.find((r)=> r.id == routeId))
-        setRevisi(response.data.data.revisi)
+        setRevisi(response.data.data.revisi.filter((r)=> r.id_route == routeId))
       }catch (error) {
         console.error(error);
       }

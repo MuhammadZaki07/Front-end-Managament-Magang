@@ -47,7 +47,7 @@ export default function StudentRegistrationForm() {
       cvFileName: "",
     });
     setPreviewUrl("");
-    navigate("/vacancy")
+    navigate("/lowongan")
   };
 
   const handleFileChange = (e) => {

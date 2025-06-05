@@ -2,15 +2,16 @@ import { useNavigate } from "react-router-dom";
 import { useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { AuthContext } from "../../contexts/AuthContext";
+import { motion } from "framer-motion";
 
 const SelectAuth = () => {
   const [selected, setSelected] = useState(null);
   const navigate = useNavigate();
-  const { tempRegisterData, setRole } = useContext(AuthContext);
+  const { tempRegisterData, setRole, setToken } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const id = sessionStorage.getItem('id');
-  
+
   useEffect(() => {
     if (!tempRegisterData && !id) {
       navigate("/auth/register");
@@ -41,7 +42,7 @@ const SelectAuth = () => {
     try {
       setLoading(true);
       const data = {
-        id_user : tempRegisterData?.id || id,
+        id_user: tempRegisterData?.id || id,
         role: selected,
       };
 
@@ -49,17 +50,20 @@ const SelectAuth = () => {
         `${import.meta.env.VITE_API_URL}/assign/${selected}`,
         data
       );
+
+      const { role, token } = response.data.data;
+      setToken(token);
       
-      if (response.data.status === "success") {
-        const { role } = response.data.data;
+      if (role) {
         setRole(role);
         navigate(`/${role}/dashboard`);
         setLoading(false);
-      
+        sessionStorage.removeItem('id');
       } else {
         setErrors({
           message: response.data.message || "Login failed. Try again.",
         });
+        setLoading(false);
       }
     } catch (error) {
       console.error("Pendaftaran gagal:", error);
@@ -87,18 +91,16 @@ const SelectAuth = () => {
             onClick={() => setSelected(card.type)}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
-            className={`relative w-[320px] p-6 rounded-2xl shadow-md transition-all duration-300 cursor-pointer border-2 ${
-              selected === card.type
+            className={`relative w-[320px] p-6 rounded-2xl shadow-md transition-all duration-300 cursor-pointer border-2 ${selected === card.type
                 ? "border-sky-700 bg-blue-50 border-dotted"
                 : "border-gray-200 bg-white"
-            }`}
+              }`}
           >
             <div
-              className={`absolute top-4 left-4 w-5 h-5 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${
-                selected === card.type
+              className={`absolute top-4 left-4 w-5 h-5 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${selected === card.type
                   ? "border-sky-800 bg-sky-800"
                   : "border-gray-300 bg-white"
-              }`}
+                }`}
             >
               {selected === card.type && (
                 <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
@@ -130,11 +132,10 @@ const SelectAuth = () => {
         <a
           href="#"
           onClick={handleNext}
-          className={`text-lg font-medium ${
-            !selected
+          className={`text-lg font-medium ${!selected
               ? "text-gray-400 opacity-80 cursor-not-allowed"
               : "text-sky-800 hover:text-sky-700"
-          }`}
+            }`}
         >
           {loading ? "Loading..." : "Next →"}
         </a>

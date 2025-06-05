@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MapPin, Users, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function JobListingPage() {
   const [filterOpen, setFilterOpen] = useState(true);
@@ -11,12 +12,11 @@ export default function JobListingPage() {
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [showMoreDivisions, setShowMoreDivisions] = useState(false);
   const jobsPerPage = 8;
+  const navigate = useNavigate();
   
   // Mock API base URL - ganti dengan URL API Anda
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.example.com';
   const API_FILE_URL = import.meta.env.VITE_API_URL_FILE || 'https://files.example.com';
-  
-  console.log('Job Vacancies:', jobVacancies);
   
   // Fungsi untuk mengformat data lowongan dari API
   const mapJobData = (job) => ({
@@ -203,8 +203,7 @@ export default function JobListingPage() {
 
   // Fungsi untuk melihat detail lowongan
   const handleViewDetail = (jobId) => {
-    window.location.href = `/vacancy/${jobId}`;
-    console.log(`Navigating to vacancy detail: ${jobId}`);
+    navigate(`/lowongan/${jobId}`);
   };
   
   return (

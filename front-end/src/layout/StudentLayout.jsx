@@ -136,18 +136,18 @@ const StudentLayout = () => {
     }
   }, [userLoading]);
 
-  useEffect(() => {
-    if ((role && role !== "peserta") || !token) {
-      const redirectTo = localStorage.getItem("location");
-      if (redirectTo) {
-        navigate(redirectTo);
-        localStorage.removeItem("location");
-      } else {
-        console.log('anjay');
-        navigate("/");
-      }
-    }
-  }, [role]);
+  // useEffect(() => {
+  //   if ((role && role !== "peserta") || !token) {
+  //     const redirectTo = localStorage.getItem("location");
+  //     if (redirectTo) {
+  //       navigate(redirectTo);
+  //       localStorage.removeItem("location");
+  //     } else {
+  //       console.log('anjay');
+  //       navigate("/");
+  //     }
+  //   }
+  // }, [role]);
 
   return (
     <div className="w-full flex">
