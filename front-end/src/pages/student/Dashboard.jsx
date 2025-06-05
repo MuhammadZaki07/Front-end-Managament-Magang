@@ -16,40 +16,70 @@ import ProjectBerjalan from "../../components/cards/ProjectBerjalan";
 import { StatusContext } from "./StatusContext";
 
 const Dashboard = () => {
+  const [rekap, setRekap] = useState([]);
   const location = useLocation();
   localStorage.setItem("location", location.pathname);
-
+  console.log(rekap);
+  const projects = rekap?.route;
+  const totalIzin = rekap?.kehadiran?.total_izin;
+  const totalAlpha = rekap?.kehadiran?.total_alpha;
+  const totalHadir = rekap?.kehadiran?.total_hadir;
+  const totalTerlambat = rekap?.kehadiran?.total_terlambat;
+  
   const { profileComplete, internshipStatus, userLoading } = useContext(StatusContext);
+  const getRekap = async () => {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/peserta/rekap`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    setRekap(res.data);
+  }
+
+  useEffect(() => {
+    const fetchRekap = async () => {
+      try {
+        await getRekap();
+      } catch (err) {
+        console.error("Gagal mengambil rekap:", err);
+      }
+    };
+
+    fetchRekap();
+  }, []);
+
   const dataMagangBerlangsung = {
-    companyName: "PT. HUMMA TEKNOLOGI INDONESIA",
-    position: "Web Developer",
+    companyName: rekap?.magang?.perusahaan || "Belum terdaftar magang di perusahaan",
+    position: rekap?.magang?.divisi || "Belum tergabung dalam divisi",
     logo: "/assets/img/Cover.png",
   };
   const statsData = [
     {
-      title: "Total Absensi",
-      value: "120",
+      title: "Total Hadir",
+      value: totalHadir || 0,
       icon: "/assets/icons/absensi/book.png",
       color: "#3B82F6",
       data: [10, 15, 12, 18, 14, 20, 22, 19, 17, 25, 21, 23],
     },
     {
-      title: "Total Kehadiran",
-      value: "110",
+      title: "Total Alpha",
+      value: totalAlpha || 0,
       icon: "/assets/icons/absensi/certificateLogo.png",
       color: "#10B981",
       data: [8, 12, 15, 20, 18, 16, 19, 17, 22, 24, 20, 21],
     },
     {
       title: "Total Izin / Sakit",
-      value: "30",
+      value: totalIzin || 0,
       icon: "/assets/icons/absensi/graduate.png",
       color: "#6366F1",
       data: [3, 5, 4, 6, 2, 3, 4, 2, 5, 3, 4, 5],
     },
     {
       title: "Total Terlambat",
-      value: "18",
+      value: totalTerlambat || 0,
       icon: "/assets/icons/absensi/mens.png",
       color: "#F97316",
       data: [2, 4, 3, 5, 1, 2, 3, 2, 4, 3, 2, 3],
@@ -146,7 +176,7 @@ const Dashboard = () => {
             <StaticJurnal />
           </Card>
           <Card>
-            <RiwayatProject/>
+            <RiwayatProject projects = {projects}/>
           </Card>
         </div>
         <div className="flex-[3] flex-col gap-5">
@@ -169,7 +199,7 @@ const Dashboard = () => {
             <div className="border-b border-slate-400/[0.5] py-3">
               <Title className="ml-5">My Progress</Title>
             </div>
-            <ProjectStats />
+            <ProjectStats  />
           </Card>
         </div>
       </div>

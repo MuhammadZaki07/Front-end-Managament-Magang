@@ -14,7 +14,6 @@ const DetailProjectPage = () => {
   const {routeId} = useParams();
   const [currentRoute, setCurrentRoute] = useState([]);
   const kategoriList = mentor?.divisi?.kategori || [];
-  console.log(routeId);
   
   const currentKategori = kategoriList.find(
     (p) => p.id === currentRoute?.id_kategori_proyek
