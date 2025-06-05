@@ -26,20 +26,6 @@ const StaticJurnal = () => {
         { name: "Tidak Mengisi", data: [8, 12, 16, 18, 14, 22, 17, 19, 15, 20, 16, 24] },
       ],
     },
-    Monthly: {
-      categories: ["Week 1", "Week 2", "Week 3", "Week 4"],
-      series: [
-        { name: "Mengisi", data: [22, 26, 24, 29] },
-        { name: "Tidak Mengisi", data: [15, 18, 16, 21] },
-      ],
-    },
-    Weekly: {
-      categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      series: [
-        { name: "Mengisi", data: [12, 18, 24, 16, 28, 22, 26] },
-        { name: "Tidak Mengisi", data: [14, 8, 19, 13, 21, 25, 17] },
-      ],
-    },
   };
 
   const options = {
@@ -148,8 +134,6 @@ const StaticJurnal = () => {
           onChange={(e) => setFilter(e.target.value)}
         >
           <option value="Yearly">Yearly</option>
-          <option value="Monthly">Monthly</option>
-          <option value="Weekly">Weekly</option>
         </select>
       </div>
       <Chart

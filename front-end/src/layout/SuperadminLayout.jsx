@@ -132,15 +132,15 @@ const SuperadminLayout = () => {
   };
 
   // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(".profile-dropdown")) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (!event.target.closest(".profile-dropdown")) {
+  //       setIsDropdownOpen(false);
+  //     }
+  //   };
+  //   document.addEventListener("click", handleClickOutside);
+  //   return () => document.removeEventListener("click", handleClickOutside);
+  // }, []);
 
   return (
     <div className="w-full flex">

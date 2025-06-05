@@ -5,44 +5,6 @@ import axios from "axios";
 const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
   const [showModal, setShowModal] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
-  const [hasAlreadyApplied, setHasAlreadyApplied] = useState(false);
-  
-  // Check if user has already applied for this presentation
-  const checkIfAlreadyApplied = (presentationId) => {
-    try {
-      const userId = localStorage.getItem("userId") || "defaultUser";
-      const appliedData = localStorage.getItem(`appliedPresentations_${userId}`);
-      
-      if (appliedData) {
-        const appliedIds = JSON.parse(appliedData);
-        return appliedIds.includes(presentationId);
-      }
-      return false;
-    } catch (err) {
-      console.error("Error checking applied presentations:", err);
-      return false;
-    }
-  };
-
-  // Save applied presentation to localStorage
-  const saveAppliedPresentation = (presentationId) => {
-    try {
-      const userId = localStorage.getItem("userId") || "defaultUser";
-      const appliedData = localStorage.getItem(`appliedPresentations_${userId}`);
-      
-      let appliedIds = [];
-      if (appliedData) {
-        appliedIds = JSON.parse(appliedData);
-      }
-      
-      if (!appliedIds.includes(presentationId)) {
-        appliedIds.push(presentationId);
-        localStorage.setItem(`appliedPresentations_${userId}`, JSON.stringify(appliedIds));
-      }
-    } catch (err) {
-      console.error("Error saving applied presentation:", err);
-    }
-  };
   
   // Handle ESC key
   useEffect(() => {
@@ -54,9 +16,6 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
     
     if (isOpen) {
       setShowModal(true);
-      // Check if already applied when modal opens
-      const alreadyApplied = checkIfAlreadyApplied(data?.id);
-      setHasAlreadyApplied(alreadyApplied);
       window.addEventListener("keydown", handleKeyDown);
     } else {
       setShowModal(false);
@@ -65,7 +24,7 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onClose, data?.id]);
+  }, [isOpen, onClose]);
   
   if (!isOpen) return null;
   
@@ -73,18 +32,6 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
   const headerBgColor = data?.status === "Selesai" ? "bg-white-100" : "bg-white-100";
   
   const handleApplyClick = async () => {
-    // First check validation
-    if (hasAlreadyApplied) {
-      Swal.fire({
-        title: 'Sudah Mendaftar',
-        text: 'Anda sudah mendaftar untuk presentasi ini sebelumnya.',
-        icon: 'info',
-        confirmButtonColor: '#0069AB',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
-
     try {
       setIsApplying(true);
       
@@ -104,9 +51,6 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
 
       // Check if the response is successful
       if (response.data.status === "success" || response.status === 200 || response.status === 201) {
-        // Save to localStorage after successful API call
-        saveAppliedPresentation(data?.id);
-        
         // Close the current modal first
         onClose();
         
@@ -136,15 +80,13 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
       // Close the modal
       onClose();
       
-      // Check if error is because already applied
+      // Get error message from backend
       const errorMessage = error.response?.data?.message || error.message || '';
       
       if (errorMessage.toLowerCase().includes('sudah') || 
           errorMessage.toLowerCase().includes('already') ||
           errorMessage.toLowerCase().includes('duplicate')) {
-        // Save to localStorage if API says already applied
-        saveAppliedPresentation(data?.id);
-        
+        // Show already applied message
         Swal.fire({
           title: 'Sudah Mendaftar',
           text: 'Anda sudah mendaftar untuk presentasi ini sebelumnya.',
@@ -213,24 +155,6 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
             </div>
           </div>
           
-          {/* Show warning if already applied */}
-          {hasAlreadyApplied && (
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-blue-700">
-                    Anda sudah mendaftar untuk presentasi ini.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          
           <div className="border-t border-gray-200 my-4"></div>
           
           <div className="flex flex-wrap mb-6">
@@ -248,15 +172,13 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
             </div>
           </div>
           
-          {/* Apply Button with validation */}
+          {/* Apply Button */}
           <button 
             onClick={handleApplyClick}
             disabled={isApplying}
-            className={`w-full py-3 border transition-colors duration-200 rounded-lg ${
-              hasAlreadyApplied
-                ? 'border-gray-300 text-gray-500 bg-gray-100 cursor-not-allowed'
-                : 'border-[#0069AB] text-[#0069AB] hover:bg-[#0069AB] hover:text-white'
-            } ${isApplying ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`w-full py-3 border border-[#0069AB] text-[#0069AB] hover:bg-[#0069AB] hover:text-white transition-colors duration-200 rounded-lg ${
+              isApplying ? 'opacity-50 cursor-not-allowed' : ''
+            }`}  c
           >
             {isApplying ? (
               <div className="flex items-center justify-center">
@@ -266,8 +188,6 @@ const ModalApplyPresentation = ({ isOpen, onClose, data }) => {
                 </svg>
                 Mendaftar...
               </div>
-            ) : hasAlreadyApplied ? (
-              'Sudah Mendaftar'
             ) : (
               'Apply Presentation'
             )}

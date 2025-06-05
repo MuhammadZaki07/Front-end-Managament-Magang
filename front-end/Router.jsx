@@ -82,6 +82,9 @@ import GoogleCallback from "./src/pages/Auth/GoogleCallback";
 
 import DataPerusahaan from "./src/pages/superadmin/DataPerusahaan";
 import MenuPerusahaan from "./src/pages/superadmin/MenuSuperadmin";
+import CabangDashboard from "./src/pages/superadmin/CabangDashboard";
+import Post from "./src/pages/superadmin/Post";
+import CreatePost from "./src/components/cards/CreatePost";
 
 export const router = createBrowserRouter([
   {
@@ -427,6 +430,18 @@ export const router = createBrowserRouter([
       path: "Cabang",
       element: <DataPerusahaan/>
     },
+    {
+      path: "CabangDashboard",
+      element: <CabangDashboard/>
+    },
+    {
+      path: "post",
+      element: <Post/>
+    },
+    {
+      path: "Create-Post",
+      element: <CreatePost/>
+    }
   ]
 },
   {

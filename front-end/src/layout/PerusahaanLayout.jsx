@@ -15,12 +15,12 @@ const PerusahaanLayout = () => {
   const sidebarMenus = isCabangRoute ? [
     {
       icon: "bi-grid",
-      label: "Dashboard",
+      label: "Beranda",
       link: `/perusahaan/cabang/${namaCabang}/beranda`,
     },
     {
       icon: "bi-check-square",
-      label: "Approval",
+      label: "Persetujuan",
       link: `/perusahaan/cabang/${namaCabang}/approval`,
     },
     {
@@ -75,7 +75,7 @@ const PerusahaanLayout = () => {
     },
     {
       icon: "bi bi-sliders2-vertical",
-      label: "Profile Settings",
+      label: "Pengaturan",
       link: `/perusahaan/cabang/${namaCabang}/settings-cabang`,
     },
   ]: [];
