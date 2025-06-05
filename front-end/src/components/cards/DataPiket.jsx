@@ -323,19 +323,6 @@ export default function JadwalPiket() {
               Shift Sore
             </button>
           </div>
-
-          <button
-            onClick={() => {
-              setEditMode(false);
-              setSelectedDay(null);
-              setSelectedMembers([]);
-              setShowModal(true);
-            }}
-            className="px-6 py-3 rounded-lg text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
-          >
-            <FileText className="w-4 h-4 inline mr-2" />
-            Tambah Data
-          </button>
         </div>
 
         {/* Grid jadwal dengan layout khusus */}
@@ -368,7 +355,7 @@ export default function JadwalPiket() {
                     <option value="Selasa">Selasa</option>
                     <option value="Rabu">Rabu</option>
                     <option value="Kamis">Kamis</option>
-                    <option value="Jum'at">Jum'at</option>
+                    <option value="Jumat">Jum'at</option>
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                   </div>

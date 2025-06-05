@@ -87,30 +87,6 @@ export default function MentorPerDivisionChart({ mentor }) {
       </div>
       
       <div className="flex flex-col items-center gap-6">
-        {/* Legend - 3 columns grid with borders */}
-        <div className="w-full">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border border-gray-300 rounded-lg overflow-hidden">
-            {currentData.map((division, index) => (
-              <div 
-                key={index} 
-                className="flex items-center min-w-0 p-3 border-r border-b border-gray-300 last:border-r-0 lg:nth-child-3n:border-r-0 sm:nth-child-2n:border-r-0 sm:last:border-r-0"
-                style={{
-                  borderRight: (index + 1) % 3 === 0 ? 'none' : '1px solid #d1d5db',
-                  borderBottom: index >= currentData.length - (currentData.length % 3 || 3) ? 'none' : '1px solid #d1d5db'
-                }}
-              >
-                <div 
-                  className="w-3 h-3 mr-3 rounded-full flex-shrink-0" 
-                  style={{ backgroundColor: colors[index] }}
-                />
-                <span className="text-gray-600 text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                  {division.name}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-        
         {/* Donut Chart */}
         <div className="flex justify-center relative">
           <div className="w-48 h-48 relative">
@@ -148,6 +124,30 @@ export default function MentorPerDivisionChart({ mentor }) {
                 {segments[hoverIndex].value} mentor
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Legend - 3 columns grid with borders */}
+        <div className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 rounded-lg overflow-hidden">
+            {currentData.map((division, index) => (
+              <div 
+                key={index} 
+                className="flex items-center min-w-0 p-3"
+                style={{
+                  borderRight: 'none', // Hapus borderRight
+                  borderBottom: index >= currentData.length - (currentData.length % 3 || 3) ? 'none' : 'none' // Hapus borderBottom
+                }}
+              >
+                <div 
+                  className="w-3 h-3 mr-3 rounded-full flex-shrink-0" 
+                  style={{ backgroundColor: colors[index] }}
+                />
+                <span className="text-gray-600 text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                  {division.name}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
