@@ -4,6 +4,7 @@ import FloatingLabelInput from "../../components/FloatingLabelInput";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { AuthContext } from "../../contexts/AuthContext";
+import Loading from "../../components/Loading";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -11,6 +12,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
   const navigate = useNavigate();
   const { setRole, setToken } = useContext(AuthContext);
 
@@ -61,7 +63,9 @@ const Login = () => {
       const response = await axios.post("http://127.0.0.1:8000/api/login", data);
 
       if (response.data.status === "success") {
-        const { token, role } = response.data.data;
+        const { token, role, user } = response.data.data;
+        sessionStorage.setItem('nama', user.nama);
+        
         if (rememberMe) {
           localStorage.setItem("token", token);
         } else {
@@ -90,11 +94,14 @@ const Login = () => {
 
   const handleLoginWithGoogle = async () => {
     try{
+      setLoadingGoogle(true);
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/auth`);
       window.location.href = res.data.url;
+      setLoadingGoogle(false);
     }
     catch(err){
       console.log(err);
+      setLoadingGoogle(false);
     }
   }
   return (
@@ -133,12 +140,12 @@ const Login = () => {
         transition={{ duration: 0.7, delay: 0.4 }}
         className="w-full max-w-sm absolute z-50 left-35 top-45"
       >
-        <div className="space-y-5">
+        <div className="space-y-5 -mt-10">
           <h1 className="text-3xl font-bold text-gray-800">
-            Welcome to Back! 👋
+            Selamat datang kembali! 👋
           </h1>
           <p className="text-gray-500 text-sm mb-5">
-            Please sign in to your account and start the adventure
+            Silakan masuk ke akun Anda dan mulai petualanganmu.
           </p>
         </div>
 
@@ -148,7 +155,7 @@ const Login = () => {
             type="email"
             className="mt-4"
             icon="bi-person"
-            placeholder="Type Your Email"
+            placeholder="Masukkan email"
             value={email}
             setValue={setEmail}
           />
@@ -164,7 +171,7 @@ const Login = () => {
             type="password"
             className="mt-4"
             icon="bi-lock"
-            placeholder="Password"
+            placeholder="Masukkan Kata Sandi"
             value={password}
             setValue={setPassword}
           />
@@ -185,11 +192,11 @@ const Login = () => {
                 onChange={handleRememberMe}
               />
               <label htmlFor="rememberMe" className="text-sm text-gray-700">
-                Remember Me
+                Ingat Aku
               </label>
             </div>
             <Link to="/auth/ForgotPassword" className="text-sm font-medium text-sky-500">
-              Forgot Password ?
+              Lupa Kata Sandi?
             </Link>
           </div>
           <button
@@ -197,18 +204,18 @@ const Login = () => {
             className="w-full mt-4 p-3 bg-blue-500 text-white rounded-full font-bold hover:bg-blue-600"
             disabled={loading}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Loading..." : "Masuk"}
           </button>
         </form>
 
         <div className="text-center py-5">
           <h1 className="font-medium text-slate-800 text-sm">
-            Don't have an account?{" "}
+            Tidak memiliki akun?{" "}
             <Link
               to={`/auth/register`}
               className="text-sky-500 font-semibold"
             >
-              Create an account
+              Buat Akun
             </Link>
           </h1>
         </div>
@@ -227,7 +234,7 @@ const Login = () => {
               alt="Google"
               className="w-6 h-6"
             />
-            <span>Masuk dengan Google</span>
+            <span>{!loadingGoogle ? 'Masuk dengan Google' : 'Loading ...'}</span>
           </button>
         </div>
       </motion.div>

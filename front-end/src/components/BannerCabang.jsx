@@ -1,9 +1,5 @@
-import React from 'react';
-
-// Single dummy data entry
-const dummyUser = { name: 'Mr. Gojo', branch: 'Malang' };
-
 const Banner = () => {
+  const nama = sessionStorage.getItem("nama");
   return (
     <div className="w-full mb-4 object-cover">
       <div
@@ -15,8 +11,7 @@ const Banner = () => {
         }}
       >
         <div className="flex flex-col">
-          <h2 className="text-xl font-bold">Selamat Pagi {dummyUser.name}!</h2>
-          <p className="text-sm">Anda berada di halaman cabang {dummyUser.branch}</p>
+          <h2 className="text-xl font-bold">Selamat Datang {nama}!</h2>
         </div>
         
         {/* Bagian kanan untuk gambar icon tanpa padding bawah */}

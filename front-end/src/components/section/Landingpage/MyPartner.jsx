@@ -180,7 +180,7 @@ const MyPartner = () => {
     <section className="w-full py-12 px-6 md:px-12 lg:px-44 bg-white overflow-hidden">
       <div className="space-y-3">
         <h1 className="uppercase text-2xl text-center text-color-blue font-bold">
-          My Partner
+          Mitra Kami
         </h1>
         <p className="text-slate-800 text-center font-semibold text-xl">
           Tumbuh bersama Kolaborasi menuju kesuksesan

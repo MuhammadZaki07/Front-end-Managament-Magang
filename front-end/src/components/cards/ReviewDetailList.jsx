@@ -113,20 +113,24 @@ const ReviewDetailCard = ({ title, date, tasks, status }) => {
 // Main component to display all review cards
 const ReviewDetailList = ({revisi}) => {
   
-  const reviewDetails = revisi?.map((item, index) => ({
-    id: item.id,
-    title: `Revisi ke - ${index + 1}`,
-    status: item.status,
-    date: new Date(item.created_at).toLocaleDateString('id-ID', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    }),
-    tasks: (item?.progress || []).map((task) => ({
+  const reviewDetails = revisi?.map((item, index) => {
+    const tasks = (item?.progress || []).map((task) => ({
       id: task.id,
       text: task.deskripsi || 'Belum ada catatan',
-      completed: task.status == 1 ? true : false
-    }))
-  }));
-  
+      completed: task.status == 1
+    }));
+
+    return {
+      id: item.id,
+      title: `Revisi ke - ${index + 1}`,
+      status: tasks.every((task) => task.completed) ? 1 : 0,
+      date: new Date(item.created_at).toLocaleDateString('id-ID', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      }),
+      tasks
+    };
+  });
+
   return (
     <div className="p-6 bg-white">
       <h2 className="text-xl font-bold text-gray-900 mb-4">Detail Revisi</h2>

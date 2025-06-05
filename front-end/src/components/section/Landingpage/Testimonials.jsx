@@ -59,12 +59,12 @@ const Testimonials = () => {
       <div className="flex justify-center">
         <div className="py-2 px-5 text-center rounded-full bg-indigo-50">
           <span className="bg-gradient-to-r from-indigo-500 to-green-500 bg-clip-text text-transparent">
-            TESTIMONIALS
+            Testimoni
           </span>
         </div>
       </div>
       <h1 className="text-5xl text-center font-bold mt-6">
-        What our happy customers <br /> are saying
+        Apa yang dikatakan pelanggan kami 
       </h1>
       <div className="w-full text-white rounded-3xl border border-slate-300/[0.5] shadow mt-14 py-14 px-20 relative">
         <img

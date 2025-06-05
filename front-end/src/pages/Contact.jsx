@@ -15,17 +15,17 @@ const fadeUpVariant = {
 const Contact = () => {
   const data = [
     {
-      title: "Our Address",
+      title: "Alamat Kantor",
       desc: "2464 Royal Ln. Mesa, New Jersey 45463",
       icon: "bi-geo-alt-fill",
     },
     {
-      title: "info@example.com",
+      title: "elangprakoso088@gmail.com",
       desc: "Email us anytime for anykind ofquety",
       icon: "bi-envelope-at",
     },
     {
-      title: "Hot:+208-666-0112",
+      title: "WhatsApp : +62 851-7955-1746",
       desc: "Call us any kind suppor,we will wait for it",
       icon: "bi-telephone-inbound",
     },
@@ -34,8 +34,8 @@ const Contact = () => {
   return (
     <>
       <Banner
-        title="Contact Us"
-        subtitle="Home → Contact Us"
+        title="Hubungi Kami"
+        subtitle="Beranda → Hubungi Kami"
         backgroundImage="/assets/img/banner/study_tim.jpg"
         possitionIlustration={`right-0 top-18 w-8xl z-10`}
         ilustration={`ilustrationGallery`}
@@ -90,7 +90,7 @@ const Contact = () => {
 
         {/* Form */}
         <div className="flex flex-col gap-5 px-5 max-w-xl">
-          <Title className="text-4xl font-bold">Ready to Get Started?</Title>
+          <Title className="text-4xl font-bold">Siap untuk Memulai?</Title>
           <p className="text-slate-500 font-light text-sm text-left w-full">
             Nullam varius, erat quis iaculis dictum, eros urna varius eros, ut
             blandit felis odio in turpis. Quisque rhoncus, eros in auctor
@@ -100,7 +100,7 @@ const Contact = () => {
             <div className="grid grid-cols-2 gap-5 mb-5">
               <div className="row flex flex-col gap-3">
                 <label htmlFor="name" className="font-medium">
-                  Your Name*
+                  Nama Anda*
                 </label>
                 <input
                   id="name"
@@ -111,7 +111,7 @@ const Contact = () => {
               </div>
               <div className="row flex flex-col gap-3">
                 <label htmlFor="email" className="font-medium">
-                  Your Email*
+                  Email Anda*
                 </label>
                 <input
                   id="email"
@@ -123,7 +123,7 @@ const Contact = () => {
             </div>
             <div className="row flex flex-col gap-3">
               <label htmlFor="message" className="font-medium">
-                Write Message*
+                Tulis Pesan*
               </label>
               <textarea
                 id="message"
@@ -137,7 +137,7 @@ const Contact = () => {
               type="submit"
               className="bg-sky-800 rounded text-white text-center font-light py-2 px-4 mt-4"
             >
-              Send Message <i className="bi bi-arrow-right"></i>
+              Kirim<i className="bi bi-arrow-right"></i>
             </button>
           </form>
         </div>

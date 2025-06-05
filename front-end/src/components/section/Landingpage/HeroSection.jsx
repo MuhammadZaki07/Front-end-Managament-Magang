@@ -22,9 +22,11 @@ const HeroSection = () => {
           dapat dilakukan dalam satu platform.
         </p>
         <div className="w-44">
-          <Button icon={`bi-rocket-takeoff`} color={`blue`} size_rounded={`xl`}>
-            GET STARTED
-          </Button>
+          <a href="/auth/register">
+            <Button icon="bi-rocket-takeoff" color="blue" size_rounded="xl">
+              Coba Sekarang!
+            </Button>
+          </a>
         </div>
       </div>
 
@@ -53,17 +55,23 @@ const HeroSection = () => {
           />
           <div className="flex flex-col gap-4">
             <h1 className="font-semibold text-xl group-hover:text-white">
-              Over 18+ Million Students
+              Lebih dari 18+ Juta Siswa
             </h1>
             <p className="font-light text-sm group-hover:text-white">
-              We provide online learning program that enable learners to access.
+              Kami menyediakan program pembelajaran online yang dapat diakses oleh peserta didik.
             </p>
           </div>
         </div>
 
         <div
-          className={`w-full px-4 py-5 rounded-2xl flex items-center gap-6 shadow-lg transition-all duration-300 
-          ${hoveredCard ? "bg-white text-gray-900" : "bg-blue-600 text-white"}`}
+          className={`group w-full px-4 py-5 rounded-2xl flex items-center gap-6 shadow-lg transition-all duration-300 bg-white text-gray-900 hover:bg-blue-600 hover:text-white
+          ${
+            hoveredCard === "card1" || hoveredCard === "card3"
+              ? "bg-white text-gray-900"
+              : "hover:bg-blue-600 hover:text-white"
+          }`}
+          onMouseEnter={() => setHoveredCard("card2")}
+          onMouseLeave={() => setHoveredCard(null)}
         >
           <img
             src="assets/icons/service-icon-2-2.svg"
@@ -71,10 +79,9 @@ const HeroSection = () => {
             className="w-20 h-20 transition-all duration-500 animate-flip"
           />
           <div>
-            <h1 className="font-semibold text-lg">6354+ Online Courses</h1>
+            <h1 className="font-semibold text-lg">6354+ Kursus Online</h1>
             <p className="font-light text-sm">
-              Online education provides flexibility and accessibility to
-              learners.
+              Pendidikan online memberikan fleksibilitas dan aksesibilitas bagi para pelajar.
             </p>
           </div>
         </div>
@@ -96,10 +103,10 @@ const HeroSection = () => {
           />
           <div>
             <h1 className="font-semibold text-lg group-hover:text-white">
-              Live Time Access
+              Akses Seumur Hidup
             </h1>
             <p className="font-light text-sm group-hover:text-white">
-              We provide online learning program that enable learners to access.
+              Kami menyediakan program pembelajaran online yang dapat diakses oleh peserta didik.
             </p>
           </div>
         </div>

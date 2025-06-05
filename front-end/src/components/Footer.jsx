@@ -30,14 +30,14 @@ const Footer = () => {
 
         <div>
           <h3 className="text-lg font-semibold inline-block pb-1">
-            Quick Links
+            Tautan Cepat
           </h3>
           <div className="flex gap-5">
             <div className="bg-black w-1/5 h-0.5"></div>
             <div className="bg-blue-500 h-0.5 w-1/2"></div>
           </div>
           <ul className="mt-4 space-y-2">
-            {["About Us", "Gallery", "Procedure", "Service", "Contact Us"].map(
+            {["Tentang Kami", "Artikel", "Prosedur", "Hubungi Kami", "Lowongan"].map(
               (item, index) => (
                 <li
                   key={index}
@@ -52,7 +52,7 @@ const Footer = () => {
 
         <div>
           <h3 className="text-lg font-semibold inline-block pb-1">
-            Recent Posts
+            Artikel Terbaru
           </h3>
           <div className="flex gap-5">
             <div className="bg-black w-1/5 h-0.5"></div>
@@ -94,7 +94,7 @@ const Footer = () => {
 
         <div>
           <h3 className="text-lg font-semibold  inline-block pb-1">
-            Contact Us
+            Hubungi Kami
           </h3>
           <div className="flex gap-5">
             <div className="bg-black w-1/5 h-0.5"></div>
@@ -102,10 +102,10 @@ const Footer = () => {
           </div>
           <ul className="mt-4 space-y-2 text-gray-600">
             <li>
-              <i className="bi bi-envelope mr-2"></i> info@example.com
+              <i className="bi bi-envelope mr-2"></i> elangprakoso088@gmail.com
             </li>
             <li>
-              <i className="bi bi-telephone mr-2"></i> +208-666-0112
+              <i className="bi bi-telephone mr-2"></i> +62 851-7955-1746
             </li>
           </ul>
           <div className="mt-4 flex border border-slate-500/50 rounded-lg overflow-hidden">
@@ -125,9 +125,9 @@ const Footer = () => {
               className="mr-2 cursor-pointer"
             />
             <label htmlFor="privacy">
-              I agree to the{" "}
+              Saya setuju dengan ketentuan{" "}
               <a href="#" className="text-blue-600 underline">
-                Privacy Policy
+                Kebijakan Privasi
               </a>
               .
             </label>
@@ -136,7 +136,7 @@ const Footer = () => {
       </div>
 
       <div className="bg-color-blue text-slate-200 text-sm font-light py-5 text-center relative flex justify-between px-10 items-center">
-        <p>&copy; All Copyright 2024 by Hummatech</p>
+        <p>&copy; Semua Hak Cipta 2025 oleh Universitas Trunojoyo Madura x Politeknik Negeri Banyuwangi</p>
         <a
           href="#top"
           className="absolute left-1/2 transform -translate-x-1/2 -top-5 bg-color-blue border-4 border-white text-white w-12 h-12 rounded-full shadow-lg flex justify-center items-center"
@@ -145,9 +145,9 @@ const Footer = () => {
         </a>
         <div className="mt-2">
           <a href="#" className="mr-4">
-            Terms & Condition
+            Syarat & Ketentuan
           </a>
-          <a href="#">Privacy Policy</a>
+          <a href="#">Kebijakan Privasi</a>
         </div>
       </div>
     </footer>

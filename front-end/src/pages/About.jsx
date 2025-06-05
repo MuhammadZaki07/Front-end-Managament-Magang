@@ -20,8 +20,8 @@ const About = () => {
   return (
     <>
       <Banner
-        title="ABOUT US"
-        subtitle="Home → About Us"
+        title="Tentang Kami"
+        subtitle="Beranda → Tentang Kami"
         backgroundImage="/assets/img/banner/study_tim.jpg"
         possitionIlustration={`right-0 top-18 w-full h-screen z-10`}
         ilustration={`ilustration_blue`}
