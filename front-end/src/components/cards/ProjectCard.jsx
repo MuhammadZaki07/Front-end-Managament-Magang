@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 // Project Stage Card Component
 const ProjectStageCard = ({ title, icon, message, isCompleted, isLocked, route  }) => {
   return (
-    <div className="border border-blue-500 rounded-2xl p-6 flex flex-col items-center h-full shadow-lg shadow-blue-200">
+    <div className="border border-gray-500 rounded-2xl p-6 flex flex-col items-center h-full shadow-lg ">
       <h3 className="text-xl font-semibold text-black mb-4">{title}</h3>
       
       <div className="flex justify-center mb-3">
