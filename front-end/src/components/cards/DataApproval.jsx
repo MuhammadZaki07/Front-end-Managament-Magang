@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import { CalendarDays, Download, Search, CheckCircle, XCircle, AlertTriangle, ChevronDown, DownloadIcon, FileIcon, SquarePen} from "lucide-react";
+import { CalendarDays, Download, Search, CheckCircle, XCircle, AlertTriangle, ChevronDown, DownloadIcon, FileIcon, SquarePen, X} from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CSVLink } from "react-csv";
 import axios from "axios";
 import Loading from "../Loading";
+
 export default function ApprovalTable() {
   const [activeTab, setActiveTab] = useState("pendaftaran");
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,6 +21,18 @@ export default function ApprovalTable() {
   const [dataIzin, setDataIzin] = useState([]);
   const [showModalIzin, setShowModalIzin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activePreview, setActivePreview] = useState('cv');
+
+  // State untuk modal nomor surat berdasarkan sekolah
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [sekolahGroups, setSekolahGroups] = useState({});
+  const [nomorSuratPerSekolah, setNomorSuratPerSekolah] = useState({});
+
+  // State untuk filters
+  const [filters, setFilters] = useState({
+    jurusan: '',
+    sekolah: ''
+  });
 
   const mapFrontendStatusToApi = (frontendStatus) => {
     switch (frontendStatus) {
@@ -31,6 +44,195 @@ export default function ApprovalTable() {
         return frontendStatus;
     }
   };
+
+  // Fungsi untuk mengelompokkan item berdasarkan sekolah
+  const groupItemsBySekolah = (itemIds) => {
+    const currentData = activeTab === "pendaftaran" ? dataPendaftaran : dataIzin;
+    const groups = {};
+    
+    itemIds.forEach(id => {
+      const item = currentData.find(data => data.id === id);
+      if (item && item.user && item.user.sekolah) {
+        const sekolah = item.user.sekolah;
+        if (!groups[sekolah]) {
+          groups[sekolah] = [];
+        }
+        groups[sekolah].push(id);
+      }
+    });
+    
+    return groups;
+  };
+
+  // Modifikasi handleBulkAction
+  const handleBulkAction = async (frontendActionStatus) => {
+    if (selectedItems.length === 0) {
+      setShowActionDropdown(false);
+      return;
+    }
+
+    // Jika aksi adalah "approved", tampilkan modal nomor surat berdasarkan sekolah
+    if (frontendActionStatus === "approved") {
+      const groups = groupItemsBySekolah(selectedItems);
+      setSekolahGroups(groups);
+      
+      // Initialize nomor surat object dengan sekolah sebagai key
+      const initialNomorSurat = {};
+      Object.keys(groups).forEach(sekolah => {
+        initialNomorSurat[sekolah] = '';
+      });
+      setNomorSuratPerSekolah(initialNomorSurat);
+      
+      setShowApprovalModal(true);
+      return;
+    }
+
+    // Untuk aksi selain approved, jalankan seperti biasa
+    await executeBulkAction(frontendActionStatus);
+  };
+
+  // Fungsi untuk menjalankan bulk action berdasarkan sekolah
+  const executeBulkActionBySekolah = async (frontendActionStatus, nomorSuratData) => {
+    const apiActionStatus = mapFrontendStatusToApi(frontendActionStatus);
+    const url = activeTab === "pendaftaran" 
+      ? `${API_BASE_URL}/many/magang`
+      : `${API_BASE_URL}/many/izin`;
+
+    try {
+      // Proses setiap sekolah secara terpisah
+      for (const [sekolah, itemIds] of Object.entries(sekolahGroups)) {
+        const payload = {
+          ids: itemIds,
+          status: apiActionStatus,
+          status_izin: apiActionStatus,
+          nomor_surat: nomorSuratData[sekolah] || ''
+        };
+
+        await axios.put(url, payload, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        });
+      }
+
+      // Reset dan refresh data
+      fetchDataIzin();
+      fetchDataPendaftaran();
+      setSelectedItems([]);
+      setShowActionDropdown(false);
+      
+      // Redirect setelah semua selesai
+      if (activeTab === "pendaftaran") {
+        window.location.href = "/perusahaan/cabang/${namaCabang}/approval";
+      } else {
+        window.location.href = "/perusahaan/cabang/${namaCabang}/approval";
+      }
+      
+    } catch (error) {
+      console.error("Terjadi kesalahan saat melakukan request API:", error);
+      if (error.response) {
+        console.error("Status error response:", error.response.status);
+        console.error("Data error response:", error.response.data);
+      } else if (error.request) {
+        console.error("Request yang dikirim:", error.request);
+      } else {
+        console.error("Pesan error:", error.message);
+      }
+      alert(
+        `Gagal melakukan aksi massal: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+      setShowActionDropdown(false);
+    }
+  };
+
+  // Fungsi untuk menjalankan bulk action (untuk non-approved actions)
+  const executeBulkAction = async (frontendActionStatus, nomorSuratParam = '') => {
+    const apiActionStatus = mapFrontendStatusToApi(frontendActionStatus);
+    const payload = {
+      ids: selectedItems,
+      status: apiActionStatus,
+      status_izin: apiActionStatus,
+    };
+
+    // Tambahkan nomor surat ke payload jika ada
+    if (nomorSuratParam && frontendActionStatus === "approved") {
+      payload.nomor_surat = nomorSuratParam;
+    }
+
+    const url =
+      activeTab === "pendaftaran"
+        ? `${API_BASE_URL}/many/magang`
+        : `${API_BASE_URL}/many/izin`;
+    
+    try {
+      await axios.put(url, payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (activeTab === "pendaftaran") {
+        window.location.href = "/perusahaan/cabang/${namaCabang}/approval";
+      } else {
+        window.location.href = "/perusahaan/cabang/${namaCabang}/approval";
+      }
+      fetchDataIzin();
+      fetchDataPendaftaran();
+      setSelectedItems([]);
+      setShowActionDropdown(false);
+    } catch (error) {
+      console.error("Terjadi kesalahan saat melakukan request API:", error);
+      if (error.response) {
+        console.error("Status error response:", error.response.status);
+        console.error("Data error response:", error.response.data);
+      } else if (error.request) {
+        console.error("Request yang dikirim:", error.request);
+      } else {
+        console.error("Pesan error:", error.message);
+      }
+      alert(
+        `Gagal melakukan aksi massal: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+      setShowActionDropdown(false);
+    }
+  };
+
+  // Fungsi untuk handle approval dengan nomor surat per sekolah
+  const handleApprovalSubmit = async () => {
+    // Validasi semua nomor surat telah diisi
+    const allFilled = Object.keys(sekolahGroups).every(sekolah => 
+      nomorSuratPerSekolah[sekolah] && nomorSuratPerSekolah[sekolah].trim()
+    );
+    
+    if (allFilled) {
+      await executeBulkActionBySekolah("approved", nomorSuratPerSekolah);
+      setShowApprovalModal(false);
+      setNomorSuratPerSekolah({});
+      setSekolahGroups({});
+    }
+  };
+
+  // Fungsi untuk menutup modal approval
+  const handleCloseApprovalModal = () => {
+    setShowApprovalModal(false);
+    setNomorSuratPerSekolah({});
+    setSekolahGroups({});
+  };
+
+  // Fungsi untuk update nomor surat per sekolah
+  const updateNomorSurat = (sekolah, value) => {
+    setNomorSuratPerSekolah(prev => ({
+      ...prev,
+      [sekolah]: value
+    }));
+  };
+
   const FileIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -47,6 +249,7 @@ export default function ApprovalTable() {
       />
     </svg>
   );
+
   const DownloadIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -63,6 +266,7 @@ export default function ApprovalTable() {
       />
     </svg>
   );
+
   const PreviewIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -85,21 +289,23 @@ export default function ApprovalTable() {
       />
     </svg>
   );
+
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedItem(null);
     document.body.classList.remove("modal-open");
   };
+
   const fetchDataPendaftaran = async () => {
     try {
       Swal.fire({
-          title: 'Memuat data...',
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          showConfirmButton: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
+        title: 'Memuat data...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
       });
 
       const response = await axios.get(`${API_BASE_URL}/magang`, {
@@ -109,14 +315,14 @@ export default function ApprovalTable() {
       });
       let pendaftaranData = response.data.data || response.data;
       setDataPendaftaran(pendaftaranData);
-
       Swal.close();
     } catch (error) {
       console.error("Failed to fetch data pendaftaran:", error);
       setLoading(false);
-
+      Swal.close();
     }
   };
+
   const fetchDataIzin = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/izin`, {
@@ -130,10 +336,12 @@ export default function ApprovalTable() {
       console.error("Failed to fetch data izin:", error);
     }
   };
+
   useEffect(() => {
     fetchDataPendaftaran();
     fetchDataIzin();
   }, []);
+
   const handleSelectItem = (id) => {
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
@@ -141,6 +349,7 @@ export default function ApprovalTable() {
       setSelectedItems([...selectedItems, id]);
     }
   };
+
   const handleIndividualAction = async (itemId, frontendActionStatus, type) => {
     const apiActionStatus = mapFrontendStatusToApi(frontendActionStatus);
     let url = "";
@@ -184,7 +393,6 @@ export default function ApprovalTable() {
           )
         );
       } else {
-        // izin
         setDataIzin((prevData) =>
           prevData.map((item) =>
             item.id === itemId
@@ -193,107 +401,92 @@ export default function ApprovalTable() {
           )
         );
       }
-     fetchDataPendaftaran()
-     fetchDataIzin()
-     setShowModal(false)
+      fetchDataPendaftaran();
+      fetchDataIzin();
+      setShowModal(false);
     } catch (error) {
       console.error(`Gagal mengupdate item ${itemId}:`, error);
       alert(`Gagal memperbarui status: ${error.message}`);
     }
   };
-  const handleBulkAction = async (frontendActionStatus) => {
-    if (selectedItems.length === 0) {
-      setShowActionDropdown(false);
-      return;
-    }
-    const apiActionStatus = mapFrontendStatusToApi(frontendActionStatus);
-    const payload = {
-      ids: selectedItems,
-      status: apiActionStatus,
-      status_izin: apiActionStatus,
-    };
-    const url =
-      activeTab === "pendaftaran"
-        ? `${API_BASE_URL}/many/magang`
-        : `${API_BASE_URL}/many/izin`;
-    try {
-      await axios.put(url, payload, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
-        },
-      });
 
-      if (activeTab === "pendaftaran") {
-        window.location.href = "/perusahaan/approval";
-      } else {
-        window.location.href = "/perusahaan/approval";
-      }
-     fetchDataIzin()
-     fetchDataPendaftaran()
-      setSelectedItems([]);
-      setShowActionDropdown(false);
-    } catch (error) {
-      // Penanganan error yang lebih lengkap
-      console.error("Terjadi kesalahan saat melakukan request API:", error);
-      if (error.response) {
-        // Jika ada response error dari server
-        console.error("Status error response:", error.response.status);
-        console.error("Data error response:", error.response.data);
-      } else if (error.request) {
-        // Jika request dikirim tapi tidak ada respons
-        console.error("Request yang dikirim:", error.request);
-      } else {
-        // Jika ada error lain (misalnya masalah dalam pengaturan request)
-        console.error("Pesan error:", error.message);
-      }
-      // Menampilkan alert dengan pesan error yang lebih jelas
-      alert(
-        `Gagal melakukan aksi massal: ${
-          error.response?.data?.message || error.message
-        }`
-      );
-      setShowActionDropdown(false);
-    }
+  // Function untuk handle filter change
+  const handleFilterChange = (filterType, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
   };
-  const filteredPendaftaran = dataPendaftaran.filter((item) => {
-    const matchesSearch =
-      item.user &&
-      Object.values(item.user).some(
-        (value) =>
-          typeof value === "string" &&
-          value.toLowerCase().includes(searchTerm.toLowerCase())
+
+  // Function untuk handle date change
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+
+  // Function untuk mendapatkan unique values untuk dropdown
+  const getUniqueValues = (field) => {
+    const currentData = activeTab === "pendaftaran" ? dataPendaftaran : dataIzin;
+    if (!currentData || !Array.isArray(currentData)) return [];
+    
+    const values = currentData
+      .map(item => item.user?.[field])
+      .filter(value => value && value.trim() !== '')
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .sort();
+    return values;
+  };
+
+  // Function untuk filter data yang lebih optimal
+  const getFilteredData = () => {
+    const currentData = activeTab === "pendaftaran" ? dataPendaftaran : dataIzin;
+    if (!currentData || !Array.isArray(currentData)) return [];
+    
+    let filtered = currentData;
+
+    // Filter berdasarkan search term
+    if (searchTerm) {
+      filtered = filtered.filter(item => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          item.user?.nama?.toLowerCase().includes(searchLower) ||
+          item.user?.jurusan?.toLowerCase().includes(searchLower) ||
+          item.user?.sekolah?.toLowerCase().includes(searchLower) ||
+          item.user?.email?.toLowerCase().includes(searchLower)
+        );
+      });
+    }
+
+    // Filter berdasarkan tanggal (created_at)
+    if (selectedDate) {
+      const selectedDateStr = selectedDate.toISOString().split('T')[0]; // Format YYYY-MM-DD
+      filtered = filtered.filter(item => {
+        if (!item.created_at) return false;
+        const itemDateStr = new Date(item.created_at).toISOString().split('T')[0];
+        return itemDateStr === selectedDateStr;
+      });
+    }
+
+    // Filter berdasarkan jurusan
+    if (filters.jurusan) {
+      filtered = filtered.filter(item =>
+        item.user?.jurusan === filters.jurusan
       );
-    const matchesDate =
-      !selectedDate ||
-      (item.mulai &&
-        item.mulai.includes(
-          selectedDate.toLocaleDateString("id-ID", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
-        ));
-    return matchesSearch && matchesDate;
-  });
-  const filteredIzin = dataIzin.filter((item) => {
-    const matchesSearch = Object.values(item).some(
-      (value) =>
-        typeof value === "string" &&
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    const matchesDate =
-      !selectedDate ||
-      (item.tanggalIzin &&
-        item.tanggalIzin.includes(
-          selectedDate.toLocaleDateString("id-ID", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
-        ));
-    return matchesSearch && matchesDate;
-  });
+    }
+
+    // Filter berdasarkan sekolah
+    if (filters.sekolah) {
+      filtered = filtered.filter(item =>
+        item.user?.sekolah === filters.sekolah
+      );
+    }
+
+    return filtered;
+  };
+
+  // Gunakan getFilteredData() untuk data yang sudah difilter
+  const filteredData = getFilteredData();
+
+  // Custom Button dengan forwardRef yang benar
   const CustomButton = React.forwardRef(({ value, onClick }, ref) => (
     <button
       className="flex items-center gap-2 bg-white text-[#344054] py-2 px-4 rounded-md shadow border border-[#667797] hover:bg-[#0069AB] hover:text-white text-sm"
@@ -311,21 +504,22 @@ export default function ApprovalTable() {
         : "Pilih Tanggal"}
     </button>
   ));
+
   const getStatusBadge = (status) => {
     switch (status) {
-      case "diterima": // Frontend status
+      case "diterima":
         return (
           <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
             Disetujui
           </span>
         );
-      case "ditolak": // Frontend status
+      case "ditolak":
         return (
           <span className="px-2 py-1 rounded-full bg-red-100 text-red-800 text-xs font-medium">
             Ditolak
           </span>
         );
-      default: // Biasanya "pending" atau status awal dari API
+      default:
         return (
           <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-medium">
             Pending
@@ -333,6 +527,7 @@ export default function ApprovalTable() {
         );
     }
   };
+
   const handleDownload = (doc) => {
     if (!doc || !doc.url) return;
     const baseUrl = import.meta.env.VITE_API_URL_FILE || "";
@@ -351,69 +546,6 @@ export default function ApprovalTable() {
       document.body.removeChild(link);
     }, 100);
   };
-  const [filters, setFilters] = useState({
-  jurusan: '',
-  sekolah: ''
-});
-
-// Function untuk filter data berdasarkan tanggal dan filter lainnya
-const getFilteredData = () => {
-  const currentData = activeTab === "pendaftaran" ? dataPendaftaran : dataIzin;
-  let filtered = currentData;
-
-  // Filter berdasarkan tanggal (created_at)
-  if (selectedDate) {
-    const selectedDateStr = selectedDate.toDateString();
-    filtered = filtered.filter(item => {
-      const itemDate = new Date(item.created_at);
-      return itemDate.toDateString() === selectedDateStr;
-    });
-  }
-
-  // Filter berdasarkan search term
-  if (searchTerm) {
-    filtered = filtered.filter(item =>
-      item.user?.nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.user?.jurusan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.user?.sekolah?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }
-
-  // Filter berdasarkan jurusan
-  if (filters.jurusan) {
-    filtered = filtered.filter(item =>
-      item.user?.jurusan?.toLowerCase().includes(filters.jurusan.toLowerCase())
-    );
-  }
-
-  // Filter berdasarkan sekolah
-  if (filters.sekolah) {
-    filtered = filtered.filter(item =>
-      item.user?.sekolah?.toLowerCase().includes(filters.sekolah.toLowerCase())
-    );
-  }
-
-  return filtered;
-};
-
-// Function untuk handle filter change
-const handleFilterChange = (filterType, value) => {
-  setFilters(prev => ({
-    ...prev,
-    [filterType]: value
-  }));
-};
-
-// Function untuk mendapatkan unique values untuk dropdown
-const getUniqueValues = (field) => {
-  const currentData = activeTab === "pendaftaran" ? dataPendaftaran : dataIzin;
-  const values = currentData
-    .map(item => item.user?.[field])
-    .filter(value => value && value.trim() !== '')
-    .filter((value, index, self) => self.indexOf(value) === index)
-    .sort();
-  return values;
-};
 
   const handlePreview = (document) => {
     if (!document || !document.url) return;
@@ -423,6 +555,7 @@ const getUniqueValues = (field) => {
     const finalUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${cleanUrl}`;
     window.open(finalUrl, "_blank");
   };
+
   const DocumentItem = ({ document, onDownload, onPreview }) => {
     return (
       <div className="border border-gray-200 rounded-lg p-2 mb-2 w-full">
@@ -457,6 +590,7 @@ const getUniqueValues = (field) => {
       </div>
     );
   };
+
   const InputLabel = ({ label, value }) => (
     <div>
       <label className="block text-gray-600 text-xs mb-1">{label}</label>
@@ -468,154 +602,196 @@ const getUniqueValues = (field) => {
       />
     </div>
   );
+
+  // Function untuk clear semua filter
+  const clearAllFilters = () => {
+    setSearchTerm("");
+    setSelectedDate(null);
+    setFilters({
+      jurusan: '',
+      sekolah: ''
+    });
+  };
+
   return (
     <div className="w-full">
       <div className="bg-white rounded-xl border border-gray-200 shadow-md overflow-hidden">
-          <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-xl font-semibold text-[#1D2939]">
-            Data Approval
-          </h2>
-          <p className="text-[#667085] text-sm mt-1">
-            Kelola data penerimaan dengan maksimal!
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <DatePicker
-            selected={selectedDate}
-            onChange={(date) => setSelectedDate(date)}
-            customInput={<CustomButton />}
-            dateFormat="dd MMMM yyyy"
-            showPopperArrow={false}
-            placeholderText="Pilih Tanggal"
-            isClearable
-          />
-          
-          <select
-            value={filters.jurusan}
-            onChange={(e) => handleFilterChange('jurusan', e.target.value)}
-            className="px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0069AB] bg-white w-[140px]"
-          >
-            <option value="">Semua Jurusan</option>
-            {getUniqueValues('jurusan').map((jurusan) => (
-              <option key={jurusan} value={jurusan}>
-                {jurusan}
-              </option>
-            ))}
-          </select>
-          
-          <select
-            value={filters.sekolah}
-            onChange={(e) => handleFilterChange('sekolah', e.target.value)}
-            className="px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0069AB] bg-white w-[140px] truncate"
-          >
-            <option value="">Semua Sekolah</option>
-            {getUniqueValues('sekolah').map((sekolah) => (
-              <option key={sekolah} value={sekolah} title={sekolah}>
-                {sekolah}
-              </option>
-            ))}
-          </select>
-          
-          
-        </div>
-      </div>
-      
-      <div className="border-b border-gray-200 my-5" />
-      
-      <div className="flex flex-wrap justify-between items-center gap-3">
-        <div className="flex gap-2">
-          <button
-            className={`px-4 py-2 rounded-lg text-sm border ${
-              activeTab === "pendaftaran"
-                ? "bg-[#0069AB] text-white"
-                : "border-gray-300 text-[#344054]"
-            }`}
-            onClick={() => {
-              setActiveTab("pendaftaran");
-              setSelectedItems([]); // Reset pilihan saat ganti tab
-              setShowActionDropdown(false);
-            }}
-          >
-            Pendaftaran
-          </button>
-          <button
-            className={`px-4 py-2 rounded-lg text-sm border ${
-              activeTab === "izin"
-                ? "bg-[#0069AB] text-white"
-                : "border-gray-300 text-[#344054]"
-            }`}
-            onClick={() => {
-              setActiveTab("izin");
-              setSelectedItems([]); // Reset pilihan saat ganti tab
-              setShowActionDropdown(false);
-            }}
-          >
-            Izin/Sakit
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Cari berdasarkan nama..."
-              className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm w-60"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <span className="absolute left-3 top-2.5 text-gray-400">
-              <Search size={16} />
-            </span>
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-[#1D2939]">
+                Data Approval
+              </h2>
+              <p className="text-[#667085] text-sm mt-1">
+                Kelola data penerimaan dengan maksimal!
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
       
-      {selectedItems.length > 0 && (
-        <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg mt-4">
-          <div className="text-sm text-blue-700">
-            {selectedItems.length} item dipilih
-          </div>
-          <div className="relative">
-            <button
-              className="flex items-center gap-2 bg-[#0069AB] text-white px-4 py-2 rounded-lg text-sm"
-              onClick={() => setShowActionDropdown(!showActionDropdown)}
-            >
-              Aksi Massal
-              <ChevronDown size={14} />
-            </button>
+          <div className="border-b border-gray-200 my-5" />
+      
+          <div className="flex flex-wrap justify-between items-center gap-3">
+            <div className="flex gap-2">
+              <button
+                className={`px-4 py-2 rounded-lg text-sm border ${
+                  activeTab === "pendaftaran"
+                    ? "bg-[#0069AB] text-white"
+                    : "border-gray-300 text-[#344054]"
+                }`}
+                onClick={() => {
+                  setActiveTab("pendaftaran");
+                  setSelectedItems([]);
+                  setShowActionDropdown(false);
+                }}
+              >
+                Pendaftaran
+              </button>
+              <button
+                className={`px-4 py-2 rounded-lg text-sm border ${
+                  activeTab === "izin"
+                    ? "bg-[#0069AB] text-white"
+                    : "border-gray-300 text-[#344054]"
+                }`}
+                onClick={() => {
+                  setActiveTab("izin");
+                  setSelectedItems([]);
+                  setShowActionDropdown(false);
+                }}
+              >
+                Izin/Sakit
+              </button>
+            </div>
 
-            {showActionDropdown && (
-              <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-40">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Cari"
+                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm w-60"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <span className="absolute left-3 top-2.5 text-gray-400">
+                  <Search size={16} />
+                </span>
+              </div>
+            </div>
+          </div>
+      
+          {/* Bulk Action Bar */}
+          {selectedItems.length > 0 && (
+            <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg mt-4">
+              <div className="text-sm text-blue-700">
+                {selectedItems.length} item dipilih
+                {Object.keys(groupItemsBySekolah(selectedItems)).length > 1 && (
+                  <span className="ml-2 text-orange-600">
+                    ({Object.keys(groupItemsBySekolah(selectedItems)).length} sekolah berbeda)
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2">
                 <button
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-gray-100 w-full text-left"
+                  className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700"
                   onClick={() => handleBulkAction("approved")}
                 >
                   <CheckCircle size={14} />
-                  Setujui
+                  Terima
                 </button>
                 <button
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
+                  className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700"
                   onClick={() => handleBulkAction("rejected")}
                 >
                   <XCircle size={14} />
                   Tolak
                 </button>
                 <button
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-yellow-600 hover:bg-gray-100 w-full text-left"
+                  className="flex items-center gap-2 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-700"
                   onClick={() => handleBulkAction("blocked")}
                 >
                   <AlertTriangle size={14} />
                   Blokir
                 </button>
               </div>
-            )}
+            </div>
+          )}
+
+          {/* Modal untuk Nomor Surat per Sekolah */}
+{showApprovalModal && (
+  <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 p-4">
+    <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-gray-200">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Masukkan Nomor Surat per Sekolah
+          </h3>
+          <button
+            onClick={handleCloseApprovalModal}
+            className="text-gray-400 hover:text-gray-600 p-1"
+          >
+            <X size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="overflow-y-auto max-h-[calc(80vh-140px)]">
+        <div className="p-6">
+          <p className="text-sm text-gray-600 mb-6">
+            Anda akan menyetujui {selectedItems.length} item dari {Object.keys(sekolahGroups).length} sekolah. 
+            Setiap sekolah memerlukan nomor surat terpisah.
+          </p>
+
+          <div className="space-y-4">
+            {Object.entries(sekolahGroups).map(([sekolah, itemIds]) => (
+              <div key={sekolah} className="border border-gray-200 rounded-lg p-4">
+                <div className="mb-3">
+                  <h4 className="font-medium text-gray-900 mb-1">{sekolah}</h4>
+                  <p className="text-sm text-gray-500">
+                    {itemIds.length} item akan disetujui
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nomor Surat
+                  </label>
+                  <input
+                    type="text"
+                    value={nomorSuratPerSekolah[sekolah] || ''}
+                    onChange={(e) => updateNomorSurat(sekolah, e.target.value)}
+                    placeholder="Contoh: 001/APP/SMK-ABC/2025"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Footer */}
+      <div className="px-6 py-4 border-t border-gray-200">
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={handleCloseApprovalModal}
+            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleApprovalSubmit}
+            disabled={!Object.keys(sekolahGroups).every(sekolah => nomorSuratPerSekolah[sekolah]?.trim())}
+            className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          >
+            Setujui
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
 
     {/* Table for Pendaftaran */}
@@ -634,7 +810,7 @@ const getUniqueValues = (field) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filteredPendaftaran.map((item) => (
+            {filteredData.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <input
@@ -693,7 +869,7 @@ const getUniqueValues = (field) => {
                 </td>
               </tr>
             ))}
-            {filteredPendaftaran.length === 0 && (
+            {filteredData.length === 0 && (
               <tr>
                 <td
                   colSpan={7}
@@ -809,41 +985,39 @@ const getUniqueValues = (field) => {
     }}
   >
     <div
-      className="bg-white rounded-lg max-w-4xl w-full shadow-lg pointer-events-auto max-h-[90vh] overflow-y-auto scrollbar-hide"
+      className="bg-white rounded-lg max-w-7xl w-full h-[90vh] shadow-lg pointer-events-auto flex overflow-hidden"
       onClick={(e) => e.stopPropagation()}
-      style={{
-        scrollbarWidth: 'none', /* Firefox */
-        msOverflowStyle: 'none', /* Internet Explorer 10+ */
-      }}
     >
-      {/* Konten utama pendaftar */}
-      <div className="p-4">
-        <h2 className="text-lg font-semibold mb-3">Detail Pendaftar</h2>
+      {/* Sisi Kiri - Informasi Pendaftar */}
+      <div className="flex-1 p-6 overflow-y-auto scrollbar-hide" style={{
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}>
+        <h2 className="text-xl font-semibold mb-4">Detail Pendaftar</h2>
 
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Kolom foto profil */}
-          <div className="flex-shrink-0 lg:w-40">
+        <div className="flex flex-col gap-6">
+          {/* Foto profil */}
+          <div className="flex justify-center">
             <img
               src={
                 selectedItem.user?.foto?.find((f) => f.type === "profile")
                   ? `${import.meta.env.VITE_API_URL_FILE}/storage/${
-                      selectedItem.user.foto.find((f) => f.type === "profile")
-                        .path
+                      selectedItem.user.foto.find((f) => f.type === "profile").path
                     }`
                   : "/placeholder-profile.jpg"
               }
               alt={selectedItem.user?.nama}
-              className="w-full h-40 rounded-lg object-cover mx-auto"
+              className="w-32 h-32 rounded-full object-cover shadow-md"
               onError={(e) => {
                 e.target.src = "/placeholder-profile.jpg";
               }}
             />
           </div>
 
-          {/* Kolom Informasi - layout lebih kompak */}
-          <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+          {/* Informasi Personal */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
             {/* Kolom 1 */}
-            <div className="space-y-1">
+            <div className="space-y-3">
               <InputLabel label="Nama" value={selectedItem.user?.nama} />
               <InputLabel
                 label="Jenis Kelamin"
@@ -865,7 +1039,7 @@ const getUniqueValues = (field) => {
             </div>
 
             {/* Kolom 2 */}
-            <div className="space-y-1">
+            <div className="space-y-3">
               <InputLabel label="Alamat" value={selectedItem.user?.alamat} />
               <InputLabel label="No. HP" value={selectedItem.user?.telepon} />
               <InputLabel
@@ -874,79 +1048,127 @@ const getUniqueValues = (field) => {
               />
               <InputLabel label="Jurusan" value={selectedItem.user?.jurusan} />
               <div>
-                <label className="block text-gray-600 text-xs">
+                <label className="block text-gray-600 text-sm font-medium mb-1">
                   Status Pendaftaran
                 </label>
-                <span className="bg-orange-100 text-orange-500 px-2 py-1 rounded text-xs inline-block mt-1">
+                <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-sm font-medium">
                   {selectedItem.status || "Menunggu Konfirmasi"}
                 </span>
               </div>
-
-              {/* Tombol Aksi */}
-              <div className="flex gap-6 mt-6">
-                {/* Tombol Tolak */}
-                <button
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 bg-red-100 text-sm font-medium transition-colors"
-                  onClick={() => {
-                    Swal.fire({
-                      title: "Apakah Anda yakin?",
-                      text: "Anda akan menolak siswa ini.",
-                      icon: "warning",
-                      showCancelButton: true,
-                      confirmButtonColor: "#d33",
-                      cancelButtonColor: "#aaa",
-                      confirmButtonText: "Ya, Tolak",
-                      cancelButtonText: "Batal",
-                    }).then((result) => {
-                      if (result.isConfirmed) {
-                        handleIndividualAction(selectedItem.id, "rejected", "pendaftaran");
-                      }
-                    });
-                  }}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Tolak
-                </button>
-
-                {/* Tombol Terima */}
-                <button
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-green-600 hover:bg-green-50 bg-green-100 text-sm font-medium transition-colors"
-                  onClick={() => {
-                    Swal.fire({
-                      title: "Apakah Anda yakin?",
-                      text: "Anda akan menerima siswa ini.",
-                      icon: "question",
-                      showCancelButton: true,
-                      confirmButtonColor: "#22c55e",
-                      cancelButtonColor: "#aaa",
-                      confirmButtonText: "Ya, Terima",
-                      cancelButtonText: "Batal",
-                    }).then((result) => {
-                      if (result.isConfirmed) {
-                        handleIndividualAction(selectedItem.id, "approved", "pendaftaran");
-                      }
-                    });
-                  }}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Terima
-                </button>
-              </div>
             </div>
           </div>
-        </div>
 
-        {/* Preview Dokumen - layout lebih kompak */}
-        <div className="mt-4 pt-3 border-t border-gray-200">
-          <h3 className="text-base font-semibold mb-3">Preview Dokumen</h3>
-          
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-            {/* Preview CV */}
-            <div>
+          {/* Tombol Aksi */}
+          <div className="flex gap-4 pt-4 border-t">
+            {/* Tombol Tolak */}
+            <button
+              className="flex items-center gap-2 px-6 py-3 rounded-lg text-red-600 hover:bg-red-50 bg-red-100 font-medium transition-all duration-200 hover:shadow-md"
+              onClick={() => {
+                Swal.fire({
+                  title: "Apakah Anda yakin?",
+                  text: "Anda akan menolak siswa ini.",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#dc2626",
+                  cancelButtonColor: "#6b7280",
+                  confirmButtonText: "Ya, Tolak",
+                  cancelButtonText: "Batal",
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    handleIndividualAction(selectedItem.id, "rejected", "pendaftaran");
+                  }
+                });
+              }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Tolak Pendaftar
+            </button>
+
+            {/* Tombol Terima */}
+            <button
+              className="flex items-center gap-2 px-6 py-3 rounded-lg text-green-600 hover:bg-green-50 bg-green-100 font-medium transition-all duration-200 hover:shadow-md"
+              onClick={() => {
+                Swal.fire({
+                  title: "Apakah Anda yakin?",
+                  text: "Anda akan menerima siswa ini.",
+                  icon: "question",
+                  showCancelButton: true,
+                  confirmButtonColor: "#16a34a",
+                  cancelButtonColor: "#6b7280",
+                  confirmButtonText: "Ya, Terima",
+                  cancelButtonText: "Batal",
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    handleIndividualAction(selectedItem.id, "approved", "pendaftaran");
+                  }
+                });
+              }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Terima Pendaftar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Sisi Kanan - Preview Dokumen */}
+      <div className="w-1/2 bg-gray-50 border-l flex flex-col">
+        {/* <div className="p-4 border-b bg-white">
+          <h3 className="text-lg font-semibold text-gray-800">Preview Dokumen</h3>
+        </div> */}
+
+        <div className="flex-1 overflow-y-auto">
+          {/* CV Section */}
+          <div className="mb-6">
+            <div className="bg-white p-3 sticky top-0 z-10">
+              <div className="flex justify-between items-center">
+                <h2 className="text-md font-medium text-gray-700">CV</h2>
+                {(() => {
+                  const cv = selectedItem.user?.foto?.find((f) => f.type === "cv");
+                  if (cv && cv.path) {
+                    const cvUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${cv.path}`;
+                    const fileExtension = cv.path.split('.').pop().toLowerCase();
+                    return (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => window.open(cvUrl, '_blank')}
+                          className="p-2 hover:bg-gray-100 rounded text-gray-600 transition-colors"
+                          title="Buka di tab baru"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = cvUrl;
+                            link.download = `CV_${selectedItem.user?.nama || 'document'}.${fileExtension}`;
+                            link.target = '_blank';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded text-gray-600 transition-colors"
+                          title="Download CV"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            </div>
+            
+            <div className="p-4 bg-white min-h-[300px]">
               {(() => {
                 const cv = selectedItem.user?.foto?.find((f) => f.type === "cv");
                 
@@ -954,93 +1176,107 @@ const getUniqueValues = (field) => {
                   const cvUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${cv.path}`;
                   const fileExtension = cv.path.split('.').pop().toLowerCase();
                   
-                  return (
-                    <div className="border rounded-lg overflow-hidden shadow-sm">
-                      <div className="bg-gray-50 px-3 py-2 border-b flex justify-between items-center">
-                        <span className="text-xs font-semibold text-gray-700">CV ({fileExtension.toUpperCase()})</span>
-                        <div className="flex gap-2">
+                  if (fileExtension === 'pdf') {
+                    return (
+                      <div className="h-[300px]">
+                        <embed
+                          src={cvUrl}
+                          type="application/pdf"
+                          className="w-full h-full rounded border"
+                        />
+                      </div>
+                    );
+                  } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExtension)) {
+                    return (
+                      <div className="flex justify-center">
+                        <img
+                          src={cvUrl}
+                          alt="CV Preview"
+                          className="max-w-full h-auto rounded shadow-sm"
+                          onError={(e) => {
+                            console.error('Error loading CV image');
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="flex items-center justify-center h-[300px] text-center">
+                        <div>
+                          <div className="text-4xl mb-4 text-gray-400">📄</div>
+                          <p className="text-gray-600 mb-2">Preview tidak tersedia untuk format ini</p>
                           <button
-                            onClick={() => {
-                              const link = document.createElement('a');
-                              link.href = cvUrl;
-                              link.download = `CV_${selectedItem.user?.nama || 'document'}.${fileExtension}`;
-                              link.target = '_blank';
-                              document.body.appendChild(link);
-                              link.click();
-                              document.body.removeChild(link);
-                            }}
-                            className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors"
-                            title="Download CV"
+                            onClick={() => window.open(cvUrl, '_blank')}
+                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                            Buka File
                           </button>
                         </div>
                       </div>
-                      <div className="bg-white">
-                        {(() => {
-                          if (fileExtension === 'pdf') {
-                            return (
-                              <iframe
-                                src={`${cvUrl}#view=FitH&toolbar=0&navpanes=0`}
-                                className="w-full h-64 border-0"
-                                title="Preview CV"
-                              />
-                            );
-                          } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExtension)) {
-                            return (
-                              <div className="p-2">
-                                <img
-                                  src={cvUrl}
-                                  alt="CV Preview"
-                                  className="w-full h-auto max-h-60 object-contain rounded"
-                                  onError={(e) => {
-                                    console.error('Error loading CV image');
-                                    e.target.style.display = 'none';
-                                  }}
-                                />
-                              </div>
-                            );
-                          } else {
-                            return (
-                              <iframe
-                                src={`https://docs.google.com/gview?url=${encodeURIComponent(cvUrl)}&embedded=true&rm=minimal`}
-                                className="w-full h-64 border-0"
-                                title="Preview CV"
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                  const fallback = document.createElement('div');
-                                  fallback.className = 'flex items-center justify-center h-64 text-center p-3 bg-gray-50';
-                                  fallback.innerHTML = `
-                                    <div>
-                                      <div class="text-2xl mb-2 text-gray-400">📄</div>
-                                      <p class="text-xs text-gray-500">Preview tidak tersedia</p>
-                                    </div>
-                                  `;
-                                  e.target.parentNode.appendChild(fallback);
-                                }}
-                              />
-                            );
-                          }
-                        })()}
-                      </div>
-                    </div>
-                  );
+                    );
+                  }
                 } else {
                   return (
-                    <div className="border rounded-lg p-4 text-center bg-gray-50">
-                      <div className="text-2xl mb-2 text-gray-400">📄</div>
-                      <span className="text-xs font-semibold text-gray-700 block mb-1">CV</span>
-                      <p class="text-xs text-gray-500">CV belum tersedia</p>
+                    <div className="flex items-center justify-center h-[300px] text-center">
+                      <div>
+                        <div className="text-4xl mb-4 text-gray-400">📄</div>
+                        <p className="text-gray-600">CV belum tersedia</p>
+                      </div>
                     </div>
                   );
                 }
               })()}
             </div>
+          </div>
 
-            {/* Preview Surat Pernyataan */}
-            <div>
+          {/* Surat Pernyataan Section */}
+          <div>
+            <div className="bg-white border-b p-3 sticky top-0 z-10">
+              <div className="flex justify-between items-center">
+                <h4 className="text-md font-medium text-gray-700">Surat Pernyataan</h4>
+                {(() => {
+                  const surat = selectedItem.user?.berkas?.find((b) => b.type === "surat_pernyataan_diri");
+                  if (surat && surat.path) {
+                    const suratUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${surat.path}`;
+                    const fileExtension = surat.path.split('.').pop().toLowerCase();
+                    return (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => window.open(suratUrl, '_blank')}
+                          className="p-2 hover:bg-gray-100 rounded text-gray-600 transition-colors"
+                          title="Buka di tab baru"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = suratUrl;
+                            link.download = `Surat_Pernyataan_${selectedItem.user?.nama || 'document'}.${fileExtension}`;
+                            link.target = '_blank';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded text-gray-600 transition-colors"
+                          title="Download Surat Pernyataan"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            </div>
+            
+            <div className="p-4 bg-white min-h-[300px]">
               {(() => {
                 const surat = selectedItem.user?.berkas?.find((b) => b.type === "surat_pernyataan_diri");
                 
@@ -1048,85 +1284,53 @@ const getUniqueValues = (field) => {
                   const suratUrl = `${import.meta.env.VITE_API_URL_FILE}/storage/${surat.path}`;
                   const fileExtension = surat.path.split('.').pop().toLowerCase();
 
-                  return (
-                    <div className="border rounded-lg overflow-hidden shadow-sm">
-                      <div className="bg-gray-50 px-3 py-2 border-b flex justify-between items-center">
-                        <span className="text-xs font-semibold text-gray-700">Surat Pernyataan ({fileExtension.toUpperCase()})</span>
-                        <div className="flex gap-2">
+                  if (fileExtension === 'pdf') {
+                    return (
+                      <div className="h-[300px]">
+                        <embed
+                          src={suratUrl}
+                          type="application/pdf"
+                          className="w-full h-full rounded border"
+                        />
+                      </div>
+                    );
+                  } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExtension)) {
+                    return (
+                      <div className="flex justify-center">
+                        <img
+                          src={suratUrl}
+                          alt="Surat Pernyataan Preview"
+                          className="max-w-full h-auto rounded shadow-sm"
+                          onError={(e) => {
+                            console.error('Error loading Surat Pernyataan image');
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="flex items-center justify-center h-[300px] text-center">
+                        <div>
+                          <div className="text-4xl mb-4 text-gray-400">📋</div>
+                          <p className="text-gray-600 mb-2">Preview tidak tersedia untuk format ini</p>
                           <button
-                            onClick={() => {
-                              const link = document.createElement('a');
-                              link.href = suratUrl;
-                              link.download = `Surat_Pernyataan_${selectedItem.user?.nama || 'document'}.${fileExtension}`;
-                              link.target = '_blank';
-                              document.body.appendChild(link);
-                              link.click();
-                              document.body.removeChild(link);
-                            }}
-                            className="p-1 hover:bg-gray-200 rounded text-gray-600 transition-colors"
-                            title="Download Surat Pernyataan"
+                            onClick={() => window.open(suratUrl, '_blank')}
+                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                            Buka File
                           </button>
                         </div>
                       </div>
-                      <div className="bg-white">
-                        {(() => {
-                          if (fileExtension === 'pdf') {
-                            return (
-                              <iframe
-                                src={`${suratUrl}#view=FitH&toolbar=0&navpanes=0`}
-                                className="w-full h-64 border-0"
-                                title="Preview Surat Pernyataan"
-                              />
-                            );
-                          } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExtension)) {
-                            return (
-                              <div className="p-2">
-                                <img
-                                  src={suratUrl}
-                                  alt="Surat Pernyataan Preview"
-                                  className="w-full h-auto max-h-60 object-contain rounded"
-                                  onError={(e) => {
-                                    console.error('Error loading Surat Pernyataan image');
-                                    e.target.style.display = 'none';
-                                  }}
-                                />
-                              </div>
-                            );
-                          } else {
-                            return (
-                              <iframe
-                                src={`https://docs.google.com/gview?url=${encodeURIComponent(suratUrl)}&embedded=true&rm=minimal`}
-                                className="w-full h-64 border-0"
-                                title="Preview Surat Pernyataan"
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                  const fallback = document.createElement('div');
-                                  fallback.className = 'flex items-center justify-center h-64 text-center p-3 bg-gray-50';
-                                  fallback.innerHTML = `
-                                    <div>
-                                      <div class="text-2xl mb-2 text-gray-400">📋</div>
-                                      <p class="text-xs text-gray-500">Preview tidak tersedia</p>
-                                    </div>
-                                  `;
-                                  e.target.parentNode.appendChild(fallback);
-                                }}
-                              />
-                            );
-                          }
-                        })()}
-                      </div>
-                    </div>
-                  );
+                    );
+                  }
                 } else {
                   return (
-                    <div className="border rounded-lg p-4 text-center bg-gray-50">
-                      <div className="text-2xl mb-2 text-gray-400">📋</div>
-                      <span className="text-xs font-semibold text-gray-700 block mb-1">Surat Pernyataan</span>
-                      <p class="text-xs text-gray-500">Surat pernyataan belum tersedia</p>
+                    <div className="flex items-center justify-center h-[300px] text-center">
+                      <div>
+                        <div className="text-4xl mb-4 text-gray-400">📋</div>
+                        <p className="text-gray-600">Surat pernyataan belum tersedia</p>
+                      </div>
                     </div>
                   );
                 }
